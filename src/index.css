@@ -1,0 +1,111 @@
+@import "tailwindcss";
+
+/* ── Design Tokens ─────────────────────────────────────────── */
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  /* Custom accent palette */
+  --color-accent-50:  #eef6ff;
+  --color-accent-100: #d9ebff;
+  --color-accent-200: #bcdcff;
+  --color-accent-300: #8ec6ff;
+  --color-accent-400: #59a5ff;
+  --color-accent-500: #3381ff;
+  --color-accent-600: #1b5ff5;
+  --color-accent-700: #1449e1;
+  --color-accent-800: #173bb6;
+  --color-accent-900: #19358f;
+  --color-accent-950: #142257;
+}
+
+/* ── Base Layer ─────────────────────────────────────────────── */
+@layer base {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: theme(--color-zinc-700) transparent;
+  }
+
+  ::selection {
+    background-color: theme(--color-accent-500 / 30%);
+    color: theme(--color-zinc-50);
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: theme(--font-sans);
+    background-color: theme(--color-zinc-950);
+    color: theme(--color-zinc-100);
+    overflow-x: hidden;
+  }
+}
+
+/* ── Utility Animations ────────────────────────────────────── */
+@layer utilities {
+  .animate-fade-up {
+    animation: fadeUp 0.6s ease-out both;
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-out both;
+  }
+
+  .animate-scale-in {
+    animation: scaleIn 0.4s ease-out both;
+  }
+
+  .glass {
+    background: theme(--color-zinc-900 / 60%);
+    backdrop-filter: blur(20px) saturate(1.5);
+    border: 1px solid theme(--color-zinc-800 / 50%);
+  }
+
+  .glow-accent {
+    box-shadow: 0 0 40px -10px theme(--color-accent-500 / 25%);
+  }
+
+  .text-gradient {
+    background: linear-gradient(135deg, theme(--color-zinc-100), theme(--color-accent-400));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .dot-pattern {
+    background-image: radial-gradient(
+      theme(--color-zinc-700 / 30%) 1px,
+      transparent 1px
+    );
+    background-size: 24px 24px;
+  }
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
