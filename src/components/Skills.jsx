@@ -25,7 +25,7 @@ export default function Skills() {
             return (
               <div
                 key={skill.category}
-                className="group rounded-2xl border border-zinc-800/50 bg-zinc-900/40 p-6 transition-all duration-300 hover:border-zinc-700/60 hover:bg-zinc-900/70 hover:shadow-lg hover:shadow-black/10"
+                className="group rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 transition-all duration-300 hover:border-zinc-700 hover:bg-zinc-900/80"
                 style={{ animationDelay: `${idx * 100}ms` }}
               >
                 <div className="mb-4 flex items-center gap-3">

@@ -31,7 +31,7 @@ export default function Header() {
             size={18}
             className="text-accent-400 transition-transform duration-300 group-hover:rotate-12 group-hover:scale-110"
           />
-          <span className="text-gradient">Space</span>
+          <span className="text-zinc-100 font-bold">Space</span>
           <span className="ml-1 hidden text-xs font-normal text-zinc-500 sm:inline">
             {PROFILE.subdomain}
           </span>
@@ -52,7 +52,7 @@ export default function Header() {
             href={PROFILE.links.expo}
             target="_blank"
             rel="noopener noreferrer"
-            className="ml-2 rounded-lg bg-accent-600/15 px-3.5 py-2 text-sm font-medium text-accent-400 ring-1 ring-accent-500/20 transition-all duration-200 hover:bg-accent-600/25 hover:ring-accent-500/40"
+            className="ml-2 rounded-lg border border-zinc-800 px-3.5 py-2 text-sm font-medium text-zinc-300 transition-all duration-200 hover:bg-zinc-800 hover:text-zinc-100"
           >
             Expo →
           </a>

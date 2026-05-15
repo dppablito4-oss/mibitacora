@@ -6,7 +6,7 @@
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
 
   /* Custom accent palette */
-  --color-accent-50:  #eef6ff;
+  --color-accent-50: #eef6ff;
   --color-accent-100: #d9ebff;
   --color-accent-200: #bcdcff;
   --color-accent-300: #8ec6ff;
@@ -75,10 +75,8 @@
   }
 
   .dot-pattern {
-    background-image: radial-gradient(
-      theme(--color-zinc-700 / 30%) 1px,
-      transparent 1px
-    );
+    background-image: radial-gradient(theme(--color-zinc-700 / 30%) 1px,
+        transparent 1px);
     background-size: 24px 24px;
   }
 }
@@ -88,6 +86,7 @@
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -95,8 +94,13 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes scaleIn {
@@ -104,6 +108,7 @@
     opacity: 0;
     transform: scale(0.95);
   }
+
   to {
     opacity: 1;
     transform: scale(1);

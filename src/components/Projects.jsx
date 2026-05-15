@@ -4,11 +4,6 @@ import { PROJECTS } from '../data/siteData';
 export default function Projects() {
   return (
     <section id="proyectos" className="relative py-24">
-      {/* Gradient accent */}
-      <div className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2">
-        <div className="h-[400px] w-[400px] rounded-full bg-accent-500/5 blur-[100px]" />
-      </div>
-
       <div className="relative mx-auto max-w-6xl px-6">
         {/* Section header */}
         <div className="mb-14">
@@ -31,15 +26,10 @@ export default function Projects() {
               href={project.url}
               target="_blank"
               rel="noopener noreferrer"
-              className={`group relative overflow-hidden rounded-2xl border border-zinc-800/50 bg-zinc-900/40 p-7 transition-all duration-400 hover:border-zinc-700/60 hover:bg-zinc-900/70 hover:shadow-xl hover:shadow-black/20 ${
+              className={`group relative overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/40 p-7 transition-all duration-400 hover:border-zinc-700 hover:bg-zinc-900/80 ${
                 idx === 0 ? 'sm:col-span-2' : ''
               }`}
             >
-              {/* Background gradient */}
-              <div
-                className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${project.color} opacity-0 transition-opacity duration-500 group-hover:opacity-100`}
-              />
-
               {/* Content */}
               <div className="relative">
                 <div className="mb-4 flex items-start justify-between">

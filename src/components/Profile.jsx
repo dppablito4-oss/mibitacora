@@ -4,22 +4,14 @@ import { PROFILE } from '../data/siteData';
 export default function Profile() {
   return (
     <section id="perfil" className="relative pt-32 pb-20">
-      {/* Dot pattern background */}
-      <div className="dot-pattern pointer-events-none absolute inset-0 opacity-40" />
-
-      {/* Gradient orb */}
-      <div className="pointer-events-none absolute top-20 left-1/2 -translate-x-1/2">
-        <div className="h-[500px] w-[500px] rounded-full bg-accent-500/8 blur-[120px]" />
-      </div>
-
       <div className="relative mx-auto max-w-6xl px-6">
         <div className="flex flex-col items-center gap-8 md:flex-row md:items-start md:gap-14">
           {/* Avatar */}
           <div className="group relative shrink-0">
-            <div className="relative h-36 w-36 overflow-hidden rounded-2xl border border-zinc-800/60 bg-zinc-900 shadow-xl shadow-black/20 transition-transform duration-500 group-hover:scale-[1.02]">
+            <div className="relative h-36 w-36 overflow-hidden rounded-full border border-zinc-800 bg-zinc-900 transition-transform duration-500 group-hover:scale-[1.02]">
               {/* Elegant monogram avatar */}
-              <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-accent-600/20 to-violet-600/20">
-                <span className="text-5xl font-bold text-gradient select-none">
+              <div className="flex h-full w-full items-center justify-center bg-zinc-900">
+                <span className="text-5xl font-light text-zinc-100 select-none">
                   P
                 </span>
               </div>
@@ -46,11 +38,11 @@ export default function Profile() {
               </span>
             </div>
 
-            <h1 className="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
-              <span className="text-gradient">{PROFILE.name}</span>
+            <h1 className="text-4xl font-semibold tracking-tight text-zinc-100 sm:text-5xl lg:text-6xl">
+              {PROFILE.name}
             </h1>
 
-            <p className="mt-2 text-lg font-medium text-zinc-400 sm:text-xl">
+            <p className="mt-3 text-lg font-normal text-zinc-400 sm:text-xl">
               {PROFILE.tagline}
             </p>
 
@@ -86,7 +78,7 @@ export default function Profile() {
                 href={PROFILE.links.expo}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 rounded-xl border border-accent-500/20 bg-accent-600/10 px-5 py-2.5 text-sm font-medium text-accent-400 transition-all duration-200 hover:border-accent-500/40 hover:bg-accent-600/20"
+                className="inline-flex items-center gap-2 rounded-xl border border-zinc-800 bg-zinc-900/80 px-5 py-2.5 text-sm font-medium text-zinc-300 transition-all duration-200 hover:border-zinc-700 hover:bg-zinc-800/80 hover:text-zinc-100"
               >
                 <ExternalLink size={16} />
                 Expo

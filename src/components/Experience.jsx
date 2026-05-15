@@ -35,7 +35,7 @@ export default function Experience() {
                 </div>
 
                 {/* Content */}
-                <div className="rounded-2xl border border-zinc-800/50 bg-zinc-900/40 p-6 transition-all duration-300 group-hover:border-zinc-700/60 group-hover:bg-zinc-900/70 flex-1">
+                <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 transition-all duration-300 group-hover:border-zinc-700 group-hover:bg-zinc-900/80 flex-1">
                   <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                     <h3 className="text-base font-semibold text-zinc-100">
                       {exp.role}
