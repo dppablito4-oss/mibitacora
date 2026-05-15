@@ -8,7 +8,7 @@ export const PROFILE = {
   links: {
     github: 'https://github.com/dppablito4-oss',
     expo: 'https://expo.sypablitodp.site',
-    email: 'mailto:contacto@sypablitodp.site',
+    email: 'mailto:pabloclsa87@gmail.com',
   },
 };
 
@@ -50,7 +50,7 @@ export const PROJECTS = [
     title: 'Grafiplot',
     description: 'Servicio de impresión digital con landing page premium, dashboard admin y asistente IA Graphita.',
     tags: ['Next.js', 'Supabase', 'Tailwind', 'IA'],
-    url: 'https://grafiplot.sypablitodp.site',
+    url: 'https://grafiplotvasquez.lat',
     color: 'from-red-500/20 to-orange-500/20',
     accent: '#ef4444',
   },
@@ -66,7 +66,7 @@ export const PROJECTS = [
     title: 'I.E.I. N° 090',
     description: 'Sitio institucional educativo con diseño dark mode, dashboard admin y sistema de contenido dinámico.',
     tags: ['HTML', 'CSS', 'JavaScript', 'GitHub Pages'],
-    url: '#',
+    url: 'https://iein090-pampas-de-flores.sypablitodp.site',
     color: 'from-emerald-500/20 to-teal-500/20',
     accent: '#10b981',
   },
