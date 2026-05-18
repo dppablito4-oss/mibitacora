@@ -1,10 +1,12 @@
 import { Briefcase } from 'lucide-react';
 import { EXPERIENCE } from '../data/siteData';
+import { useScrollAnimation, scrollAnimClass } from '../lib/useScrollAnimation';
 
 export default function Experience() {
+  const { ref, isVisible } = useScrollAnimation();
   return (
     <section id="experiencia" className="relative py-24">
-      <div className="mx-auto max-w-6xl px-6">
+      <div ref={ref} className={`mx-auto max-w-6xl px-6 ${scrollAnimClass(isVisible, 'up')}`}>
         {/* Section header */}
         <div className="mb-14">
           <span className="mb-2 inline-block font-mono text-xs font-medium uppercase tracking-widest text-accent-400">

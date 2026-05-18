@@ -4,9 +4,17 @@ import Skills from '../components/Skills';
 import Projects from '../components/Projects';
 import Bitacora from '../components/Bitacora';
 import Experience from '../components/Experience';
+import ContactForm from '../components/ContactForm';
 import Footer from '../components/Footer';
+import ScrollToTop from '../components/ScrollToTop';
+import { useEffect } from 'react';
+import { trackPageView } from '../lib/analytics';
 
 export default function HomePage() {
+  useEffect(() => {
+    trackPageView('/');
+  }, []);
+
   return (
     <div className="relative min-h-screen bg-zinc-950 selection:bg-accent-500/30 selection:text-white">
       {/* Ambient lighting (inspired by pablitoexpo) */}
@@ -21,9 +29,11 @@ export default function HomePage() {
         <Projects />
         <Bitacora />
         <Experience />
+        <ContactForm />
       </main>
 
       <Footer />
+      <ScrollToTop />
     </div>
   );
 }

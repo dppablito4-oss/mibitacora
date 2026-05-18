@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { getBitacora } from '../config/supabaseClient';
 import { Calendar, Tag, ArrowRight } from 'lucide-react';
+import { useScrollAnimation, scrollAnimClass } from '../lib/useScrollAnimation';
 
 const CATEGORY_COLORS = {
   general: 'bg-zinc-700/60 text-zinc-400',
@@ -13,6 +14,7 @@ export default function Bitacora() {
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
+  const { ref, isVisible } = useScrollAnimation();
 
   useEffect(() => {
     loadEntries();
@@ -38,7 +40,7 @@ export default function Bitacora() {
 
   return (
     <section id="bitacora" className="relative py-24">
-      <div className="mx-auto max-w-6xl px-6">
+      <div ref={ref} className={`mx-auto max-w-6xl px-6 ${scrollAnimClass(isVisible, 'up')}`}>
         {/* Section header */}
         <div className="mb-14">
           <span className="mb-2 inline-block font-mono text-xs font-medium uppercase tracking-widest text-accent-400">

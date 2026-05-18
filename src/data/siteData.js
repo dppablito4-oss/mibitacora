@@ -93,4 +93,5 @@ export const NAV_LINKS = [
   { label: 'Proyectos', href: '#proyectos' },
   { label: 'Bitácora', href: '#bitacora' },
   { label: 'Experiencia', href: '#experiencia' },
+  { label: 'Contacto', href: '#contacto' },
 ];

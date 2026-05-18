@@ -11,6 +11,7 @@ import HomePage from './pages/HomePage';
 // Lazy-loaded pages
 const LoginPage = lazy(() => import('./pages/LoginPage'));
 const AdminPanel = lazy(() => import('./pages/AdminPanel'));
+const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 
 function AppLayout() {
   const location = useLocation();
@@ -36,8 +37,8 @@ function AppLayout() {
           {/* Admin Protected */}
           <Route path="/admin" element={<AdminRoute><AdminPanel /></AdminRoute>} />
 
-          {/* Fallback */}
-          <Route path="*" element={<Navigate to="/" replace />} />
+          {/* 404 */}
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </Suspense>
 
