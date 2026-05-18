@@ -1,19 +1,32 @@
-import { Heart, Sparkles } from 'lucide-react';
+import { Heart } from 'lucide-react';
 
 export default function Footer() {
   return (
-    <footer className="relative border-t border-zinc-800/40 py-12">
-      <div className="mx-auto flex max-w-6xl flex-col items-center gap-4 px-6">
-        <div className="flex items-center gap-2 text-sm text-zinc-600">
-          <span>Construido con</span>
-          <Heart size={13} className="text-red-500/60" fill="currentColor" />
-          <span>y</span>
-          <Sparkles size={13} className="text-accent-400/60" />
-          <span>por Pablo DP</span>
+    <footer className="relative py-16">
+      <div className="section-divider mx-auto max-w-5xl mb-16" />
+      <div className="mx-auto max-w-5xl px-6">
+        <div className="flex flex-col items-center gap-6 sm:flex-row sm:justify-between">
+          {/* Brand */}
+          <div className="flex items-center gap-2.5">
+            <div className="w-6 h-6 rounded-md bg-gradient-to-br from-accent-500 to-accent-700 flex items-center justify-center">
+              <span className="text-[8px] font-black text-white">S</span>
+            </div>
+            <span className="text-xs font-medium text-white/30 tracking-wide">space.sypablitodp.site</span>
+          </div>
+
+          {/* Made with */}
+          <div className="flex items-center gap-1.5 text-xs text-white/15">
+            <span>Hecho con</span>
+            <Heart size={11} className="text-red-400/40" fill="currentColor" />
+            <span>por</span>
+            <span className="text-white/30 font-medium">Pablo DP</span>
+          </div>
+
+          {/* Copyright */}
+          <p className="font-mono text-[11px] text-white/12">
+            © {new Date().getFullYear()}
+          </p>
         </div>
-        <p className="font-mono text-xs text-zinc-700">
-          © {new Date().getFullYear()} space.sypablitodp.site
-        </p>
       </div>
     </footer>
   );

@@ -5,47 +5,36 @@ import { useScrollAnimation, scrollAnimClass } from '../lib/useScrollAnimation';
 export default function Skills() {
   const { ref, isVisible } = useScrollAnimation();
   return (
-    <section id="skills" className="relative py-24">
-      <div ref={ref} className={`mx-auto max-w-6xl px-6 ${scrollAnimClass(isVisible, 'up')}`}>
-        {/* Section header */}
-        <div className="mb-14">
-          <span className="mb-2 inline-block font-mono text-xs font-medium uppercase tracking-widest text-accent-400">
-            Tech Stack
-          </span>
-          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            Habilidades
+    <section id="skills" className="relative py-28">
+      <div className="section-divider mx-auto max-w-5xl mb-28" />
+      <div ref={ref} className={`mx-auto max-w-5xl px-6 ${scrollAnimClass(isVisible, 'up')}`}>
+        <div className="mb-16">
+          <p className="text-xs font-medium uppercase tracking-[0.2em] text-white/25 mb-3">Stack</p>
+          <h2 className="text-3xl font-bold tracking-tight text-gradient sm:text-4xl">
+            Herramientas que uso
           </h2>
-          <p className="mt-3 max-w-md text-zinc-500">
-            Las herramientas y tecnologías con las que construyo a diario.
-          </p>
         </div>
 
-        {/* Skills grid */}
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {SKILLS.map((skill, idx) => {
             const IconComponent = Icons[skill.icon] || Icons.Code2;
             return (
               <div
                 key={skill.category}
-                className="group rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 transition-all duration-300 hover:border-zinc-700 hover:bg-zinc-900/80"
-                style={{ animationDelay: `${idx * 100}ms` }}
+                className="card glow-border p-6"
+                style={{ animationDelay: `${idx * 80}ms` }}
               >
-                <div className="mb-4 flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent-600/10 text-accent-400 transition-colors duration-300 group-hover:bg-accent-600/20">
-                    <IconComponent size={20} />
+                <div className="mb-5 flex items-center gap-3">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent-500/8 text-accent-400/70">
+                    <IconComponent size={18} />
                   </div>
-                  <h3 className="text-sm font-semibold text-zinc-200">
+                  <h3 className="text-sm font-semibold text-white/80">
                     {skill.category}
                   </h3>
                 </div>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-1.5">
                   {skill.items.map((item) => (
-                    <span
-                      key={item}
-                      className="rounded-lg bg-zinc-800/60 px-2.5 py-1 text-xs font-medium text-zinc-400 transition-colors duration-200 group-hover:bg-zinc-800 group-hover:text-zinc-300"
-                    >
-                      {item}
-                    </span>
+                    <span key={item} className="tag">{item}</span>
                   ))}
                 </div>
               </div>
