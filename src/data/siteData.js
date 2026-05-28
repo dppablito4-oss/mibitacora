@@ -1,15 +1,11 @@
 // ── Datos de perfil ───────────────────────────────────────────
 export const PROFILE = {
-  name: 'Pablo DP',
-  tagline: 'Full-Stack Developer & Digital Creator',
-  bio: 'Construyo experiencias digitales que combinan diseño minimalista con tecnología de vanguardia. Especializado en React, Supabase y automatización con IA.',
-  avatar: null, // Se generará con un placeholder elegante
-  subdomain: 'space.sypablitodp.site',
-  links: {
-    github: 'https://github.com/dppablito4-oss',
-    expo: 'https://expo.sypablitodp.site',
-    email: 'mailto:pabloclsa87@gmail.com',
-  },
+  name: 'SAMUEL Y. PABLO CLAUDIO',
+  birth: '19-11-2004',
+  gender: 'MASCULINO',
+  tagline: 'Desarrollador Web Táctico & Digital Creator',
+  bio: 'Construyo interfaces de alta tecnología y ofrezco servicios digitales precisos.',
+  email: 'pabloclsa87@gmail.com',
 };
 
 // ── Experiencia / Habilidades ─────────────────────────────────
@@ -40,58 +36,47 @@ export const SKILLS = [
 export const PROJECTS = [
   {
     title: 'Pablito Expo',
-    description: 'Plataforma de presentaciones con editor canvas profesional, IA integrada y sistema de módulos.',
-    tags: ['React', 'Supabase', 'DeepSeek', 'Canvas'],
+    description: 'Editor interactivo de presentaciones con generación de contenido mediante Inteligencia Artificial (DeepSeek).',
+    tags: ['React', 'Canvas', 'IA'],
     url: 'https://expo.sypablitodp.site',
-    color: 'from-violet-500/20 to-fuchsia-500/20',
-    accent: '#a855f7',
+    color: 'from-tesseract-500/20 to-blue-500/20',
+    accent: '#06b6d4',
   },
   {
     title: 'Grafiplot',
-    description: 'Servicio de impresión digital con landing page premium, dashboard admin y asistente IA Graphita.',
-    tags: ['Next.js', 'Supabase', 'Tailwind', 'IA'],
+    description: 'Landing page premium y dashboard de administración para servicio de impresión digital.',
+    tags: ['Next.js', 'Supabase', 'Tailwind'],
     url: 'https://grafiplotvasquez.lat',
-    color: 'from-red-500/20 to-orange-500/20',
-    accent: '#ef4444',
-  },
-  {
-    title: 'Space',
-    description: 'Este mismo sitio — portafolio y bitácora personal con diseño ultra-minimalista y modo oscuro nativo.',
-    tags: ['Vite', 'React', 'Tailwind', 'Supabase'],
-    url: 'https://space.sypablitodp.site',
-    color: 'from-accent-500/20 to-cyan-500/20',
-    accent: '#3381ff',
-  },
-  {
-    title: 'I.E.I. N° 090',
-    description: 'Sitio institucional educativo con diseño dark mode, dashboard admin y sistema de contenido dinámico.',
-    tags: ['HTML', 'CSS', 'JavaScript', 'GitHub Pages'],
-    url: 'https://iein090-pampas-de-flores.sypablitodp.site',
     color: 'from-emerald-500/20 to-teal-500/20',
     accent: '#10b981',
-  },
+  }
 ];
 
-// ── Experiencia Profesional ───────────────────────────────────
-export const EXPERIENCE = [
+// ── Servicios ─────────────────────────────────────────────────
+export const SERVICES = [
   {
-    role: 'Desarrollador Full-Stack Independiente',
-    period: '2024 — Presente',
-    description: 'Diseño y desarrollo de plataformas web completas con arquitectura moderna, integraciones de IA y backends serverless.',
+    title: 'Formateo APA 7ma Edición',
+    description: 'Ajuste riguroso de presentaciones, tesis y documentos bajo la normativa APA actual.'
   },
   {
-    role: 'Creador de Pablito Expo',
-    period: '2025',
-    description: 'Editor de presentaciones con canvas interactivo, sistema de módulos y generación automática con DeepSeek.',
+    title: 'Creación de Monografías',
+    description: 'Redacción y estructura profesional de monografías para nivel secundario y preuniversitario.'
   },
+  {
+    title: 'Material Gráfico',
+    description: 'Diseño de trípticos, dípticos y material publicitario escolar o de negocios.'
+  },
+  {
+    title: 'Curriculum Vitae (CV)',
+    description: 'Diseño y redacción de CVs de alto impacto, modernos y optimizados para entrevistas.'
+  }
 ];
 
 // ── Navegación ────────────────────────────────────────────────
 export const NAV_LINKS = [
-  { label: 'Perfil', href: '#perfil' },
-  { label: 'Skills', href: '#skills' },
+  { label: 'Protocolo Alpha', href: '#inicio' },
+  { label: 'Expediente', href: '#expediente' },
   { label: 'Proyectos', href: '#proyectos' },
-  { label: 'Bitácora', href: '#bitacora' },
-  { label: 'Experiencia', href: '#experiencia' },
+  { label: 'Servicios', href: '#servicios' },
   { label: 'Contacto', href: '#contacto' },
 ];

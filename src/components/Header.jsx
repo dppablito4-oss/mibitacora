@@ -44,6 +44,12 @@ export default function Header() {
               <Link to="/#arsenal" className="text-sm font-medium text-slate-300 transition-all hover:text-tesseract-300 hover:text-glow px-3 py-2">
                 Arsenal
               </Link>
+              <Link to="/#proyectos" className="text-sm font-medium text-slate-300 transition-all hover:text-tesseract-300 hover:text-glow px-3 py-2">
+                Proyectos
+              </Link>
+              <Link to="/#servicios" className="text-sm font-medium text-slate-300 transition-all hover:text-tesseract-300 hover:text-glow px-3 py-2">
+                Servicios
+              </Link>
               <Link to="/scanner" className="text-sm font-medium text-slate-300 transition-all hover:text-tesseract-300 hover:text-glow px-3 py-2">
                 Escáner
               </Link>
@@ -79,6 +85,12 @@ export default function Header() {
           </Link>
           <Link to="/#arsenal" onClick={closeMenu} className="block rounded-md border border-transparent px-3 py-2 text-base font-medium text-slate-300 hover:border-tesseract-500/30 hover:bg-tesseract-500/10 hover:text-tesseract-300">
             Arsenal
+          </Link>
+          <Link to="/#proyectos" onClick={closeMenu} className="block rounded-md border border-transparent px-3 py-2 text-base font-medium text-slate-300 hover:border-tesseract-500/30 hover:bg-tesseract-500/10 hover:text-tesseract-300">
+            Proyectos
+          </Link>
+          <Link to="/#servicios" onClick={closeMenu} className="block rounded-md border border-transparent px-3 py-2 text-base font-medium text-slate-300 hover:border-tesseract-500/30 hover:bg-tesseract-500/10 hover:text-tesseract-300">
+            Servicios
           </Link>
           <Link to="/scanner" onClick={closeMenu} className="block rounded-md border border-transparent px-3 py-2 text-base font-medium text-slate-300 hover:border-tesseract-500/30 hover:bg-tesseract-500/10 hover:text-tesseract-300">
             Escáner
