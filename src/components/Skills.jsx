@@ -1,10 +1,13 @@
 import { Monitor, Server, Brain, GitBranch, Code2 } from 'lucide-react';
 import { SKILLS } from '../data/siteData';
+import { useScrollAnimation, scrollAnimClass } from '../lib/useScrollAnimation';
 
 const ICON_MAP = { Monitor, Server, Brain, GitBranch, Code2 };
 
 export default function Skills() {
+  const { ref, isVisible } = useScrollAnimation();
   return (
+<<<<<<< HEAD
     <section id="skills" className="relative py-24">
       <div className="mx-auto max-w-5xl px-6">
         {/* Section header */}
@@ -24,12 +27,25 @@ export default function Skills() {
         </div>
 
         {/* Skills grid */}
+=======
+    <section id="skills" className="relative py-28">
+      <div className="section-divider mx-auto max-w-5xl mb-28" />
+      <div ref={ref} className={`mx-auto max-w-5xl px-6 ${scrollAnimClass(isVisible, 'up')}`}>
+        <div className="mb-16">
+          <p className="text-xs font-medium uppercase tracking-[0.2em] text-white/25 mb-3">Stack</p>
+          <h2 className="text-3xl font-bold tracking-tight text-gradient sm:text-4xl">
+            Herramientas que uso
+          </h2>
+        </div>
+
+>>>>>>> f1c96d7c0faadf24344cfb05982bef174dc10819
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {SKILLS.map((skill, idx) => {
             const IconComponent = ICON_MAP[skill.icon] || Code2;
             return (
               <div
                 key={skill.category}
+<<<<<<< HEAD
                 className={`reveal reveal-delay-${idx + 1} group relative overflow-hidden rounded-2xl border border-zinc-800/60 bg-zinc-900/30 p-6 transition-all duration-400 hover:border-zinc-700/80 hover:bg-zinc-900/60 border-glow`}
               >
                 {/* Hover gradient background */}
@@ -54,6 +70,23 @@ export default function Skills() {
                       </span>
                     ))}
                   </div>
+=======
+                className="card glow-border p-6"
+                style={{ animationDelay: `${idx * 80}ms` }}
+              >
+                <div className="mb-5 flex items-center gap-3">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent-500/8 text-accent-400/70">
+                    <IconComponent size={18} />
+                  </div>
+                  <h3 className="text-sm font-semibold text-white/80">
+                    {skill.category}
+                  </h3>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {skill.items.map((item) => (
+                    <span key={item} className="tag">{item}</span>
+                  ))}
+>>>>>>> f1c96d7c0faadf24344cfb05982bef174dc10819
                 </div>
               </div>
             );

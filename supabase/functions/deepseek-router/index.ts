@@ -7,11 +7,22 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
 const DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions";
 
-const CORS_HEADERS = {
-  "Access-Control-Allow-Origin": "https://space.sypablitodp.site",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
+const ALLOWED_ORIGINS = [
+  "https://space.sypablitodp.site",
+  "https://dppablito4-oss.github.io",
+  "http://localhost:5173",
+  "http://localhost:4173",
+];
+
+const getCorsHeaders = (req: Request) => {
+  const origin = req.headers.get("origin") || "";
+  const allowedOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  return {
+    "Access-Control-Allow-Origin": allowedOrigin,
+    "Access-Control-Allow-Headers":
+      "authorization, x-client-info, apikey, content-type",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+  };
 };
 
 interface RequestBody {
@@ -25,14 +36,14 @@ interface RequestBody {
 Deno.serve(async (req: Request) => {
   // ── Preflight CORS ────────────────────────────────────────
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: CORS_HEADERS });
+    return new Response("ok", { headers: getCorsHeaders(req) });
   }
 
   // ── Solo POST ─────────────────────────────────────────────
   if (req.method !== "POST") {
     return new Response(
       JSON.stringify({ error: "Método no permitido. Usa POST." }),
-      { status: 405, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } }
+      { status: 405, headers: { ...getCorsHeaders(req), "Content-Type": "application/json" } }
     );
   }
 
@@ -51,7 +62,7 @@ Deno.serve(async (req: Request) => {
     if (!body.prompt || typeof body.prompt !== "string") {
       return new Response(
         JSON.stringify({ error: "El campo 'prompt' es requerido y debe ser un string." }),
-        { status: 400, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } }
+        { status: 400, headers: { ...getCorsHeaders(req), "Content-Type": "application/json" } }
       );
     }
 
@@ -94,7 +105,7 @@ Deno.serve(async (req: Request) => {
           status: response.status,
           detail: errorText,
         }),
-        { status: response.status, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } }
+        { status: response.status, headers: { ...getCorsHeaders(req), "Content-Type": "application/json" } }
       );
     }
 
@@ -116,7 +127,7 @@ Deno.serve(async (req: Request) => {
       }),
       {
         status: 200,
-        headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
       }
     );
   } catch (error) {
@@ -125,7 +136,7 @@ Deno.serve(async (req: Request) => {
       JSON.stringify({
         error: error instanceof Error ? error.message : "Error interno del servidor",
       }),
-      { status: 500, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } }
+      { status: 500, headers: { ...getCorsHeaders(req), "Content-Type": "application/json" } }
     );
   }
 });
