@@ -12,9 +12,9 @@ export default function HomePage() {
               <div className="h-2 w-2 animate-pulse rounded-full bg-tesseract-300"></div>
               Agente Nivel 7 Autorizado
             </div>
-            <h1 className="mb-6 text-5xl font-bold leading-tight tracking-tight text-white uppercase md:text-7xl">
-              Iniciando <br />
-              <span className="text-glow bg-gradient-to-r from-tesseract-300 via-tesseract-500 to-blue-600 bg-clip-text text-transparent">Secuencia</span>
+            <h1 className="mb-6 text-5xl font-bold leading-tight tracking-tight text-white uppercase md:text-6xl lg:text-7xl">
+              Hola, soy <br />
+              <span className="text-glow bg-gradient-to-r from-tesseract-300 via-tesseract-500 to-blue-600 bg-clip-text text-transparent">Samuel Y. Pablo</span>
             </h1>
             <p className="mx-auto mb-8 max-w-2xl text-lg font-light text-slate-400 md:mx-0 md:text-xl">
               {PROFILE.bio}
@@ -23,20 +23,20 @@ export default function HomePage() {
               <a href="#proyectos" className="flex items-center gap-2 border border-tesseract-500 bg-transparent px-8 py-3.5 font-bold uppercase tracking-wider text-tesseract-300 transition-all hover:bg-tesseract-500 hover:text-white shadow-[0_0_15px_rgba(6,182,212,0.2)] hover:shadow-[0_0_25px_rgba(6,182,212,0.6)]">
                 Acceder Datos <span className="text-xl">›</span>
               </a>
-              {/* Omitted GitHub link to keep repositories private as requested */}
             </div>
           </div>
           
-          {/* Tesseract 3D Cube */}
+          {/* Foto de perfil (Selfie / Informal) */}
           <div className="flex flex-1 justify-center py-10 md:justify-end md:py-0 animate-fade-up" style={{ animationDelay: '200ms' }}>
-            <div className="scene">
-              <div className="cube">
-                <div className="cube__face cube__face--front"></div>
-                <div className="cube__face cube__face--back"></div>
-                <div className="cube__face cube__face--right"></div>
-                <div className="cube__face cube__face--left"></div>
-                <div className="cube__face cube__face--top"></div>
-                <div className="cube__face cube__face--bottom"></div>
+            <div className="relative w-64 h-64 md:w-80 md:h-80 rounded-full border-4 border-tesseract-500/30 p-2 shadow-[0_0_30px_rgba(6,182,212,0.3)] group overflow-hidden">
+              <div className="w-full h-full rounded-full overflow-hidden relative bg-dark">
+                {/* Reemplaza el src con la ruta de tu foto real, por ejemplo: /mi-foto.jpg */}
+                <img 
+                  src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=800&auto=format&fit=crop" 
+                  alt="Samuel Y. Pablo Claudio" 
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 grayscale hover:grayscale-0"
+                />
+                <div className="absolute inset-0 bg-tesseract-500/10 mix-blend-overlay pointer-events-none"></div>
               </div>
             </div>
           </div>

@@ -58,7 +58,27 @@ export default function AdminRoute({ children }) {
   }
 
   if (!user || !isAdmin) {
-    return <Navigate to="/" replace />;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-dark px-4">
+        <div className="text-center">
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-red-500/10 border border-red-500/30 mb-6">
+            <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-500"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg>
+          </div>
+          <h1 className="text-4xl font-bold uppercase tracking-widest text-red-500 mb-4">Acceso Denegado</h1>
+          <p className="text-slate-400 mb-8 max-w-md mx-auto">Esta área está clasificada y requiere credenciales de Nivel 7. Sus coordenadas han sido registradas.</p>
+          <div className="flex justify-center gap-4">
+            <a href="/#" className="px-6 py-3 border border-tesseract-500/30 bg-tesseract-500/10 text-tesseract-300 font-bold uppercase tracking-wider hover:bg-tesseract-500 hover:text-white transition-all">
+              Volver al inicio
+            </a>
+            {!user && (
+              <a href="/#/login" className="px-6 py-3 bg-dark border border-slate-700 text-slate-400 font-bold uppercase tracking-wider hover:border-slate-500 hover:text-slate-200 transition-all">
+                Login
+              </a>
+            )}
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return children;
