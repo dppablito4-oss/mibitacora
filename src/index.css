@@ -1,34 +1,36 @@
 @import "tailwindcss";
 
-/* ── Design Tokens ─────────────────────────────────────────── */
+/* ── Tesseract Design Tokens ───────────────────────────────── */
 @theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
 
-  /* Custom accent palette */
-  --color-accent-50: #eef6ff;
-  --color-accent-100: #d9ebff;
-  --color-accent-200: #bcdcff;
-  --color-accent-300: #8ec6ff;
-  --color-accent-400: #59a5ff;
-  --color-accent-500: #3381ff;
-  --color-accent-600: #1b5ff5;
-  --color-accent-700: #1449e1;
-  --color-accent-800: #173bb6;
-  --color-accent-900: #19358f;
-  --color-accent-950: #142257;
+  --color-dark: #030712;
+  --color-card: #0a0f25;
+
+  --color-tesseract-50: #ecfeff;
+  --color-tesseract-100: #cffafe;
+  --color-tesseract-200: #a5f3fc;
+  --color-tesseract-300: #67e8f9;
+  --color-tesseract-400: #22d3ee;
+  --color-tesseract-500: #06b6d4;
+  --color-tesseract-600: #0891b2;
+  --color-tesseract-700: #0e7490;
+  --color-tesseract-800: #155e75;
+  --color-tesseract-900: #164e63;
+  --color-tesseract-950: #083344;
 }
 
-/* ── Base Layer ─────────────────────────────────────────────── */
+/* ── Base ──────────────────────────────────────────────────── */
 @layer base {
   * {
     scrollbar-width: thin;
-    scrollbar-color: theme(--color-zinc-700) transparent;
+    scrollbar-color: theme(--color-tesseract-900) transparent;
   }
 
   ::selection {
-    background-color: theme(--color-accent-500 / 30%);
-    color: theme(--color-zinc-50);
+    background-color: theme(--color-tesseract-500 / 30%);
+    color: theme(--color-white);
   }
 
   html {
@@ -37,80 +39,327 @@
 
   body {
     font-family: theme(--font-sans);
-    background-color: theme(--color-zinc-950);
-    color: theme(--color-zinc-100);
+    background-color: theme(--color-dark);
+    color: theme(--color-slate-200);
     overflow-x: hidden;
   }
 }
 
-/* ── Utility Animations ────────────────────────────────────── */
+/* ── Utilities ─────────────────────────────────────────────── */
 @layer utilities {
+  .glass {
+    background: theme(--color-dark / 60%);
+    backdrop-filter: blur(20px) saturate(1.4);
+    border: 1px solid theme(--color-tesseract-500 / 20%);
+  }
+
+  .text-glow {
+    text-shadow: 0 0 20px theme(--color-tesseract-300 / 50%);
+  }
+
+  .box-glow {
+    box-shadow: 0 0 20px theme(--color-tesseract-500 / 20%);
+  }
+
+  .box-glow-strong {
+    box-shadow: 0 0 30px theme(--color-tesseract-500 / 40%);
+  }
+
+  .border-glow-line {
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      theme(--color-tesseract-500 / 50%) 50%,
+      transparent 100%
+    );
+  }
+
+  .space-grid {
+    background-image:
+      linear-gradient(theme(--color-tesseract-500 / 4%) 1px, transparent 1px),
+      linear-gradient(90deg, theme(--color-tesseract-500 / 4%) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+
   .animate-fade-up {
-    animation: fadeUp 0.6s ease-out both;
+    animation: fadeUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
   }
 
   .animate-fade-in {
     animation: fadeIn 0.5s ease-out both;
   }
-
-  .animate-scale-in {
-    animation: scaleIn 0.4s ease-out both;
+  
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
   }
-
-  .glass {
-    background: theme(--color-zinc-900 / 60%);
-    backdrop-filter: blur(20px) saturate(1.5);
-    border: 1px solid theme(--color-zinc-800 / 50%);
-  }
-
-  .glow-accent {
-    box-shadow: 0 0 40px -10px theme(--color-accent-500 / 25%);
-  }
-
-  .text-gradient {
-    background: linear-gradient(135deg, theme(--color-zinc-100), theme(--color-accent-400));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-
-  .dot-pattern {
-    background-image: radial-gradient(theme(--color-zinc-700 / 30%) 1px,
-        transparent 1px);
-    background-size: 24px 24px;
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 }
 
+/* ── Keyframes ─────────────────────────────────────────────── */
 @keyframes fadeUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
-@keyframes scaleIn {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
+@keyframes rotateCube {
+  0% { transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg); }
+  100% { transform: rotateX(360deg) rotateY(360deg) rotateZ(180deg); }
+}
 
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
+@keyframes pulseSlow {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.7; }
+}
+
+/* ── Scroll Reveal (JS-driven) ─────────────────────────────── */
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: all 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.reveal-delay-1 { transition-delay: 100ms; }
+.reveal-delay-2 { transition-delay: 200ms; }
+.reveal-delay-3 { transition-delay: 300ms; }
+
+/* ── Tesseract Cube ────────────────────────────────────────── */
+.scene {
+  width: 180px;
+  height: 180px;
+  perspective: 600px;
+}
+
+.cube {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+  animation: rotateCube 12s infinite linear;
+}
+
+.cube__face {
+  position: absolute;
+  width: 180px;
+  height: 180px;
+  border: 2px solid theme(--color-tesseract-300 / 50%);
+  background: theme(--color-tesseract-500 / 8%);
+  box-shadow: 0 0 40px theme(--color-tesseract-500 / 20%) inset;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(2px);
+}
+
+.cube__face::after {
+  content: "";
+  width: 40px;
+  height: 40px;
+  background: radial-gradient(circle, #fff 0%, theme(--color-tesseract-300) 40%, transparent 80%);
+  position: absolute;
+  opacity: 0.4;
+  filter: blur(8px);
+}
+
+.cube__face--front  { transform: rotateY(0deg) translateZ(90px); }
+.cube__face--right  { transform: rotateY(90deg) translateZ(90px); }
+.cube__face--back   { transform: rotateY(180deg) translateZ(90px); }
+.cube__face--left   { transform: rotateY(-90deg) translateZ(90px); }
+.cube__face--top    { transform: rotateX(90deg) translateZ(90px); }
+.cube__face--bottom { transform: rotateX(-90deg) translateZ(90px); }
+
+/* ── Scanner Dynamic Styles (app.js) ────────────────────────── */
+.scanner-upload-zone {
+  border: 2px dashed theme(--color-tesseract-500 / 30%);
+  transition: all 0.3s ease;
+}
+
+.scanner-upload-zone:hover,
+.scanner-upload-zone.drag-over {
+  border-color: theme(--color-tesseract-400);
+  background: theme(--color-tesseract-500 / 5%);
+  box-shadow: 0 0 30px theme(--color-tesseract-500 / 15%);
+}
+
+.filter-btn {
+  transition: all 0.2s ease;
+}
+
+.filter-btn.active {
+  background: theme(--color-tesseract-500 / 15%);
+  color: theme(--color-tesseract-300);
+  border-color: theme(--color-tesseract-500);
+  box-shadow: 0 0 12px theme(--color-tesseract-500 / 25%);
+}
+
+/* Tabs */
+.tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 4px;
+  background: transparent;
+  color: theme(--color-slate-400);
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.2s;
+  min-width: max-content;
+  font-size: 14px;
+}
+.tab.active {
+  background: theme(--color-tesseract-500 / 10%);
+  color: theme(--color-tesseract-300);
+  border-color: theme(--color-tesseract-500 / 40%);
+}
+.tab__status {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+.tab__status--empty {
+  background: theme(--color-slate-600);
+}
+.tab__status--has-pages {
+  background: theme(--color-tesseract-400);
+  box-shadow: 0 0 8px theme(--color-tesseract-400);
+}
+.tab__close {
+  opacity: 0.5;
+  padding: 2px;
+}
+.tab__close:hover {
+  opacity: 1;
+  color: #ef4444;
+}
+
+/* Toasts */
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  background: theme(--color-card);
+  border: 1px solid theme(--color-slate-700);
+  color: white;
+  font-size: 14px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  animation: fadeUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.toast.toast-out {
+  animation: fadeOut 0.3s ease-out both;
+}
+.toast--success .toast__icon { color: #10b981; }
+.toast--error .toast__icon { color: #ef4444; }
+.toast--warning .toast__icon { color: #f59e0b; }
+.toast--info .toast__icon { color: theme(--color-tesseract-400); }
+
+/* Page Thumbs */
+.page-thumb {
+  position: relative;
+  width: 60px;
+  height: 80px;
+  border-radius: 4px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  flex-shrink: 0;
+  background: theme(--color-dark);
+  overflow: hidden;
+  transition: all 0.2s;
+}
+.page-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.page-thumb.active {
+  border-color: theme(--color-tesseract-400);
+  box-shadow: 0 0 10px theme(--color-tesseract-500 / 40%);
+}
+.page-thumb__label {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background: rgba(0,0,0,0.8);
+  color: white;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-top-left-radius: 4px;
+  font-family: theme(--font-mono);
+}
+.page-thumb.dragging {
+  opacity: 0.5;
+  border-style: dashed;
+}
+.page-thumb.drag-over {
+  border-color: #f59e0b;
+  transform: scale(1.05);
+}
+
+/* Modals */
+.tab-confirm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.8);
+  backdrop-filter: blur(4px);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.tab-confirm-dialog {
+  background: theme(--color-card);
+  border: 1px solid theme(--color-slate-700);
+  padding: 24px;
+  border-radius: 12px;
+  max-width: 320px;
+  width: 100%;
+}
+.tab-confirm-dialog h3 {
+  font-size: 18px;
+  font-weight: bold;
+  color: white;
+  margin-bottom: 8px;
+}
+.tab-confirm-dialog p {
+  color: theme(--color-slate-400);
+  font-size: 14px;
+  margin-bottom: 24px;
+}
+.tab-confirm-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+.tab-confirm-actions button {
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.tab-confirm-actions .btn-secondary {
+  background: theme(--color-slate-800);
+  color: theme(--color-slate-200);
+  border: 1px solid theme(--color-slate-700);
+}
+.tab-confirm-actions .btn-danger {
+  background: #7f1d1d;
+  color: #fca5a5;
+  border: 1px solid #991b1b;
+}
+
+@keyframes fadeOut {
+  to { opacity: 0; transform: translateY(10px); }
 }

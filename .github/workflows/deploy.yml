@@ -33,10 +33,8 @@ jobs:
         
       - name: Build project
         env:
-          # Estas variables se inyectan en tiempo de compilación (Vite las reemplaza en el código)
-          # Como es la clave anónima pública, es seguro tenerla aquí.
-          VITE_SUPABASE_URL: "https://dyuadrzdrphzywbnxnhz.supabase.co"
-          VITE_SUPABASE_ANON_KEY: "sb_publishable_rCwOvgVa1kGlO5PFAa8tRg_E1KIWKWX"
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
         run: npm run build
         
       - name: Upload artifact

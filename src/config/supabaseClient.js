@@ -4,22 +4,18 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn(
-    '[Supabase] Variables de entorno no configuradas. ' +
-    'Copia .env.example → .env y agrega tus credenciales.'
+  throw new Error(
+    '[Supabase] VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY son requeridos. ' +
+    'Copia .env.example → .env y configura tus credenciales.'
   );
 }
 
-export const supabase = createClient(
-  supabaseUrl || 'https://placeholder.supabase.co',
-  supabaseAnonKey || 'placeholder-key',
-  {
-    auth: {
-      persistSession: true,
-      autoRefreshToken: true,
-    },
-  }
-);
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+  },
+});
 
 /**
  * Llama a la Edge Function `deepseek-router` de forma segura.
