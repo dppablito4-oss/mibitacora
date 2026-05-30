@@ -22,8 +22,12 @@ export default function SpaceCopilot() {
 
   // 1. Iniciar sesión anónima automáticamente al abrir si no hay usuario
   useEffect(() => {
-    if (isOpen && !user) {
-      signInAnonymously?.();
+    if (isOpen && !user && signInAnonymously) {
+      signInAnonymously().then((res) => {
+        if (res?.error) {
+          console.error('[Supabase Auth] Error en inicio de sesión anónimo:', res.error);
+        }
+      });
     }
   }, [isOpen, user, signInAnonymously]);
 
@@ -130,6 +134,12 @@ export default function SpaceCopilot() {
       // Si el usuario no cargó a tiempo, lo forzamos
       if (!currentUser && signInAnonymously) {
         const authRes = await signInAnonymously();
+        if (authRes?.error) {
+          if (authRes.error.code === 'anonymous_provider_disabled' || authRes.error.message?.includes('disabled')) {
+            throw new Error("Los inicios de sesión anónimos están desactivados en tu proyecto de Supabase.\n\nPor favor, actívalos en el panel de Supabase: Settings -> Authentication -> Providers -> Anonymous (habilita la opción 'Allow Anonymous Sign-ins').");
+          }
+          throw authRes.error;
+        }
         if (authRes?.data?.user) currentUser = authRes.data.user;
       }
       
