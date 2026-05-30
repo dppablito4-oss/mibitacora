@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useEffect, useState } from 'react';
 import { supabase } from '../config/supabaseClient';
@@ -51,7 +51,11 @@ export default function AdminRoute({ children }) {
     );
   }
 
-  if (!user || !isAdmin) {
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (!isAdmin) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-dark px-4">
         <div className="text-center">
