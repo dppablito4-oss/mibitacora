@@ -20,76 +20,23 @@ export default function TripticoMakerPage() {
     loadFromJson, resetToDefaults,
   } = state;
 
-  const [exporting, setExporting] = useState(false);
 
-  const handleExportPDF = async () => {
-    setExporting(true);
-    // Deselect everything for clean export
+
+  const handleExportPDF = () => {
+    // Deselect elements to hide outlines during print
     setSelectedColIndex(null);
     setSelectedBlockId(null);
-
-    try {
-      const element = document.createElement('div');
-
-      // Front page
-      setActivePageId('page-front');
-      await new Promise(r => setTimeout(r, 500));
-      const frontDom = document.querySelector('[data-triptico-page="page-front"]');
-      if (frontDom) {
-        const clone = frontDom.cloneNode(true);
-        clone.style.width = '297mm';
-        clone.style.height = '210mm';
-        clone.style.position = 'relative';
-        clone.style.overflow = 'hidden';
-        // Clean up editor artifacts
-        clone.querySelectorAll('[data-export-hide]').forEach(el => el.remove());
-        clone.querySelectorAll('[data-col]').forEach(c => { c.style.outline = 'none'; c.style.cursor = 'default'; });
-        element.appendChild(clone);
-      }
-
-      const pageBreak = document.createElement('div');
-      pageBreak.classList.add('html2pdf__page-break');
-      element.appendChild(pageBreak);
-
-      // Back page
-      setActivePageId('page-back');
-      await new Promise(r => setTimeout(r, 500));
-      const backDom = document.querySelector('[data-triptico-page="page-back"]');
-      if (backDom) {
-        const clone = backDom.cloneNode(true);
-        clone.style.width = '297mm';
-        clone.style.height = '210mm';
-        clone.style.position = 'relative';
-        clone.style.overflow = 'hidden';
-        clone.querySelectorAll('[data-export-hide]').forEach(el => el.remove());
-        clone.querySelectorAll('[data-col]').forEach(c => { c.style.outline = 'none'; c.style.cursor = 'default'; });
-        element.appendChild(clone);
-      }
-
-      const opt = {
-        margin: 0,
-        filename: 'mi-triptico.pdf',
-        image: { type: 'jpeg', quality: 1 },
-        html2canvas: { scale: 2, useCORS: true, letterRendering: true },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' },
-      };
-
-      const html2pdfModule = await import('html2pdf.js');
-      const html2pdf = html2pdfModule.default || html2pdfModule;
-
-      await html2pdf().set(opt).from(element).save();
-    } catch (err) {
-      console.error('Error exporting PDF:', err);
-      alert('Error exportando a PDF');
-    } finally {
-      setExporting(false);
-    }
+    
+    // Give state a moment to update before printing
+    setTimeout(() => {
+      window.print();
+    }, 100);
   };
 
   return (
-    <div className="min-h-screen pt-20 bg-black text-white flex flex-col font-sans">
+    <div className="min-h-screen pt-20 bg-black text-white flex flex-col font-sans print:bg-white print:pt-0">
       {/* HEADER */}
-      <header className="h-14 border-b border-zinc-800 bg-zinc-950 flex items-center justify-between px-4 shrink-0">
+      <header className="h-14 border-b border-zinc-800 bg-zinc-950 flex items-center justify-between px-4 shrink-0 print:hidden">
         <div className="flex items-center gap-4">
           <button 
             onClick={() => window.location.hash = '#/'}
@@ -113,16 +60,15 @@ export default function TripticoMakerPage() {
           </button>
           <button
             onClick={handleExportPDF}
-            disabled={exporting}
-            className="bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold py-1.5 px-4 rounded text-xs flex items-center gap-2 transition-all"
+            className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-1.5 px-4 rounded text-xs flex items-center gap-2 transition-all"
           >
-            {exporting ? 'Generando PDF...' : <><Download size={14} /> Exportar PDF</>}
+            <Download size={14} /> Imprimir / PDF
           </button>
         </div>
       </header>
 
       {/* WORKSPACE */}
-      <div className="flex flex-col lg:flex-row flex-1 overflow-hidden">
+      <div className="flex flex-col lg:flex-row flex-1 overflow-hidden print:hidden">
 
         {/* LEFT PANEL */}
         <aside className="w-full lg:w-64 bg-zinc-950 border-b lg:border-b-0 lg:border-r border-zinc-800 flex flex-col shrink-0 overflow-y-auto lg:max-h-none max-h-48">
@@ -194,6 +140,31 @@ export default function TripticoMakerPage() {
           />
         </aside>
       </div>
+
+      {/* PRINT LAYOUT (Only visible when printing) */}
+      <div className="hidden print:block w-full">
+        {pages.map((page, i) => (
+          <div 
+            key={page.id} 
+            className="mx-auto" 
+            style={{ 
+              width: '297mm', 
+              height: '210mm', 
+              pageBreakAfter: i === pages.length - 1 ? 'auto' : 'always',
+              pageBreakInside: 'avoid'
+            }}
+          >
+            <TripticoCanvas
+              activePage={page}
+              selectedColIndex={null}
+              selectedBlockId={null}
+              onSelectCol={() => {}}
+              onSelectBlock={() => {}}
+            />
+          </div>
+        ))}
+      </div>
+    </div>
     </div>
   );
 }

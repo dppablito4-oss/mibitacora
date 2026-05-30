@@ -39,7 +39,7 @@ export default function Header() {
 
   return (
     <nav
-      className={`fixed top-0 z-50 w-full transition-all duration-300 ${
+      className={`fixed top-0 z-50 w-full transition-all duration-300 print:hidden ${
         scrolled
           ? 'bg-dark/90 border-b border-tesseract-500/20 shadow-[0_4px_30px_rgba(0,0,0,0.5)] backdrop-blur-md'
           : 'bg-dark/60 border-b border-tesseract-500/10 backdrop-blur-sm'
