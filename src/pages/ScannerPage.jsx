@@ -3,69 +3,84 @@ import { Upload, X, Check, Image as ImageIcon, FileText, Layout, RotateCcw, Copy
 
 export default function ScannerPage() {
   useEffect(() => {
-    // We dynamically load OpenCV.js and the scanner app
-    const loadScript = (src, onLoad) => {
-      if (document.querySelector(`script[src="${src}"]`)) {
-        if (onLoad) onLoad();
-        return;
-      }
-      const script = document.createElement('script');
-      script.src = src;
-      script.async = true;
-      if (onLoad) script.onload = onLoad;
-      document.body.appendChild(script);
+    // Promise-based script loader for concurrent loading
+    const loadScriptPromise = (src) => {
+      return new Promise((resolve) => {
+        if (document.querySelector(`script[src="${src}"]`)) {
+          resolve();
+          return;
+        }
+        const script = document.createElement('script');
+        script.src = src;
+        script.async = true;
+        script.onload = () => {
+          if (src.includes('opencv.js')) {
+            console.log('[React] OpenCV script load completed');
+            if (typeof window.onOpenCvReady === 'function') {
+              window.onOpenCvReady();
+            }
+          }
+          resolve();
+        };
+        script.onerror = () => {
+          console.warn(`[React] Failed to load script: ${src}, continuing...`);
+          resolve();
+        };
+        document.body.appendChild(script);
+      });
     };
 
-    // Load PDF.js first, then OpenCV, then init our App
-    loadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js', () => {
-      window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-      loadScript('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js', () => {
-        // App logic is imported statically via a module below or we can just import it dynamically
-        import('../lib/leans/app.js').then((module) => {
-          window.App = module.default || window.App;
-          
-          // Call init manually since we removed DOMContentLoaded
-          if (window.App && window.App.init) {
-            window.App.init();
-          }
+    // Setup Emscripten Module configuration for OpenCV.js
+    window.Module = {
+      onRuntimeInitialized: () => {
+        console.log('[React] OpenCV WebAssembly Ready (onRuntimeInitialized)');
+        window._opencvReady = true;
+        if (window.App && window.App.onOpenCvReady) {
+          window.App.onOpenCvReady();
+        }
+      }
+    };
 
-          // Setup Emscripten Module configuration for OpenCV.js before loading
-          window.Module = {
-            onRuntimeInitialized: () => {
-              console.log('[React] OpenCV WebAssembly Ready (onRuntimeInitialized)');
-              if (window.App && window.App.onOpenCvReady) {
-                window.App.onOpenCvReady();
-              } else {
-                window._opencvReady = true;
-              }
-            }
-          };
+    // Define callback function in window context
+    window.onOpenCvReady = () => {
+      console.log('[React] OpenCV Ready (onOpenCvReady)');
+      window._opencvReady = true;
+      if (window.App && window.App.onOpenCvReady) {
+        window.App.onOpenCvReady();
+      }
+    };
 
-          // Define callback function in window context
-          window.onOpenCvReady = () => {
-            console.log('[React] OpenCV Ready (onOpenCvReady)');
-            if (window.App && window.App.onOpenCvReady) {
-              window.App.onOpenCvReady();
-            } else {
-              window._opencvReady = true;
-            }
-          };
+    const pdfJsUrl = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+    const jsZipUrl = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+    const opencvUrl = 'https://docs.opencv.org/4.10.0/opencv.js';
 
-          // Load OpenCV.js from a fast, reliable CDN and hook onload event to the ready callback
-          const opencvCdn = 'https://cdn.jsdelivr.net/npm/@techstark/opencv-js@4.10.0-release.1/dist/opencv.js';
-          loadScript(opencvCdn, () => {
-            console.log('[React] OpenCV script loaded');
-            // If the runtime initialized immediately
-            if (typeof cv !== 'undefined' && cv.Mat) {
-              if (window.App && window.App.onOpenCvReady) {
-                window.App.onOpenCvReady();
-              } else {
-                window._opencvReady = true;
-              }
-            }
-          });
-        });
-      });
+    // Load PDF.js, JSZip, OpenCV.js (cached from standalone) and the App orchestrator concurrently!
+    Promise.all([
+      loadScriptPromise(pdfJsUrl),
+      loadScriptPromise(jsZipUrl),
+      loadScriptPromise(opencvUrl),
+      import('../lib/leans/app.js')
+    ]).then(([_, __, ___, appModule]) => {
+      console.log('[React] All scripts and app module loaded in parallel');
+      
+      if (window.pdfjsLib) {
+        window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+      }
+      
+      window.App = appModule.default || window.App;
+      
+      if (window.App && window.App.init) {
+        window.App.init();
+      }
+
+      // Check if OpenCV is already ready (e.g. if loaded synchronously or from cache before Promise.all finished)
+      if (window._opencvReady || (typeof cv !== 'undefined' && cv.Mat)) {
+        if (window.App && window.App.onOpenCvReady) {
+          window.App.onOpenCvReady();
+        }
+      }
+    }).catch(err => {
+      console.error('[React] Error in parallel script loading:', err);
     });
 
     return () => {
