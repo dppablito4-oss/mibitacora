@@ -32,6 +32,7 @@ export default function ScannerPage() {
       window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
     });
     loadScript('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js');
+    loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
 
     // ── STEP 3: Import app.js and init IMMEDIATELY (don't wait for OpenCV!) ──
     // This makes tabs, buttons, and file uploads work right away.

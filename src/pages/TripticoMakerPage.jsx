@@ -3,7 +3,7 @@ import useTripticoState from '../hooks/useTripticoState';
 import TripticoCanvas from '../components/triptico/TripticoCanvas';
 import TripticoInspector from '../components/triptico/TripticoInspector';
 import AiGeneratorPanel from '../components/triptico/AiGeneratorPanel';
-import html2pdf from 'html2pdf.js';
+// Se elimina importación estática para usar dinámica y evitar errores de ESM en Vite
 import { Download, LayoutTemplate, RotateCcw } from 'lucide-react';
 
 export default function TripticoMakerPage() {
@@ -73,6 +73,9 @@ export default function TripticoMakerPage() {
         html2canvas: { scale: 2, useCORS: true, letterRendering: true },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' },
       };
+
+      const html2pdfModule = await import('html2pdf.js');
+      const html2pdf = html2pdfModule.default || html2pdfModule;
 
       await html2pdf().set(opt).from(element).save();
     } catch (err) {
