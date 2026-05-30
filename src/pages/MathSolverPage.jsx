@@ -4,32 +4,62 @@ import 'katex/dist/katex.min.css';
 import { solveQuadraticSteps, solveCubicSteps, solveQuarticSteps } from '../utils/mathSolver';
 import { Calculator, ChevronRight, AlertTriangle } from 'lucide-react';
 
-const Latex = ({ text }) => {
+const Latex = ({ text, inline = false }) => {
   const containerRef = useRef(null);
   
   useEffect(() => {
     if (containerRef.current) {
       katex.render(text, containerRef.current, {
-        displayMode: true,
+        displayMode: !inline,
         throwOnError: false,
         strict: false
       });
     }
-  }, [text]);
+  }, [text, inline]);
 
-  return <div ref={containerRef} className="overflow-x-auto text-lg text-white my-2" />;
+  return <span ref={containerRef} className={inline ? "" : "overflow-x-auto text-lg text-white my-2 block"} />;
 };
+
+const FormattedText = ({ text }) => {
+  // Split text by $...$ to render inline latex
+  const parts = text.split(/(\$.*?\$)/g);
+  return (
+    <p className="text-slate-300 mt-2 text-sm leading-relaxed">
+      {parts.map((part, i) => {
+        if (part.startsWith('$') && part.endsWith('$')) {
+          return <Latex key={i} text={part.slice(1, -1)} inline={true} />;
+        }
+        return <span key={i}>{part}</span>;
+      })}
+    </p>
+  );
+};
+
 
 export default function MathSolverPage() {
   const [degree, setDegree] = useState(2);
-  const [coeffs, setCoeffs] = useState({ a: 2, b: 8, c: -10, d: 0, e: 0 });
+  const [coeffs, setCoeffs] = useState({ a: '2', b: '8', c: '-10', d: '0', e: '0' });
   const [steps, setSteps] = useState([]);
   const [error, setError] = useState('');
+
+  const parseVal = (val) => {
+    if (!val) return NaN;
+    const str = String(val).trim();
+    if (str.includes('/')) {
+      const [num, den] = str.split('/');
+      return Number(num) / Number(den);
+    }
+    return Number(str);
+  };
 
   const handleCalculate = () => {
     setError('');
     setSteps([]);
-    const { a, b, c, d, e } = coeffs;
+    const a = parseVal(coeffs.a);
+    const b = parseVal(coeffs.b);
+    const c = parseVal(coeffs.c);
+    const d = parseVal(coeffs.d);
+    const e = parseVal(coeffs.e);
 
     if (isNaN(a) || isNaN(b) || isNaN(c)) {
       setError('Por favor, ingresa coeficientes válidos.');
@@ -58,9 +88,9 @@ export default function MathSolverPage() {
     <div key={key}>
       <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 text-center">{label}</label>
       <input 
-        type="number" 
+        type="text" 
         value={coeffs[key]} 
-        onChange={e => setCoeffs({...coeffs, [key]: parseFloat(e.target.value)})}
+        onChange={e => setCoeffs({...coeffs, [key]: e.target.value})}
         className="w-full bg-slate-900 border border-slate-800 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 rounded-xl py-3 text-center font-mono text-white text-lg transition-all outline-none"
       />
     </div>
@@ -130,8 +160,10 @@ export default function MathSolverPage() {
               {steps.map((step, idx) => (
                 <div key={idx} className="relative pl-6 md:pl-8 border-l-2 border-slate-800">
                   <div className="absolute -left-[9px] top-1.5 w-4 h-4 rounded-full bg-slate-900 border-2 border-purple-500 shadow-[0_0_10px_rgba(168,85,247,0.5)]"></div>
-                  <h3 className="text-lg font-bold text-purple-400">{step.title}</h3>
-                  {step.text && <p className="text-slate-300 mt-2 text-sm leading-relaxed">{step.text}</p>}
+                  <h3 className="text-lg font-bold text-purple-400">
+                    <FormattedText text={step.title} />
+                  </h3>
+                  {step.text && <FormattedText text={step.text} />}
                   {step.latex && (
                     <div className="mt-4 bg-slate-950/60 p-4 md:p-6 rounded-2xl border border-slate-800/80 shadow-inner">
                       <Latex text={step.latex} />

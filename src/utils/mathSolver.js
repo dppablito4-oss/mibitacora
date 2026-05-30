@@ -3,9 +3,35 @@
  * Utilidad matemática táctica para resolver ecuaciones paso a paso (Grados 2, 3 y 4).
  */
 
-const formatNum = (num, decimals = 4) => {
+export const formatNum = (num, decimals = 4) => {
   if (Math.abs(num) < 1e-10) return "0";
-  return Number(num.toFixed(decimals)).toString();
+  
+  const sign = num < 0 ? "-" : "";
+  let val = Math.abs(num);
+  
+  if (Number.isInteger(val)) return sign + val.toString();
+
+  // Decimal to Fraction algorithm (Farey sequence / Continued fraction)
+  let h1 = 1, h2 = 0, k1 = 0, k2 = 1;
+  let b = val;
+  for (let i = 0; i < 15; i++) {
+    let a = Math.floor(b);
+    let aux = h1;
+    h1 = a * h1 + h2;
+    h2 = aux;
+    aux = k1;
+    k1 = a * k1 + k2;
+    k2 = aux;
+    if (Math.abs(val - h1 / k1) < 1e-6) break;
+    b = 1 / (b - a);
+  }
+  
+  // Si la fracción es exacta y el denominador no es absurdo (ej. < 1000)
+  if (Math.abs(val - h1 / k1) < 1e-5 && k1 > 1 && k1 <= 1000) {
+    return sign + `\\frac{${h1}}{${k1}}`;
+  }
+  
+  return sign + Number(val.toFixed(decimals)).toString();
 };
 
 const formatComplex = (re, im) => {
