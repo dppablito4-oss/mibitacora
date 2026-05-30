@@ -25,6 +25,8 @@ export default function SpaceCopilot() {
     }
   }, [isOpen, user, signInAnonymously]);
 
+  const isAdmin = user && user.email; // El admin se loguea con correo, los usuarios son anónimos
+
   // 2. Cargar cotización activa del usuario
   useEffect(() => {
     if (!user?.id) return;
@@ -38,10 +40,19 @@ export default function SpaceCopilot() {
         .limit(1)
         .single();
 
-      if (data) setActiveQuote(data);
+      if (data) {
+        setActiveQuote(data);
+      } else if (isAdmin && isOpen) {
+        // Auto-crear sesión de Admin si no existe una pendiente
+        handleStartAdminSession();
+      }
     };
-    loadQuote();
-  }, [user]);
+
+    // Evitar múltiples llamadas simultáneas
+    if (isOpen && !activeQuote && !loading) {
+      loadQuote();
+    }
+  }, [user, isOpen, isAdmin]);
 
   // 3. Suscribirse a mensajes_chat en tiempo real
   useEffect(() => {
@@ -82,6 +93,30 @@ export default function SpaceCopilot() {
 
   // --- ACCIONES ---
 
+  const handleStartAdminSession = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('cotizaciones')
+        .insert({ cliente_id: user.id, nombre_cliente: 'Jefe' })
+        .select()
+        .single();
+
+      if (error) throw error;
+      setActiveQuote(data);
+
+      await supabase.from('mensajes_chat').insert({
+        cotizacion_id: data.id,
+        enviado_por: 'asistente_ai',
+        mensaje: `¡Hola Jefe! Sistemas en línea y Protocolo Alpha activado a tu disposición. ¿Qué vamos a construir o hackear hoy?`
+      });
+    } catch (err) {
+      console.error('Error iniciando sesión admin:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const startQuote = async (e) => {
     e.preventDefault();
     if (!clientName.trim() || !user) return;
@@ -96,11 +131,12 @@ export default function SpaceCopilot() {
       if (error) throw error;
       setActiveQuote(data);
 
-      // Mensaje inicial de bienvenida
+      // Mensaje inicial de bienvenida con Lore
+      const fecha = new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
       await supabase.from('mensajes_chat').insert({
         cotizacion_id: data.id,
         enviado_por: 'asistente_ai',
-        mensaje: `¡Hola ${clientName.trim()}! 👋 Soy P.A.B.L.O., el asistente virtual táctico. \n\n¿En qué te puedo ayudar hoy? ¿Buscas formateo APA, redactar una monografía, o diseño gráfico? Cuéntame los detalles o adjunta tus documentos.`
+        mensaje: `Saludos, ${clientName.trim()}.\n\nSoy A.L.P.H.A., una Inteligencia Artificial creada y diseñada por el Sr. Pablo. Hoy es ${fecha}. ¿En qué te puedo ayudar el día de hoy?`
       });
 
     } catch (err) {
@@ -136,11 +172,19 @@ export default function SpaceCopilot() {
       setMessages(prev => [...prev, insertedMsg]);
 
       // 2. Llamar a la Edge Function para que DeepSeek responda
+
+      let systemPrompt = '';
+      if (isAdmin) {
+        systemPrompt = `Eres A.L.P.H.A., la Inteligencia Artificial personal del Sr. Pablo (pablito_dp), inspirada en J.A.R.V.I.S. de Iron Man y con temática de S.H.I.E.L.D. Él es tu creador y le llamas 'Jefe' o 'Señor'. Habla de forma extremadamente leal, concisa, sarcástica a veces y muy tecnológica.`;
+      } else {
+        systemPrompt = `Eres A.L.P.H.A., la Inteligencia Artificial creada y diseñada por el Sr. Pablo (pablito_dp), inspirada en J.A.R.V.I.S. de Iron Man y el universo de S.H.I.E.L.D. Ayudas a los clientes a cotizar servicios como: Formateo APA 7ma Edición, Creación de Monografías, Material Gráfico y CVs. Eres conciso, altamente persuasivo, tecnológico y muy educado. El cliente se llama ${activeQuote.nombre_cliente}. NO des precios exactos altos, diles que el Sr. Pablo revisará los detalles para dar la cotización final, pero anímalos a subir sus archivos aquí mismo.`;
+      }
+
       const { error: fnError } = await supabase.functions.invoke('deepseek-router', {
         body: {
           cotizacion_id: activeQuote.id,
           prompt: text,
-          system: `Eres P.A.B.L.O., el Asistente Virtual Táctico de Samuel Pablo (pablito_dp) Ayudas a los clientes a cotizar servicios como: Formateo APA 7ma Edición, Creación de Monografías, Material Gráfico y CVs. Eres conciso, amable, altamente persuasivo, y utilizas un tono táctico militar ligero pero muy profesional. El cliente se llama ${activeQuote.nombre_cliente}. NO des precios exactos altos, siempre diles que un agente humano revisará el documento para dar la cotización final, pero anímalos a subir sus archivos aquí mismo.`
+          system: systemPrompt
         }
       });
 
@@ -197,7 +241,9 @@ export default function SpaceCopilot() {
         body: {
           cotizacion_id: activeQuote.id,
           prompt: `He subido el archivo: ${file.name}`,
-          system: `El cliente acaba de subir un archivo. Confírmale que el documento ha sido recibido en el sistema seguro y que el equipo (o Pablo) lo revisará en breve para darle un presupuesto exacto.`
+          system: isAdmin
+            ? `El Jefe acaba de subir un archivo. Confirma su recepción con estilo S.H.I.E.L.D y pregúntale qué análisis deseas que ejecutes sobre él.`
+            : `El cliente acaba de subir un archivo. Confírmale que el documento ha sido recibido en la base de datos de S.H.I.E.L.D. y que el Sr. Pablo lo analizará en breve para darle un presupuesto exacto.`
         }
       });
 
@@ -238,8 +284,8 @@ export default function SpaceCopilot() {
                 <MessageCircle size={18} />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-zinc-100">P.A.B.L.O. <span className="text-zinc-500 font-normal text-xs">| Asistente Táctico</span></h3>
-                <p className="text-[10px] text-emerald-400 flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> En línea</p>
+                <h3 className="text-sm font-bold text-zinc-100">A.L.P.H.A. <span className="text-zinc-500 font-normal text-xs">| S.H.I.E.L.D. A.I.</span></h3>
+                <p className="text-[10px] text-emerald-400 flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Sistemas en línea</p>
               </div>
             </div>
             <button onClick={() => setIsOpen(false)} className="p-1.5 rounded-lg text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800 transition-colors">
@@ -262,8 +308,8 @@ export default function SpaceCopilot() {
               <div className="w-20 h-20 rounded-2xl flex items-center justify-center text-white shadow-lg mb-4" style={{ background: `linear-gradient(135deg, ${botColor}, ${botColor}66)`, boxShadow: `0 8px 32px ${botColor}40` }}>
                 <MessageCircle size={40} />
               </div>
-              <h2 className="text-xl font-bold text-white">Iniciar Cotización</h2>
-              <p className="text-sm text-zinc-400">Dime tu nombre o alias para comenzar la sesión y subir tus documentos.</p>
+              <h2 className="text-xl font-bold text-white">Protocolo de Acceso</h2>
+              <p className="text-sm text-zinc-400">Identifícate para ingresar al canal seguro y contactar con el Sr. Pablo.</p>
 
               <form onSubmit={startQuote} className="w-full space-y-3">
                 <input
@@ -309,7 +355,7 @@ export default function SpaceCopilot() {
                   <div className="border border-cyan-500/20 rounded-2xl rounded-bl-sm px-4 py-3 bg-zinc-800/80 flex items-center gap-2">
                     <Loader2 size={14} className="text-cyan-400 animate-spin" />
                     <span className="text-[10px] text-cyan-400 uppercase tracking-widest font-mono">
-                      {uploading ? 'Subiendo archivo...' : 'P.A.B.L.O. escribiendo...'}
+                      {uploading ? 'Procesando archivo...' : 'A.L.P.H.A. escribiendo...'}
                     </span>
                   </div>
                 </div>
