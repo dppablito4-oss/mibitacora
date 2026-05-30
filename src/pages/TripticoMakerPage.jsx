@@ -84,7 +84,7 @@ export default function TripticoMakerPage() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col font-sans">
+    <div className="min-h-screen pt-20 bg-black text-white flex flex-col font-sans">
       {/* HEADER */}
       <header className="h-14 border-b border-zinc-800 bg-zinc-950 flex items-center justify-between px-4 shrink-0">
         <div className="flex items-center gap-4">

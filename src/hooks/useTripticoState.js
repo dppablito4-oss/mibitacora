@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 
 const uid = () => Math.random().toString(36).slice(2, 8);
 
@@ -102,10 +102,25 @@ function createDefaultPages() {
 }
 
 export default function useTripticoState() {
-  const [pages, setPages] = useState(createDefaultPages);
+  const [pages, setPages] = useState(() => {
+    const saved = localStorage.getItem('triptico_state');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error("Error parsing saved triptico state", e);
+      }
+    }
+    return createDefaultPages();
+  });
+  
   const [activePageId, setActivePageId] = useState('page-front');
   const [selectedColIndex, setSelectedColIndex] = useState(null);
   const [selectedBlockId, setSelectedBlockId] = useState(null);
+
+  useEffect(() => {
+    localStorage.setItem('triptico_state', JSON.stringify(pages));
+  }, [pages]);
 
   const activePage = pages.find(p => p.id === activePageId);
   const selectedCol = selectedColIndex !== null ? activePage?.columns?.[selectedColIndex] : null;

@@ -16,10 +16,12 @@ const TripticoMakerPage = lazy(() => import('./pages/TripticoMakerPage'));
 const LoginPage = lazy(() => import('./pages/LoginPage'));
 const AdminPanel = lazy(() => import('./pages/AdminPanel'));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
+const TermsPage = lazy(() => import('./pages/TermsPage'));
+import CookieBanner from './components/CookieBanner';
 
 function AppLayout() {
   const location = useLocation();
-  const hidecopilot = ['/login', '/admin', '/tripticos'].some(r => location.pathname.startsWith(r));
+  const hidecopilot = ['/login', '/admin'].some(r => location.pathname.startsWith(r));
 
   return (
     <div className="relative min-h-screen bg-[#030712]">
@@ -50,6 +52,7 @@ function AppLayout() {
             <Route path="/tripticos" element={<TripticoMakerPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/admin" element={<AdminRoute><AdminPanel /></AdminRoute>} />
+            <Route path="/terminos" element={<TermsPage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </Suspense>
@@ -57,6 +60,7 @@ function AppLayout() {
 
       {!hidecopilot && <Footer />}
       {!hidecopilot && <SpaceCopilot />}
+      <CookieBanner />
     </div>
   );
 }
