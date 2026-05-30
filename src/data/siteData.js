@@ -7,6 +7,7 @@ export const PROFILE = {
   tagline: 'Desarrollador Web Táctico & Digital Creator',
   bio: 'Construyo interfaces de alta tecnología y ofrezco servicios digitales precisos.',
   email: 'pabloclsa87@gmail.com',
+  whatsapp: '51918165428',
   links: {
     github: 'https://github.com/dppablito4-oss',
     email: 'wa.me://+51918165428',

@@ -1,10 +1,12 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { supabase } from '../config/supabaseClient';
 import { useAuth } from '../context/AuthContext';
+import { useSiteConfig } from '../lib/useSiteConfig';
 import { MessageCircle, X, Send, Paperclip, Loader2, Phone } from 'lucide-react';
 
 export default function SpaceCopilot() {
   const { user, signInAnonymously } = useAuth();
+  const { profile } = useSiteConfig();
   const [isOpen, setIsOpen] = useState(false);
 
   // States
@@ -119,12 +121,24 @@ export default function SpaceCopilot() {
 
   const startQuote = async (e) => {
     e.preventDefault();
-    if (!clientName.trim() || !user) return;
+    if (!clientName.trim()) return;
     setLoading(true);
     try {
+      let currentUser = user;
+      
+      // Si el usuario no cargó a tiempo, lo forzamos
+      if (!currentUser && signInAnonymously) {
+        const authRes = await signInAnonymously();
+        if (authRes?.data?.user) currentUser = authRes.data.user;
+      }
+      
+      if (!currentUser) {
+        throw new Error("No se pudo establecer conexión segura.");
+      }
+
       const { data, error } = await supabase
         .from('cotizaciones')
-        .insert({ cliente_id: user.id, nombre_cliente: clientName.trim() })
+        .insert({ cliente_id: currentUser.id, nombre_cliente: clientName.trim() })
         .select()
         .single();
 
@@ -141,6 +155,7 @@ export default function SpaceCopilot() {
 
     } catch (err) {
       console.error('Error iniciando cotización:', err);
+      alert(err.message);
     } finally {
       setLoading(false);
     }
@@ -294,8 +309,8 @@ export default function SpaceCopilot() {
           </div>
 
           {/* Botón WhatsApp Flotante Interno */}
-          <a href="https://wa.me/51999999999" target="_blank" rel="noopener noreferrer" className="mt-3 flex items-center justify-center gap-2 w-full py-2 bg-green-600/20 hover:bg-green-600/30 text-green-400 border border-green-500/30 rounded-lg text-xs font-semibold transition-colors">
-            <Phone size={14} /> Hablar directo con Pablo
+          <a href={`https://wa.me/${profile?.whatsapp || '51918165428'}`} target="_blank" rel="noopener noreferrer" className="mt-3 flex items-center justify-center gap-2 w-full py-2 bg-green-600/20 hover:bg-green-600/30 text-green-400 border border-green-500/30 rounded-lg text-xs font-semibold transition-colors">
+            <Phone size={14} /> Hablar directo por WhatsApp
           </a>
         </div>
 

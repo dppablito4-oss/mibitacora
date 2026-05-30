@@ -288,8 +288,8 @@ export default function HomePage() {
           <p className="mx-auto mb-10 max-w-2xl text-lg font-light text-slate-400">
             Frecuencias abiertas. Transmita sus requerimientos de servicios o consultas de desarrollo.
           </p>
-          <a href={`mailto:${profile.email}`} className="group inline-flex items-center gap-3 border border-tesseract-500 bg-tesseract-500/10 px-8 py-4 text-lg font-bold uppercase tracking-wider text-tesseract-300 shadow-[0_0_20px_rgba(6,182,212,0.3)] transition-all hover:bg-tesseract-500 hover:text-white hover:shadow-[0_0_30px_rgba(6,182,212,0.6)]">
-            <Radar className="transition-transform group-hover:animate-spin" size={24} /> Iniciar Transmisión
+          <a href={`https://wa.me/${profile.whatsapp || '51918165428'}`} target="_blank" rel="noopener noreferrer" className="group inline-flex items-center gap-3 border border-tesseract-500 bg-tesseract-500/10 px-8 py-4 text-lg font-bold uppercase tracking-wider text-tesseract-300 shadow-[0_0_20px_rgba(6,182,212,0.3)] transition-all hover:bg-tesseract-500 hover:text-white hover:shadow-[0_0_30px_rgba(6,182,212,0.6)]">
+            <Radar className="transition-transform group-hover:animate-spin" size={24} /> Contactar por WhatsApp
           </a>
         </div>
       </section>

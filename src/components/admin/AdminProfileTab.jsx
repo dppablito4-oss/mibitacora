@@ -144,10 +144,14 @@ export default function AdminProfileTab({ config, onSaved }) {
           <textarea value={profile.bio || ''} onChange={e => updateField('bio', e.target.value)} placeholder="Cuéntale al mundo quién eres..." rows={3} className={`${inputClass} resize-none`} />
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div>
             <label className="block text-xs font-medium text-zinc-500 mb-2">Email</label>
             <input value={profile.email || ''} onChange={e => updateField('email', e.target.value)} className={inputClass} />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-zinc-500 mb-2">WhatsApp (con código de país)</label>
+            <input value={profile.whatsapp || ''} onChange={e => updateField('whatsapp', e.target.value)} placeholder="Ej: 51999999999" className={inputClass} />
           </div>
           <div>
             <label className="block text-xs font-medium text-zinc-500 mb-2">Fecha de nacimiento</label>
