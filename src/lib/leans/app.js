@@ -74,7 +74,7 @@ const App = (() => {
     dom.opencvLoader = document.getElementById('opencv-loader');
     dom.toastContainer = document.getElementById('toast-container');
     dom.filterSelector = document.getElementById('filter-selector');
-    dom.filterBtns = document.querySelectorAll('.filter-option');
+    dom.filterBtns = document.querySelectorAll('.filter-btn');
     dom.pagesStrip = document.getElementById('pages-strip');
     dom.pagesStripList = document.getElementById('pages-strip-list');
     dom.pageCounter = document.getElementById('page-counter');

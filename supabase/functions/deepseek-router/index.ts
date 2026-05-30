@@ -133,6 +133,27 @@ serve(async (req) => {
       throw new Error("Respuesta inválida de la API de DeepSeek");
     }
 
+    // Interceptar herramientas del sistema en el Edge Function
+    try {
+      const parsedReply = JSON.parse(assistantReply);
+      if (parsedReply.tool_name === 'save_note' && parsedReply.ui_state?.note_content) {
+        const { error: noteError } = await supabaseClient
+          .from('alpha_notes')
+          .insert({
+            user_id: user.id,
+            note_content: parsedReply.ui_state.note_content
+          });
+        
+        if (noteError) {
+          console.error("Error guardando nota de A.L.P.H.A.:", noteError);
+        } else {
+          console.log("Nota guardada en DB exitosamente:", parsedReply.ui_state.note_content);
+        }
+      }
+    } catch (e) {
+      // Si no es JSON o falla, lo ignoramos y seguimos
+    }
+
     if (cotizacion_id !== 0) {
       // Insertar la respuesta del asistente en la tabla mensajes_chat
       const { error: insertError } = await supabaseClient

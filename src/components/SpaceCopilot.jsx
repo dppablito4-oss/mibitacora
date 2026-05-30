@@ -120,11 +120,11 @@ export default function SpaceCopilot() {
   const JSON_INSTRUCTION = `
 REGLA CRÍTICA: Responde SIEMPRE con este objeto JSON exacto:
 {
-  "intent": "HERRAMIENTA_AUTOMATIZADA" | "SERVICIO_MANUAL",
-  "tool_name": "qr_generator" | "math_solver" | "triptico_maker" | null,
-  "action": "OPEN_MINI_APP" | "COLLECT_INFO" | "NORMAL_CHAT",
-  "message": "Tu respuesta.",
-  "ui_state": { "show_uploader": true | false, "panel_active": "qr_config_panel" | "chat_standard" | null }
+  "intent": "HERRAMIENTA_AUTOMATIZADA" | "SERVICIO_MANUAL" | "SYSTEM_MEMORY",
+  "tool_name": "qr_generator" | "math_solver" | "triptico_maker" | "save_note" | null,
+  "action": "OPEN_MINI_APP" | "COLLECT_INFO" | "NORMAL_CHAT" | "EXECUTE_TOOL",
+  "message": "Tu respuesta confirmando la acción.",
+  "ui_state": { "show_uploader": true | false, "note_content": "texto exacto a guardar si tool_name es save_note", "panel_active": "qr_config_panel" | "chat_standard" | null }
 }`;
 
   // --- ACCIONES ---

@@ -94,8 +94,8 @@ export default function ScannerPage() {
         <section id="editor-zone" className="hidden absolute inset-0 flex flex-col md:flex-row bg-dark">
           {/* Canvas Area */}
           <div className="flex-1 relative overflow-hidden flex items-center justify-center p-4 bg-black/50">
-            <div id="canvas-wrapper" className="relative max-w-full max-h-full">
-              <canvas id="canvasInput" className="max-w-full max-h-full object-contain"></canvas>
+            <div id="canvas-wrapper" className="relative inline-flex items-center justify-center max-w-full max-h-full">
+              <canvas id="canvasInput" className="max-w-full max-h-full block"></canvas>
               <canvas id="canvasOverlay" className="absolute top-0 left-0 w-full h-full touch-none"></canvas>
             </div>
           </div>

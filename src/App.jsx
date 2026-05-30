@@ -7,11 +7,11 @@ import SpaceCopilot from './components/SpaceCopilot';
 import ErrorBoundary from './components/ErrorBoundary';
 import AdminRoute from './components/AdminRoute';
 
-import HomePage from './pages/HomePage';
-import ScannerPage from './pages/ScannerPage';
-import QRGeneratorPage from './pages/QRGeneratorPage';
-import MathSolverPage from './pages/MathSolverPage';
-import TripticoMakerPage from './pages/TripticoMakerPage';
+const HomePage = lazy(() => import('./pages/HomePage'));
+const ScannerPage = lazy(() => import('./pages/ScannerPage'));
+const QRGeneratorPage = lazy(() => import('./pages/QRGeneratorPage'));
+const MathSolverPage = lazy(() => import('./pages/MathSolverPage'));
+const TripticoMakerPage = lazy(() => import('./pages/TripticoMakerPage'));
 
 const LoginPage = lazy(() => import('./pages/LoginPage'));
 const AdminPanel = lazy(() => import('./pages/AdminPanel'));
