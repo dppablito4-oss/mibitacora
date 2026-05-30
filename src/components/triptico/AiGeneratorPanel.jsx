@@ -12,69 +12,129 @@ export default function AiGeneratorPanel({ onApply }) {
   useEffect(() => {
     const saved = localStorage.getItem('triptico_ai_uses');
     if (saved) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setGenerationsLeft(parseInt(saved));
     } else {
       localStorage.setItem('triptico_ai_uses', '2');
     }
   }, []);
 
-  const generateWithDeepSeek = async () => {
-    if (!topic.trim() || generationsLeft <= 0) return;
-    setLoading(true);
+  const PROMPT_TEMPLATE = (topic) => `Genera el contenido para un TRÍPTICO escolar sobre: "${topic}".
 
-    try {
-      const promptText = `Genera el contenido para un tríptico sobre el tema: "${topic}".
-Debes devolver ÚNICAMENTE un objeto JSON válido con la siguiente estructura estricta, sin markdown, sin explicaciones, solo el JSON:
+Un tríptico es una hoja A4 horizontal dividida en 3 columnas iguales, con 2 caras:
+- EXTERIOR (anverso): Contraportada | Dorso | Portada  
+- INTERIOR (reverso): Panel 1 (Introducción) | Panel 2 (Desarrollo) | Panel 3 (Conclusión)
+
+Cada columna tiene BLOQUES de contenido. Los tipos de bloque son:
+- heading: título grande (fontSize 18-32)
+- subheading: subtítulo (fontSize 14-18)  
+- paragraph: párrafo de texto (fontSize 11-14)
+- image: imagen con URL de Unsplash (src: "https://images.unsplash.com/photo-XXXXX?w=400&h=300&fit=crop")
+- list: lista con items array y marker (•, →, ✓, ★)
+- divider: línea separadora decorativa
+
+Devuelve SOLO un JSON válido con esta estructura (sin markdown, sin explicaciones):
 {
   "pages": [
     {
       "id": "page-front",
       "bgColor": "#ffffff",
-      "elements": [
-        {"type": "text", "content": "TÍTULO DEL TEMA", "x": 68, "y": 20, "w": 30, "h": 20, "style": {"fontSize": 48, "color": "#000000", "fontWeight": "900", "textAlign": "center"}},
-        {"type": "text", "content": "PORTADA", "x": 68, "y": 10, "w": 30, "h": 5, "style": {"fontSize": 14, "color": "#666666", "textAlign": "center"}},
-        {"type": "text", "content": "Resumen corto que va en la contraportada (centro).", "x": 35, "y": 30, "w": 30, "h": 40, "style": {"fontSize": 16, "color": "#333333"}}
+      "columns": [
+        {
+          "label": "Contraportada",
+          "blocks": [
+            {"type": "heading", "text": "Referencias", "style": {"fontSize": 18, "color": "#000", "fontWeight": "700", "textAlign": "center"}},
+            {"type": "divider", "style": {"color": "#22d3ee", "thickness": 2, "marginY": 6}},
+            {"type": "paragraph", "text": "Fuentes y bibliografía...", "style": {"fontSize": 11, "color": "#555", "textAlign": "center"}}
+          ]
+        },
+        {
+          "label": "Dorso",
+          "blocks": [
+            {"type": "image", "src": "https://images.unsplash.com/photo-RELEVANTE?w=400&h=300&fit=crop", "style": {"height": 100, "borderRadius": 8}},
+            {"type": "paragraph", "text": "Dato curioso o resumen visual", "style": {"fontSize": 11, "color": "#666", "textAlign": "center"}}
+          ]
+        },
+        {
+          "label": "Portada",
+          "blocks": [
+            {"type": "heading", "text": "TÍTULO", "style": {"fontSize": 30, "color": "#000", "fontWeight": "900", "textAlign": "center"}},
+            {"type": "divider", "style": {"color": "#22d3ee", "thickness": 3, "marginY": 8}},
+            {"type": "paragraph", "text": "Subtítulo descriptivo", "style": {"fontSize": 14, "color": "#555", "textAlign": "center"}},
+            {"type": "image", "src": "URL_IMAGEN_PORTADA", "style": {"height": 100, "borderRadius": 8}}
+          ]
+        }
       ]
     },
     {
       "id": "page-back",
-      "bgColor": "#f8fafc",
-      "elements": [
-        {"type": "text", "content": "Presentación", "x": 2, "y": 10, "w": 30, "h": 5, "style": {"fontSize": 24, "color": "#000000", "fontWeight": "700"}},
-        {"type": "text", "content": "Texto de presentación detallado aquí...", "x": 2, "y": 20, "w": 30, "h": 60, "style": {"fontSize": 14, "color": "#444444"}},
-        {"type": "text", "content": "Subtema 1", "x": 35, "y": 10, "w": 30, "h": 5, "style": {"fontSize": 24, "color": "#000000", "fontWeight": "700"}},
-        {"type": "text", "content": "Contenido del subtema 1...", "x": 35, "y": 20, "w": 30, "h": 60, "style": {"fontSize": 14, "color": "#444444"}},
-        {"type": "text", "content": "Conclusión", "x": 68, "y": 10, "w": 30, "h": 5, "style": {"fontSize": 24, "color": "#000000", "fontWeight": "700"}},
-        {"type": "text", "content": "Texto de conclusión...", "x": 68, "y": 20, "w": 30, "h": 60, "style": {"fontSize": 14, "color": "#444444"}}
+      "bgColor": "#ffffff",
+      "columns": [
+        {
+          "label": "Introducción",
+          "blocks": [
+            {"type": "heading", "text": "¿Qué es?", "style": {"fontSize": 22, "color": "#000", "fontWeight": "700"}},
+            {"type": "divider", "style": {"color": "#22d3ee", "thickness": 2, "marginY": 6}},
+            {"type": "paragraph", "text": "Definición completa...", "style": {"fontSize": 12, "color": "#333"}},
+            {"type": "subheading", "text": "Datos clave", "style": {"fontSize": 14, "color": "#1a1a1a", "fontWeight": "600"}},
+            {"type": "list", "items": ["Dato 1", "Dato 2", "Dato 3"], "style": {"fontSize": 11, "color": "#444", "marker": "•"}}
+          ]
+        },
+        {
+          "label": "Desarrollo",
+          "blocks": [
+            {"type": "heading", "text": "Causas", "style": {"fontSize": 22, "color": "#000", "fontWeight": "700"}},
+            {"type": "divider", "style": {"color": "#22d3ee", "thickness": 2, "marginY": 6}},
+            {"type": "paragraph", "text": "Explicación detallada...", "style": {"fontSize": 12, "color": "#333"}},
+            {"type": "list", "items": ["Causa 1", "Causa 2", "Causa 3"], "style": {"fontSize": 11, "color": "#444", "marker": "→"}}
+          ]
+        },
+        {
+          "label": "Conclusión",
+          "blocks": [
+            {"type": "heading", "text": "Soluciones", "style": {"fontSize": 22, "color": "#000", "fontWeight": "700"}},
+            {"type": "divider", "style": {"color": "#22d3ee", "thickness": 2, "marginY": 6}},
+            {"type": "paragraph", "text": "Propuestas concretas...", "style": {"fontSize": 12, "color": "#333"}},
+            {"type": "subheading", "text": "¿Qué podemos hacer?", "style": {"fontSize": 14, "fontWeight": "600"}},
+            {"type": "list", "items": ["Acción 1", "Acción 2", "Acción 3"], "style": {"fontSize": 11, "color": "#444", "marker": "✓"}}
+          ]
+        }
       ]
     }
   ]
 }
 
-Asegúrate de llenar los textos con información real y coherente sobre el tema indicado. Puedes ajustar las coordenadas "y" o "h" si el texto es muy largo.`;
+REGLAS IMPORTANTES:
+1. Llena TODO con información REAL y detallada sobre "${topic}".
+2. Usa VARIOS tipos de bloque por columna (heading + divider + paragraph + subheading + list + image).
+3. Para imágenes usa URLs reales de Unsplash relacionadas al tema.
+4. Los textos deben ser informativos, como un tríptico escolar real impreso.
+5. Devuelve SOLO el JSON, nada más.`;
 
+  const generateWithDeepSeek = async () => {
+    if (!topic.trim() || generationsLeft <= 0) return;
+    setLoading(true);
+
+    try {
       const { data, error } = await supabase.functions.invoke('deepseek-router', {
         body: {
-          cotizacion_id: 0, // Bypass
-          prompt: promptText,
-          system: "Eres un generador estricto de JSON. Devuelve solo el JSON válido."
+          cotizacion_id: 0,
+          prompt: PROMPT_TEMPLATE(topic),
+          system: "Eres un generador estricto de JSON para trípticos escolares. Devuelve solo JSON válido, sin markdown, sin explicaciones."
         }
       });
 
       if (error) throw error;
 
-      // Intentar parsear
       let jsonStr = data.reply;
-      // Limpiar markdown si la IA fue terca
       if (jsonStr.includes('```json')) {
         jsonStr = jsonStr.split('```json')[1].split('```')[0].trim();
+      } else if (jsonStr.includes('```')) {
+        jsonStr = jsonStr.split('```')[1].split('```')[0].trim();
       }
-      
+
       const parsed = JSON.parse(jsonStr);
       onApply(parsed);
 
-      // Descontar uso
       const left = generationsLeft - 1;
       setGenerationsLeft(left);
       localStorage.setItem('triptico_ai_uses', left.toString());
@@ -88,12 +148,7 @@ Asegúrate de llenar los textos con información real y coherente sobre el tema 
   };
 
   const handleCopyPrompt = () => {
-    const prompt = `Actúa como un diseñador de trípticos. Genera el contenido para un tríptico sobre el tema: "${topic}".
-Debes devolver ÚNICAMENTE un objeto JSON válido con la siguiente estructura estricta, sin markdown, sin explicaciones:
-{ "pages": [ { "id": "page-front", "bgColor": "#ffffff", "elements": [ {"type": "text", "content": "PORTADA", "x": 68, "y": 10, "w": 30, "h": 20, "style": {"fontSize": 48}} ] }, { "id": "page-back", "bgColor": "#f8fafc", "elements": [ {"type": "text", "content": "CONTENIDO", "x": 5, "y": 10, "w": 30, "h": 80, "style": {"fontSize": 14}} ] } ] }
-Rellena con datos reales. Mantén las "x" en 2, 35 y 68 para respetar las 3 columnas.`;
-    
-    navigator.clipboard.writeText(prompt);
+    navigator.clipboard.writeText(PROMPT_TEMPLATE(topic));
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -118,8 +173,8 @@ Rellena con datos reales. Mantén las "x" en 2, 35 y 68 para respetar las 3 colu
       <div className="space-y-4">
         <div>
           <label className="block text-[10px] text-zinc-500 mb-1 font-bold">TEMA DEL TRÍPTICO</label>
-          <input 
-            type="text" 
+          <input
+            type="text"
             placeholder="Ej. El Calentamiento Global"
             value={topic}
             onChange={e => setTopic(e.target.value)}

@@ -2,107 +2,262 @@ import { useState, useCallback } from 'react';
 
 const uid = () => Math.random().toString(36).slice(2, 8);
 
-const ELEMENT_DEFAULTS = {
-  text:       { content: 'Nuevo texto', x: 10, y: 10, w: 25, h: 10, style: { fontSize: 24, color: '#000000', fontWeight: '400', textAlign: 'left' } },
-  image:      { src: '', x: 10, y: 10, w: 25, h: 25, style: { opacity: 1, borderRadius: 0, objectFit: 'cover' } },
-  comparison: { columns: [
-                { title: 'Opción A', items: ['Ventaja 1'], color: '#22d3ee' },
-                { title: 'Opción B', items: ['Ventaja 1'], color: '#a78bfa' },
-              ], x: 5, y: 10, w: 25, h: 30, style: {} },
-  bento:      { items: [
-                { title: 'Feature 1', desc: 'Descripción', icon: '🚀', size: 'large' },
-              ], x: 5, y: 5, w: 25, h: 30, style: {} },
+/**
+ * Tríptico = 1 hoja A4 horizontal dividida en 3 columnas iguales.
+ * Cada columna contiene un array de "bloques" que pueden ser:
+ *   heading, subheading, paragraph, image, list, divider
+ */
+
+const BLOCK_DEFAULTS = {
+  heading:    { type: 'heading',    text: 'Título', style: { fontSize: 22, color: '#000000', fontWeight: '700', textAlign: 'left' } },
+  subheading: { type: 'subheading', text: 'Subtítulo', style: { fontSize: 16, color: '#1a1a1a', fontWeight: '600', textAlign: 'left' } },
+  paragraph:  { type: 'paragraph',  text: 'Escribe tu contenido aquí...', style: { fontSize: 12, color: '#333333', textAlign: 'left', lineHeight: 1.5 } },
+  image:      { type: 'image',      src: '', alt: '', style: { borderRadius: 4, objectFit: 'cover', height: 120 } },
+  list:       { type: 'list',       items: ['Elemento 1', 'Elemento 2', 'Elemento 3'], style: { fontSize: 12, color: '#333333', marker: '•' } },
+  divider:    { type: 'divider',    style: { color: '#cccccc', thickness: 1, marginY: 8 } },
 };
 
-export default function useTripticoState() {
-  const [pages, setPages] = useState([
+function createDefaultPages() {
+  return [
     {
-      id: 'page-front', // Exterior (Contraportada, Espalda, Portada)
-      bgImage: '',
+      id: 'page-front',
+      label: 'Exterior (Anverso)',
       bgColor: '#ffffff',
-      elements: [
-        { id: uid(), type: 'text', content: 'PORTADA', x: 70, y: 10, w: 25, h: 10, style: { fontSize: 48, fontWeight: '900', color: '#000000', textAlign: 'center' } }
-      ]
+      bgImage: '',
+      columns: [
+        {
+          id: uid(),
+          label: 'Contraportada',
+          bgColor: '',
+          blocks: [
+            { id: uid(), type: 'heading', text: 'Contacto', style: { fontSize: 20, color: '#000000', fontWeight: '700', textAlign: 'center' } },
+            { id: uid(), type: 'divider', style: { color: '#22d3ee', thickness: 2, marginY: 8 } },
+            { id: uid(), type: 'paragraph', text: 'Nombre de la institución\nDirección completa\nTeléfono: (xxx) xxx-xxxx\nCorreo: ejemplo@email.com', style: { fontSize: 11, color: '#555555', textAlign: 'center', lineHeight: 1.6 } },
+          ],
+        },
+        {
+          id: uid(),
+          label: 'Dorso',
+          bgColor: '',
+          blocks: [
+            { id: uid(), type: 'paragraph', text: '', style: { fontSize: 11, color: '#666666', textAlign: 'center', lineHeight: 1.5 } },
+          ],
+        },
+        {
+          id: uid(),
+          label: 'Portada',
+          bgColor: '',
+          blocks: [
+            { id: uid(), type: 'heading', text: 'TÍTULO DEL\nTRÍPTICO', style: { fontSize: 32, color: '#000000', fontWeight: '900', textAlign: 'center' } },
+            { id: uid(), type: 'divider', style: { color: '#22d3ee', thickness: 3, marginY: 10 } },
+            { id: uid(), type: 'paragraph', text: 'Subtítulo o descripción breve del tema que se aborda en este tríptico informativo.', style: { fontSize: 14, color: '#555555', textAlign: 'center', lineHeight: 1.5 } },
+          ],
+        },
+      ],
     },
     {
-      id: 'page-back', // Interior (3 Bloques de contenido)
-      bgImage: '',
+      id: 'page-back',
+      label: 'Interior (Reverso)',
       bgColor: '#ffffff',
-      elements: [
-        { id: uid(), type: 'text', content: 'CONTENIDO 1', x: 5, y: 10, w: 25, h: 10, style: { fontSize: 32, fontWeight: '900', color: '#000000', textAlign: 'center' } }
-      ]
-    }
-  ]);
-  
+      bgImage: '',
+      columns: [
+        {
+          id: uid(),
+          label: 'Panel 1',
+          bgColor: '',
+          blocks: [
+            { id: uid(), type: 'heading', text: '¿Qué es?', style: { fontSize: 22, color: '#000000', fontWeight: '700', textAlign: 'left' } },
+            { id: uid(), type: 'divider', style: { color: '#22d3ee', thickness: 2, marginY: 6 } },
+            { id: uid(), type: 'paragraph', text: 'Aquí va la introducción o definición del tema. Explica de forma clara y concisa de qué se trata.', style: { fontSize: 12, color: '#333333', textAlign: 'left', lineHeight: 1.5 } },
+            { id: uid(), type: 'subheading', text: 'Datos clave', style: { fontSize: 14, color: '#1a1a1a', fontWeight: '600', textAlign: 'left' } },
+            { id: uid(), type: 'list', items: ['Dato importante 1', 'Dato importante 2', 'Dato importante 3'], style: { fontSize: 11, color: '#444444', marker: '•' } },
+          ],
+        },
+        {
+          id: uid(),
+          label: 'Panel 2',
+          bgColor: '',
+          blocks: [
+            { id: uid(), type: 'heading', text: 'Causas', style: { fontSize: 22, color: '#000000', fontWeight: '700', textAlign: 'left' } },
+            { id: uid(), type: 'divider', style: { color: '#22d3ee', thickness: 2, marginY: 6 } },
+            { id: uid(), type: 'paragraph', text: 'Desarrollo del tema con datos relevantes, causas y características principales.', style: { fontSize: 12, color: '#333333', textAlign: 'left', lineHeight: 1.5 } },
+            { id: uid(), type: 'list', items: ['Causa principal 1', 'Causa principal 2', 'Causa principal 3'], style: { fontSize: 11, color: '#444444', marker: '→' } },
+          ],
+        },
+        {
+          id: uid(),
+          label: 'Panel 3',
+          bgColor: '',
+          blocks: [
+            { id: uid(), type: 'heading', text: 'Soluciones', style: { fontSize: 22, color: '#000000', fontWeight: '700', textAlign: 'left' } },
+            { id: uid(), type: 'divider', style: { color: '#22d3ee', thickness: 2, marginY: 6 } },
+            { id: uid(), type: 'paragraph', text: 'Conclusiones y propuestas de solución al problema planteado.', style: { fontSize: 12, color: '#333333', textAlign: 'left', lineHeight: 1.5 } },
+            { id: uid(), type: 'subheading', text: '¿Qué podemos hacer?', style: { fontSize: 14, color: '#1a1a1a', fontWeight: '600', textAlign: 'left' } },
+            { id: uid(), type: 'list', items: ['Acción 1', 'Acción 2', 'Acción 3'], style: { fontSize: 11, color: '#444444', marker: '✓' } },
+          ],
+        },
+      ],
+    },
+  ];
+}
+
+export default function useTripticoState() {
+  const [pages, setPages] = useState(createDefaultPages);
   const [activePageId, setActivePageId] = useState('page-front');
-  const [selectedElId, setSelectedElId] = useState(null);
-  const [rightTab, setRightTab] = useState('element');
+  const [selectedColIndex, setSelectedColIndex] = useState(null);
+  const [selectedBlockId, setSelectedBlockId] = useState(null);
 
   const activePage = pages.find(p => p.id === activePageId);
-  const selectedEl = activePage?.elements?.find(e => e.id === selectedElId);
+  const selectedCol = selectedColIndex !== null ? activePage?.columns?.[selectedColIndex] : null;
+  const selectedBlock = selectedCol?.blocks?.find(b => b.id === selectedBlockId) || null;
 
-  const updateElement = useCallback((elId, changes) => {
-    setPages(prev => prev.map(p =>
-      p.id !== activePageId ? p : {
-        ...p,
-        elements: p.elements.map(e => e.id === elId ? { ...e, ...changes } : e),
-      }
-    ));
+  // Update a specific block in a column
+  const updateBlock = useCallback((colIndex, blockId, changes) => {
+    setPages(prev => prev.map(p => {
+      if (p.id !== activePageId) return p;
+      const newCols = [...p.columns];
+      newCols[colIndex] = {
+        ...newCols[colIndex],
+        blocks: newCols[colIndex].blocks.map(b =>
+          b.id === blockId ? { ...b, ...changes } : b
+        ),
+      };
+      return { ...p, columns: newCols };
+    }));
   }, [activePageId]);
 
-  const deleteElement = useCallback((elId) => {
-    setPages(prev => prev.map(p =>
-      p.id !== activePageId ? p : { ...p, elements: p.elements.filter(e => e.id !== elId) }
-    ));
-    setSelectedElId(null);
+  // Update block style
+  const updateBlockStyle = useCallback((colIndex, blockId, styleChanges) => {
+    setPages(prev => prev.map(p => {
+      if (p.id !== activePageId) return p;
+      const newCols = [...p.columns];
+      newCols[colIndex] = {
+        ...newCols[colIndex],
+        blocks: newCols[colIndex].blocks.map(b =>
+          b.id === blockId ? { ...b, style: { ...b.style, ...styleChanges } } : b
+        ),
+      };
+      return { ...p, columns: newCols };
+    }));
   }, [activePageId]);
 
-  const addElement = useCallback((type) => {
-    const newEl = { id: uid(), type, ...ELEMENT_DEFAULTS[type] };
-    setPages(prev => prev.map(p =>
-      p.id !== activePageId ? p : { ...p, elements: [...p.elements, newEl] }
-    ));
-    setSelectedElId(newEl.id);
-    setRightTab('element');
+  // Add a block to the selected column
+  const addBlock = useCallback((colIndex, type) => {
+    const defaults = BLOCK_DEFAULTS[type];
+    if (!defaults) return;
+    const newBlock = { id: uid(), ...JSON.parse(JSON.stringify(defaults)) };
+    setPages(prev => prev.map(p => {
+      if (p.id !== activePageId) return p;
+      const newCols = [...p.columns];
+      newCols[colIndex] = {
+        ...newCols[colIndex],
+        blocks: [...newCols[colIndex].blocks, newBlock],
+      };
+      return { ...p, columns: newCols };
+    }));
+    setSelectedBlockId(newBlock.id);
   }, [activePageId]);
 
-  const duplicateElement = useCallback(() => {
-    if (!selectedEl) return;
-    const newEl = { ...JSON.parse(JSON.stringify(selectedEl)), id: uid(), x: selectedEl.x + 3, y: selectedEl.y + 3 };
-    setPages(prev => prev.map(p =>
-      p.id !== activePageId ? p : { ...p, elements: [...p.elements, newEl] }
-    ));
-    setSelectedElId(newEl.id);
-  }, [selectedEl, activePageId]);
+  // Delete a block
+  const deleteBlock = useCallback((colIndex, blockId) => {
+    setPages(prev => prev.map(p => {
+      if (p.id !== activePageId) return p;
+      const newCols = [...p.columns];
+      newCols[colIndex] = {
+        ...newCols[colIndex],
+        blocks: newCols[colIndex].blocks.filter(b => b.id !== blockId),
+      };
+      return { ...p, columns: newCols };
+    }));
+    if (selectedBlockId === blockId) setSelectedBlockId(null);
+  }, [activePageId, selectedBlockId]);
 
+  // Move block up/down within column
+  const moveBlock = useCallback((colIndex, blockId, direction) => {
+    setPages(prev => prev.map(p => {
+      if (p.id !== activePageId) return p;
+      const newCols = [...p.columns];
+      const blocks = [...newCols[colIndex].blocks];
+      const idx = blocks.findIndex(b => b.id === blockId);
+      if (idx < 0) return p;
+      const newIdx = idx + direction;
+      if (newIdx < 0 || newIdx >= blocks.length) return p;
+      [blocks[idx], blocks[newIdx]] = [blocks[newIdx], blocks[idx]];
+      newCols[colIndex] = { ...newCols[colIndex], blocks };
+      return { ...p, columns: newCols };
+    }));
+  }, [activePageId]);
+
+  // Update column-level properties (label, bgColor)
+  const updateColumn = useCallback((colIndex, changes) => {
+    setPages(prev => prev.map(p => {
+      if (p.id !== activePageId) return p;
+      const newCols = [...p.columns];
+      newCols[colIndex] = { ...newCols[colIndex], ...changes };
+      return { ...p, columns: newCols };
+    }));
+  }, [activePageId]);
+
+  // Update page-level properties (bgColor, bgImage)
   const updatePage = useCallback((changes) => {
     setPages(prev => prev.map(p => p.id === activePageId ? { ...p, ...changes } : p));
   }, [activePageId]);
 
+  // Load from AI-generated JSON
   const loadFromJson = useCallback((json) => {
-    if (json.pages) {
-      // Ensure all elements have unique IDs and correct properties
-      const safePages = json.pages.map(page => ({
-        ...page,
-        id: page.id || `page-${uid()}`,
-        elements: (page.elements || []).map(el => ({
-          ...el,
-          id: el.id || uid()
-        }))
+    if (json.pages && Array.isArray(json.pages)) {
+      const safePages = json.pages.map((page, pi) => ({
+        id: page.id || (pi === 0 ? 'page-front' : 'page-back'),
+        label: page.label || (pi === 0 ? 'Exterior (Anverso)' : 'Interior (Reverso)'),
+        bgColor: page.bgColor || '#ffffff',
+        bgImage: page.bgImage || '',
+        columns: (page.columns || []).map(col => ({
+          id: col.id || uid(),
+          label: col.label || '',
+          bgColor: col.bgColor || '',
+          blocks: (col.blocks || []).map(b => ({
+            id: b.id || uid(),
+            type: b.type || 'paragraph',
+            text: b.text || '',
+            src: b.src || '',
+            alt: b.alt || '',
+            items: b.items || [],
+            style: b.style || {},
+          })),
+        })),
       }));
+      // Ensure each page has exactly 3 columns
+      safePages.forEach(p => {
+        while (p.columns.length < 3) {
+          p.columns.push({ id: uid(), label: `Panel ${p.columns.length + 1}`, bgColor: '', blocks: [] });
+        }
+        if (p.columns.length > 3) p.columns = p.columns.slice(0, 3);
+      });
       setPages(safePages);
       setActivePageId(safePages[0]?.id || 'page-front');
-      setSelectedElId(null);
+      setSelectedColIndex(null);
+      setSelectedBlockId(null);
     }
+  }, []);
+
+  const resetToDefaults = useCallback(() => {
+    setPages(createDefaultPages());
+    setActivePageId('page-front');
+    setSelectedColIndex(null);
+    setSelectedBlockId(null);
   }, []);
 
   return {
     pages,
     activePageId, setActivePageId,
-    selectedElId, setSelectedElId,
-    activePage, selectedEl,
-    rightTab, setRightTab,
-    updateElement, deleteElement, addElement, duplicateElement, updatePage,
-    loadFromJson
+    activePage,
+    selectedColIndex, setSelectedColIndex,
+    selectedBlockId, setSelectedBlockId,
+    selectedCol, selectedBlock,
+    updateBlock, updateBlockStyle,
+    addBlock, deleteBlock, moveBlock,
+    updateColumn, updatePage,
+    loadFromJson, resetToDefaults,
+    BLOCK_DEFAULTS,
   };
 }
