@@ -3,12 +3,14 @@ import { useAuth } from '../context/AuthContext';
 import { supabase } from '../config/supabaseClient';
 import { useSiteConfig } from '../lib/useSiteConfig';
 import { Link } from 'react-router-dom';
-import { Plus, Trash2, Edit3, Eye, EyeOff, LogOut, Sparkles, ArrowLeft, Save, User, Heart, Megaphone, FileText } from 'lucide-react';
+import { Plus, Trash2, Edit3, Eye, EyeOff, LogOut, Sparkles, ArrowLeft, Save, User, Heart, Megaphone, FileText, MessageCircle } from 'lucide-react';
 import AdminProfileTab from '../components/admin/AdminProfileTab';
 import AdminHobbiesTab from '../components/admin/AdminHobbiesTab';
 import AdminAvisosTab from '../components/admin/AdminAvisosTab';
+import AdminCotizacionesTab from '../components/admin/AdminCotizacionesTab';
 
 const TABS = [
+  { id: 'cotizaciones', label: 'Cotizaciones', icon: MessageCircle, emoji: '💬' },
   { id: 'bitacora', label: 'Bitácora', icon: FileText, emoji: '📝' },
   { id: 'perfil', label: 'Perfil', icon: User, emoji: '👤' },
   { id: 'hobbies', label: 'Hobbies', icon: Heart, emoji: '🎯' },
@@ -155,7 +157,11 @@ export default function AdminPanel() {
         </div>
       </div>
 
-      <main className="mx-auto max-w-6xl px-6 py-10">
+      <main className={`mx-auto ${activeTab === 'cotizaciones' ? 'max-w-7xl' : 'max-w-6xl'} px-6 py-10`}>
+        {/* ── Tab: Cotizaciones ── */}
+        {activeTab === 'cotizaciones' && (
+          <AdminCotizacionesTab />
+        )}
         {/* ── Tab: Perfil ── */}
         {activeTab === 'perfil' && (
           <AdminProfileTab

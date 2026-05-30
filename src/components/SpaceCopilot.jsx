@@ -358,12 +358,25 @@ export default function SpaceCopilot() {
 
             /* PANTALLA DE CHAT */
             <div className="p-4 space-y-4 flex-1">
-              {messages.map((m) => (
-                <div key={m.id} className={`flex ${m.enviado_por === 'cliente' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-[88%] rounded-2xl px-4 py-3 text-sm leading-relaxed whitespace-pre-line ${m.enviado_por === 'cliente'
-                    ? 'bg-cyan-600 text-white rounded-br-sm shadow-lg shadow-cyan-900/20'
-                    : 'bg-zinc-800 text-zinc-200 border border-zinc-700 rounded-bl-sm'
+              {messages.map((m) => {
+                const isCliente = m.enviado_por === 'cliente';
+                const isAdmin = m.enviado_por === 'admin';
+
+                return (
+                <div key={m.id} className={`flex ${isCliente ? 'justify-end' : 'justify-start'}`}>
+                  <div className={`max-w-[88%] rounded-2xl px-4 py-3 text-sm leading-relaxed whitespace-pre-line ${
+                    isCliente
+                      ? 'bg-cyan-600 text-white rounded-br-sm shadow-lg shadow-cyan-900/20'
+                      : isAdmin
+                        ? 'bg-gradient-to-br from-amber-900/30 to-amber-800/10 text-amber-50 border border-amber-500/30 rounded-bl-sm'
+                        : 'bg-zinc-800 text-zinc-200 border border-zinc-700 rounded-bl-sm'
                     }`}>
+                    {/* Admin badge */}
+                    {isAdmin && (
+                      <div className="flex items-center gap-1.5 mb-1.5 text-[10px] font-bold text-amber-400 uppercase tracking-wider">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400" /> Pablo
+                      </div>
+                    )}
                     {m.mensaje}
                     {m.archivo_url && (
                       <a href={m.archivo_url} target="_blank" rel="noopener noreferrer" className="block mt-2 text-xs font-semibold underline text-blue-200 hover:text-white truncate">
@@ -372,7 +385,8 @@ export default function SpaceCopilot() {
                     )}
                   </div>
                 </div>
-              ))}
+                );
+              })}
 
               {/* Loader de DeepSeek o subida */}
               {(loading || uploading) && (
