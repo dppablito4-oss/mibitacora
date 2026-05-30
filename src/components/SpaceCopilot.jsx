@@ -1,152 +1,370 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { supabase } from '../config/supabaseClient';
 import { useAuth } from '../context/AuthContext';
-import { MessageCircle, X, Send, Trash2, Plus, ChevronDown } from 'lucide-react';
-
-const PERSONALITIES = {
-  catedratico: { id: 'catedratico', emoji: '🎓', name: 'Catedrático', color: '#3b82f6' },
-  brayan: { id: 'brayan', emoji: '🧢', name: 'El Brayan', color: '#a855f7' },
-  motivador: { id: 'motivador', emoji: '🚀', name: 'Motivador', color: '#f59e0b' },
-  cientifico: { id: 'cientifico', emoji: '⚛️', name: 'Científico', color: '#10b981' },
-};
-
-const MAX_CHATS = 5;
-const MAX_MSGS = 20;
-const MAX_CHARS = 500;
-
-function newChat(name) {
-  return { id: Date.now().toString(), title: 'Nuevo Chat', messages: [{ role: 'assistant', text: `¡Hola, ${name}! Soy P.A.B.L.O. ¿En qué te ayudo?` }], createdAt: Date.now() };
-}
+import { MessageCircle, X, Send, Paperclip, Loader2, Phone } from 'lucide-react';
 
 export default function SpaceCopilot() {
-  const { user } = useAuth();
-  const name = user?.user_metadata?.username || user?.email?.split('@')[0] || 'Visitante';
+  const { user, signInAnonymously } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
+  
+  // States
+  const [clientName, setClientName] = useState('');
+  const [activeQuote, setActiveQuote] = useState(null);
+  const [messages, setMessages] = useState([]);
   const [prompt, setPrompt] = useState('');
   const [loading, setLoading] = useState(false);
-  const [personality, setPersonality] = useState('catedratico');
-  const [chats, setChats] = useState([]);
-  const [activeId, setActiveId] = useState(null);
-  const [showList, setShowList] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  
   const endRef = useRef(null);
-  const key = useCallback(uid => `space_chats_${uid}`, []);
+  const fileInputRef = useRef(null);
 
+  // 1. Iniciar sesión anónima automáticamente al abrir si no hay usuario
   useEffect(() => {
-    if (!user?.id) { setChats([]); setActiveId(null); return; }
-    try { const s = JSON.parse(localStorage.getItem(key(user.id))); if (s?.length) { setChats(s); setActiveId(s[0].id); return; } } catch (_) {}
-    const c = newChat(name); setChats([c]); setActiveId(c.id);
-  }, [user?.id]);
+    if (isOpen && !user) {
+      signInAnonymously?.();
+    }
+  }, [isOpen, user, signInAnonymously]);
 
-  useEffect(() => { if (user?.id && chats.length) localStorage.setItem(key(user.id), JSON.stringify(chats)); }, [chats, user?.id]);
-  useEffect(() => { if (isOpen) endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [chats, loading, isOpen, activeId]);
+  // 2. Cargar cotización activa del usuario
+  useEffect(() => {
+    if (!user?.id) return;
+    const loadQuote = async () => {
+      const { data, error } = await supabase
+        .from('cotizaciones')
+        .select('*')
+        .eq('cliente_id', user.id)
+        .eq('estado', 'pendiente')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+      
+      if (data) setActiveQuote(data);
+    };
+    loadQuote();
+  }, [user]);
 
-  const chat = chats.find(c => c.id === activeId);
-  const msgs = chat?.messages || [];
+  // 3. Suscribirse a mensajes_chat en tiempo real
+  useEffect(() => {
+    if (!activeQuote) return;
 
-  const addMsg = (msg) => setChats(p => p.map(c => {
-    if (c.id !== activeId) return c;
-    const m = [...c.messages, msg].slice(-MAX_MSGS);
-    const fu = m.find(x => x.role === 'user');
-    return { ...c, messages: m, title: fu ? fu.text.slice(0, 30) + (fu.text.length > 30 ? '…' : '') : c.title };
-  }));
+    const loadMessages = async () => {
+      const { data } = await supabase
+        .from('mensajes_chat')
+        .select('*')
+        .eq('cotizacion_id', activeQuote.id)
+        .order('created_at', { ascending: true });
+      if (data) setMessages(data);
+    };
+    loadMessages();
 
-  const send = async (e) => {
+    // Suscripción Realtime
+    const channel = supabase.channel(`chat_${activeQuote.id}`)
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'mensajes_chat', filter: `cotizacion_id=eq.${activeQuote.id}` },
+        (payload) => {
+          setMessages((prev) => {
+            // Evitar duplicados si el propio cliente ya lo insertó (a veces Realtime lo recibe muy rápido)
+            if (prev.find(m => m.id === payload.new.id)) return prev;
+            return [...prev, payload.new];
+          });
+        }
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [activeQuote]);
+
+  // Auto-scroll
+  useEffect(() => {
+    if (isOpen) endRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, isOpen, loading]);
+
+  // --- ACCIONES ---
+
+  const startQuote = async (e) => {
     e.preventDefault();
-    if (!prompt.trim() || loading) return;
-    const txt = prompt.trim().slice(0, MAX_CHARS);
-    setPrompt(''); addMsg({ role: 'user', text: txt }); setLoading(true);
+    if (!clientName.trim() || !user) return;
+    setLoading(true);
     try {
-      const hist = msgs.slice(-10).map(m => ({ role: m.role, content: m.text }));
-      const p = PERSONALITIES[personality];
-      const { data, error } = await supabase.functions.invoke('deepseek-router', {
-        body: { prompt: txt, system: `Eres P.A.B.L.O., asistente virtual en Space (bitácora de Pablo DP). Personalidad: "${p.name}". Usuario: "${name}". Responde conciso y útil en español.`, temperature: 0.7, max_tokens: 1500 }
+      const { data, error } = await supabase
+        .from('cotizaciones')
+        .insert({ cliente_id: user.id, nombre_cliente: clientName.trim() })
+        .select()
+        .single();
+      
+      if (error) throw error;
+      setActiveQuote(data);
+      
+      // Mensaje inicial de bienvenida
+      await supabase.from('mensajes_chat').insert({
+        cotizacion_id: data.id,
+        enviado_por: 'asistente_ai',
+        mensaje: `¡Hola ${clientName.trim()}! 👋 Soy P.A.B.L.O., el asistente virtual táctico. \n\n¿En qué te puedo ayudar hoy? ¿Buscas formateo APA, redactar una monografía, o diseño gráfico? Cuéntame los detalles o adjunta tus documentos.`
       });
-      if (error) throw new Error(error.message);
-      addMsg({ role: 'assistant', text: data?.reply || data?.error || 'Sin respuesta' });
-    } catch (err) { addMsg({ role: 'assistant', text: `❌ ${err.message}` }); }
-    finally { setLoading(false); }
+      
+    } catch (err) {
+      console.error('Error iniciando cotización:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  if (!user) return null;
-  const p = PERSONALITIES[personality];
+  const sendMessage = async (e) => {
+    e.preventDefault();
+    if (!prompt.trim() || loading || !activeQuote) return;
+    
+    const text = prompt.trim();
+    setPrompt('');
+    setLoading(true);
 
-  return (<>
-    <button onClick={() => setIsOpen(!isOpen)} className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full flex items-center justify-center shadow-2xl transition-all duration-300 hover:scale-110 border border-white/10" style={{ background: `linear-gradient(135deg, ${p.color}, ${p.color}88)`, boxShadow: `0 8px 32px ${p.color}40` }}>
-      {isOpen ? <X size={20} className="text-white" /> : <span className="text-2xl">{p.emoji}</span>}
-    </button>
+    try {
+      // 1. Insertar el mensaje del cliente en BD
+      const { data: insertedMsg, error: insertError } = await supabase
+        .from('mensajes_chat')
+        .insert({
+          cotizacion_id: activeQuote.id,
+          enviado_por: 'cliente',
+          mensaje: text
+        })
+        .select()
+        .single();
 
-    {isOpen && <div className="fixed inset-0 bg-black/40 z-40 backdrop-blur-sm" onClick={() => setIsOpen(false)} />}
+      if (insertError) throw insertError;
 
-    <div className={`fixed top-0 right-0 h-full w-[380px] max-w-full z-50 transform transition-transform duration-300 shadow-2xl flex flex-col border-l border-zinc-800 bg-zinc-950 ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
-      {/* Header */}
-      <div className="p-4 border-b border-zinc-800 shrink-0 bg-zinc-900/80">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center text-lg" style={{ background: `linear-gradient(135deg, ${p.color}, ${p.color}66)` }}>{p.emoji}</div>
-            <div>
-              <h3 className="text-sm font-bold text-zinc-100">P.A.B.L.O. <span className="text-zinc-500 font-normal text-xs">| {p.name}</span></h3>
-              <p className="text-[10px] text-zinc-600">Asistente de Space</p>
+      // Actualizamos UI localmente por rapidez (Realtime también lo mandará, pero ya tenemos validación de duplicados)
+      setMessages(prev => [...prev, insertedMsg]);
+
+      // 2. Llamar a la Edge Function para que DeepSeek responda
+      const { error: fnError } = await supabase.functions.invoke('deepseek-router', {
+        body: { 
+          cotizacion_id: activeQuote.id, 
+          prompt: text,
+          system: `Eres P.A.B.L.O., el Asistente Virtual Táctico de Samuel Pablo DP. Ayudas a los clientes a cotizar servicios como: Formateo APA 7ma Edición, Creación de Monografías, Material Gráfico y CVs. Eres conciso, amable, altamente persuasivo, y utilizas un tono táctico militar ligero pero muy profesional. El cliente se llama ${activeQuote.nombre_cliente}. NO des precios exactos altos, siempre diles que un agente humano revisará el documento para dar la cotización final, pero anímalos a subir sus archivos aquí mismo.`
+        }
+      });
+
+      if (fnError) throw fnError;
+
+    } catch (err) {
+      console.error('Error enviando mensaje:', err);
+      // Mensaje local de error
+      setMessages(prev => [...prev, { id: 'err', role: 'asistente_ai', mensaje: `❌ Error: ${err.message}` }]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleFileUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file || !user || !activeQuote) return;
+    
+    setUploading(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      // Nombre único con timestamp para evitar colisiones
+      const fileName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+      const filePath = `${user.id}/${fileName}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('documentos-cotizaciones')
+        .upload(filePath, file);
+        
+      if (uploadError) throw uploadError;
+      
+      const { data: urlData } = supabase.storage
+        .from('documentos-cotizaciones')
+        .getPublicUrl(filePath);
+        
+      // Insertar mensaje indicando que se subió un archivo
+      const { data: insertedMsg, error: msgError } = await supabase
+        .from('mensajes_chat')
+        .insert({
+          cotizacion_id: activeQuote.id,
+          enviado_por: 'cliente',
+          mensaje: `📄 Archivo subido exitosamente: ${file.name}`,
+          archivo_url: urlData.publicUrl
+        })
+        .select()
+        .single();
+        
+      if (msgError) throw msgError;
+      
+      setMessages(prev => [...prev, insertedMsg]);
+      
+      // Que la IA reaccione al archivo
+      await supabase.functions.invoke('deepseek-router', {
+        body: { 
+          cotizacion_id: activeQuote.id, 
+          prompt: `He subido el archivo: ${file.name}`,
+          system: `El cliente acaba de subir un archivo. Confírmale que el documento ha sido recibido en el sistema seguro y que el equipo (o Pablo) lo revisará en breve para darle un presupuesto exacto.`
+        }
+      });
+
+    } catch (err) {
+      console.error('Error subiendo archivo:', err);
+      alert('Error subiendo archivo: ' + err.message);
+    } finally {
+      setUploading(false);
+      // Reset input
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+
+  // --- UI ---
+
+  const botColor = '#06b6d4'; // Cyan táctico
+
+  return (
+    <>
+      <button 
+        onClick={() => setIsOpen(!isOpen)} 
+        className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full flex items-center justify-center shadow-2xl transition-all duration-300 hover:scale-110 border border-white/10" 
+        style={{ background: `linear-gradient(135deg, ${botColor}, ${botColor}88)`, boxShadow: `0 8px 32px ${botColor}40` }}
+      >
+        {isOpen ? <X size={20} className="text-white" /> : <MessageCircle size={24} className="text-white" />}
+      </button>
+
+      {isOpen && <div className="fixed inset-0 bg-black/40 z-40 backdrop-blur-sm" onClick={() => setIsOpen(false)} />}
+
+      <div className={`fixed top-0 right-0 h-full w-[380px] max-w-full z-50 transform transition-transform duration-300 shadow-2xl flex flex-col border-l border-zinc-800 bg-zinc-950 ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+        
+        {/* Header */}
+        <div className="p-4 border-b border-zinc-800 shrink-0 bg-zinc-900/80">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center text-white" style={{ background: `linear-gradient(135deg, ${botColor}, ${botColor}66)` }}>
+                <MessageCircle size={18} />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-zinc-100">P.A.B.L.O. <span className="text-zinc-500 font-normal text-xs">| Asistente Táctico</span></h3>
+                <p className="text-[10px] text-emerald-400 flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> En línea</p>
+              </div>
             </div>
+            <button onClick={() => setIsOpen(false)} className="p-1.5 rounded-lg text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800 transition-colors">
+              <X size={16} />
+            </button>
           </div>
-          <div className="flex items-center gap-1">
-            <button onClick={() => setShowList(!showList)} className="p-1.5 rounded-lg text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800 transition-colors"><ChevronDown size={16} className={showList ? 'rotate-180 transition-transform' : 'transition-transform'} /></button>
-            <button onClick={() => { const c = newChat(name); setChats(prev => [c, ...prev].slice(0, MAX_CHATS)); setActiveId(c.id); setShowList(false); }} className="p-1.5 rounded-lg text-zinc-500 hover:text-emerald-400 hover:bg-zinc-800 transition-colors"><Plus size={16} /></button>
-            <button onClick={() => setIsOpen(false)} className="p-1.5 rounded-lg text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800 transition-colors"><X size={16} /></button>
-          </div>
+          
+          {/* Botón WhatsApp Flotante Interno */}
+          <a href="https://wa.me/51999999999" target="_blank" rel="noopener noreferrer" className="mt-3 flex items-center justify-center gap-2 w-full py-2 bg-green-600/20 hover:bg-green-600/30 text-green-400 border border-green-500/30 rounded-lg text-xs font-semibold transition-colors">
+            <Phone size={14} /> Hablar directo con Pablo
+          </a>
         </div>
-        {showList && (
-          <div className="mt-3 bg-zinc-950 rounded-xl border border-zinc-800 overflow-hidden">
-            {chats.map(c => (
-              <div key={c.id} onClick={() => { setActiveId(c.id); setShowList(false); }} className={`flex items-center justify-between px-3 py-2 text-xs cursor-pointer border-b border-zinc-900/50 last:border-0 ${c.id === activeId ? 'bg-zinc-800 text-zinc-100' : 'text-zinc-500 hover:bg-zinc-800/50'}`}>
-                <span className="truncate flex-1"><MessageCircle size={12} className="inline mr-2" />{c.title}</span>
-                <button onClick={(e) => { e.stopPropagation(); setChats(prev => { const u = prev.filter(x => x.id !== c.id); if (!u.length) { const f = newChat(name); setActiveId(f.id); return [f]; } if (c.id === activeId) setActiveId(u[0].id); return u; }); }} className="ml-2 text-zinc-700 hover:text-red-400"><Trash2 size={12} /></button>
+
+        {/* Content Area */}
+        <div className="flex-1 overflow-y-auto bg-zinc-950 flex flex-col" style={{ scrollbarWidth: 'thin' }}>
+          
+          {/* PANTALLA INICIAL (Pedir nombre) */}
+          {!activeQuote ? (
+            <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-6">
+              <div className="w-20 h-20 rounded-2xl flex items-center justify-center text-white shadow-lg mb-4" style={{ background: `linear-gradient(135deg, ${botColor}, ${botColor}66)`, boxShadow: `0 8px 32px ${botColor}40` }}>
+                <MessageCircle size={40} />
               </div>
-            ))}
+              <h2 className="text-xl font-bold text-white">Iniciar Cotización</h2>
+              <p className="text-sm text-zinc-400">Dime tu nombre o alias para comenzar la sesión y subir tus documentos.</p>
+              
+              <form onSubmit={startQuote} className="w-full space-y-3">
+                <input 
+                  type="text" 
+                  placeholder="Ej. Juan Pérez" 
+                  value={clientName}
+                  onChange={(e) => setClientName(e.target.value)}
+                  className="w-full bg-zinc-900 border border-zinc-700 rounded-xl p-3 text-white text-sm focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 outline-none"
+                  required
+                />
+                <button 
+                  type="submit" 
+                  disabled={loading || !clientName.trim()}
+                  className="w-full py-3 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
+                >
+                  {loading ? <Loader2 size={16} className="animate-spin" /> : 'Comenzar'}
+                </button>
+              </form>
+            </div>
+          ) : (
+            
+            /* PANTALLA DE CHAT */
+            <div className="p-4 space-y-4 flex-1">
+              {messages.map((m) => (
+                <div key={m.id} className={`flex ${m.enviado_por === 'cliente' ? 'justify-end' : 'justify-start'}`}>
+                  <div className={`max-w-[88%] rounded-2xl px-4 py-3 text-sm leading-relaxed whitespace-pre-line ${
+                    m.enviado_por === 'cliente' 
+                      ? 'bg-cyan-600 text-white rounded-br-sm shadow-lg shadow-cyan-900/20' 
+                      : 'bg-zinc-800 text-zinc-200 border border-zinc-700 rounded-bl-sm'
+                  }`}>
+                    {m.mensaje}
+                    {m.archivo_url && (
+                      <a href={m.archivo_url} target="_blank" rel="noopener noreferrer" className="block mt-2 text-xs font-semibold underline text-blue-200 hover:text-white truncate">
+                        🔗 Ver documento
+                      </a>
+                    )}
+                  </div>
+                </div>
+              ))}
+              
+              {/* Loader de DeepSeek o subida */}
+              {(loading || uploading) && (
+                <div className="flex justify-start">
+                  <div className="border border-cyan-500/20 rounded-2xl rounded-bl-sm px-4 py-3 bg-zinc-800/80 flex items-center gap-2">
+                    <Loader2 size={14} className="text-cyan-400 animate-spin" />
+                    <span className="text-[10px] text-cyan-400 uppercase tracking-widest font-mono">
+                      {uploading ? 'Subiendo archivo...' : 'P.A.B.L.O. escribiendo...'}
+                    </span>
+                  </div>
+                </div>
+              )}
+              <div ref={endRef} />
+            </div>
+          )}
+        </div>
+
+        {/* Input Area (Solo visible si hay cotización activa) */}
+        {activeQuote && (
+          <div className="p-4 bg-zinc-900/90 border-t border-zinc-800 shrink-0 backdrop-blur-md">
+            <form onSubmit={sendMessage} className="relative flex items-end gap-2">
+              
+              {/* Botón Adjuntar Archivo */}
+              <button 
+                type="button" 
+                onClick={() => fileInputRef.current?.click()}
+                disabled={loading || uploading}
+                className="p-3 bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white rounded-xl transition-colors shrink-0 disabled:opacity-50"
+                title="Adjuntar Documento"
+              >
+                <Paperclip size={18} />
+              </button>
+              <input 
+                type="file" 
+                ref={fileInputRef} 
+                onChange={handleFileUpload} 
+                className="hidden" 
+                accept=".pdf,.doc,.docx,.jpg,.png"
+              />
+
+              <textarea 
+                value={prompt} 
+                onChange={e => setPrompt(e.target.value)} 
+                onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(e); } }} 
+                placeholder="Describe tu solicitud..." 
+                disabled={loading || uploading} 
+                rows={1} 
+                className="flex-1 max-h-32 bg-zinc-950 border border-zinc-700 rounded-xl p-3 text-zinc-200 text-sm resize-none focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500/30 disabled:opacity-50 transition-all placeholder:text-zinc-600" 
+              />
+              
+              {/* Botón Enviar */}
+              <button 
+                type="submit" 
+                disabled={!prompt.trim() || loading || uploading} 
+                className="p-3 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl disabled:opacity-30 transition-all shrink-0 shadow-lg shadow-cyan-600/20"
+              >
+                <Send size={18} />
+              </button>
+            </form>
           </div>
         )}
       </div>
-
-      {/* Personalities */}
-      <div className="px-3 py-2 border-b border-zinc-800 bg-zinc-900/40 flex gap-1.5 overflow-x-auto shrink-0" style={{ scrollbarWidth: 'none' }}>
-        {Object.values(PERSONALITIES).map(pe => (
-          <button key={pe.id} onClick={() => { setPersonality(pe.id); addMsg({ role: 'assistant', text: `*${pe.emoji} ${pe.name} activado*` }); }} className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold whitespace-nowrap transition-all ${personality === pe.id ? 'bg-zinc-800 text-zinc-100 border border-zinc-600' : 'text-zinc-600 hover:bg-zinc-800/50 border border-transparent'}`}>
-            <span>{pe.emoji}</span><span>{pe.name}</span>
-          </button>
-        ))}
-      </div>
-
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-3 flex flex-col" style={{ scrollbarWidth: 'thin' }}>
-        {msgs.map((m, i) => (
-          <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'} group`}>
-            <div className={`max-w-[88%] rounded-2xl px-4 py-2.5 text-xs leading-relaxed whitespace-pre-line ${m.role === 'user' ? 'bg-accent-600 text-white rounded-br-sm' : 'bg-zinc-800/80 text-zinc-300 border border-zinc-700/40 rounded-bl-sm'}`}>
-              {m.text}
-            </div>
-          </div>
-        ))}
-        {loading && (
-          <div className="flex justify-start">
-            <div className="border border-accent-500/20 rounded-2xl rounded-bl-sm px-4 py-3 bg-zinc-900/80 flex items-center gap-2">
-              <div className="flex gap-1">
-                <div className="w-1.5 h-1.5 bg-accent-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                <div className="w-1.5 h-1.5 bg-accent-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                <div className="w-1.5 h-1.5 bg-accent-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-              </div>
-              <span className="text-[10px] text-accent-400 uppercase tracking-widest font-mono">Pensando...</span>
-            </div>
-          </div>
-        )}
-        <div ref={endRef} />
-      </div>
-
-      {/* Input */}
-      <div className="p-4 bg-zinc-900/80 border-t border-zinc-800 shrink-0">
-        <form onSubmit={send} className="relative">
-          <textarea value={prompt} onChange={e => setPrompt(e.target.value.slice(0, MAX_CHARS))} onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(e); } }} placeholder="Escribe tu mensaje..." disabled={loading} rows={2} className="w-full bg-zinc-950 border border-zinc-700 rounded-xl p-3 pr-12 text-zinc-200 text-xs resize-none focus:border-accent-500/60 focus:outline-none focus:ring-1 focus:ring-accent-500/30 disabled:opacity-50 transition-all placeholder:text-zinc-600" />
-          <span className="absolute bottom-2.5 left-3 text-[9px] text-zinc-700 font-mono">{prompt.length}/{MAX_CHARS}</span>
-          <button type="submit" disabled={!prompt.trim() || loading} className="absolute bottom-2.5 right-2.5 p-2 rounded-lg bg-accent-600 hover:bg-accent-500 text-white disabled:opacity-30 transition-all"><Send size={14} /></button>
-        </form>
-      </div>
-    </div>
-  </>);
+    </>
+  );
 }

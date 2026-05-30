@@ -1,142 +1,123 @@
-// supabase/functions/deepseek-router/index.ts
-// Supabase Edge Function — Proxy seguro para la API de DeepSeek
-// Deploy: supabase functions deploy deepseek-router
-// Secret: supabase secrets set DEEPSEEK_API_KEY=sk-your-key
+import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-
-const DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions";
-
-const ALLOWED_ORIGINS = [
-  "https://space.sypablitodp.site",
-  "https://dppablito4-oss.github.io",
-  "http://localhost:5173",
-  "http://localhost:4173",
-];
-
-const getCorsHeaders = (req: Request) => {
-  const origin = req.headers.get("origin") || "";
-  const allowedOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
-  return {
-    "Access-Control-Allow-Origin": allowedOrigin,
-    "Access-Control-Allow-Headers":
-      "authorization, x-client-info, apikey, content-type",
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-  };
+// CORS headers
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-interface RequestBody {
-  prompt: string;
-  model?: string;
-  temperature?: number;
-  max_tokens?: number;
-  system?: string;
-}
-
-Deno.serve(async (req: Request) => {
-  // ── Preflight CORS ────────────────────────────────────────
+serve(async (req) => {
+  // Manejo de la petición OPTIONS para CORS
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: getCorsHeaders(req) });
-  }
-
-  // ── Solo POST ─────────────────────────────────────────────
-  if (req.method !== "POST") {
-    return new Response(
-      JSON.stringify({ error: "Método no permitido. Usa POST." }),
-      { status: 405, headers: { ...getCorsHeaders(req), "Content-Type": "application/json" } }
-    );
+    return new Response("ok", { headers: corsHeaders });
   }
 
   try {
-    // ── Obtener API Key de los secrets ──────────────────────
+    const { cotizacion_id, prompt, system } = await req.json();
+
+    if (!cotizacion_id || !prompt) {
+      return new Response(
+        JSON.stringify({ error: "Faltan parámetros requeridos: cotizacion_id o prompt" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
+      );
+    }
+
+    // Inicializar cliente Supabase con el Service Role Key
+    // IMPORTANTE: Se usa service_role para tener permisos de insertar el mensaje del asistente
+    const supabaseClient = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+    );
+
     const apiKey = Deno.env.get("DEEPSEEK_API_KEY");
     if (!apiKey) {
-      throw new Error(
-        "DEEPSEEK_API_KEY no configurada. Ejecuta: supabase secrets set DEEPSEEK_API_KEY=sk-xxx"
-      );
+      throw new Error("DEEPSEEK_API_KEY no está configurada");
     }
 
-    // ── Parsear body ────────────────────────────────────────
-    const body: RequestBody = await req.json();
+    // Obtener historial de la base de datos (últimos 10 mensajes de esta cotización)
+    const { data: historial, error: historyError } = await supabaseClient
+      .from('mensajes_chat')
+      .select('enviado_por, mensaje')
+      .eq('cotizacion_id', cotizacion_id)
+      .order('created_at', { ascending: false })
+      .limit(10);
 
-    if (!body.prompt || typeof body.prompt !== "string") {
-      return new Response(
-        JSON.stringify({ error: "El campo 'prompt' es requerido y debe ser un string." }),
-        { status: 400, headers: { ...getCorsHeaders(req), "Content-Type": "application/json" } }
-      );
-    }
+    if (historyError) throw historyError;
 
-    // ── Construir payload para DeepSeek ─────────────────────
-    const payload = {
-      model: body.model || "deepseek-chat",
-      messages: [
-        {
-          role: "system",
-          content:
-            body.system ||
-            "Eres un asistente inteligente y conciso. Responde en español a menos que se indique lo contrario.",
-        },
-        {
-          role: "user",
-          content: body.prompt,
-        },
-      ],
-      temperature: body.temperature ?? 0.6,
-      max_tokens: body.max_tokens ?? 2048,
-      stream: false,
-    };
+    // Formatear historial para DeepSeek (API compatible con OpenAI)
+    const formattedHistory = (historial || []).reverse().map(msg => ({
+      role: msg.enviado_por === 'cliente' ? 'user' : 'assistant',
+      content: msg.mensaje
+    }));
 
-    // ── Petición a DeepSeek ─────────────────────────────────
-    const response = await fetch(DEEPSEEK_API_URL, {
+    // Construir mensajes para la API
+    const messages = [
+      { role: "system", content: system || "Eres P.A.B.L.O., el asistente virtual táctico de la bitácora de Pablo DP." },
+      ...formattedHistory
+    ];
+
+    console.log("Enviando petición a DeepSeek para cotizacion_id:", cotizacion_id);
+
+    // Llamada a la API de DeepSeek-V3
+    const response = await fetch("https://api.deepseek.com/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
+        "Authorization": `Bearer ${apiKey}`
       },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({
+        model: "deepseek-chat", // DeepSeek-V3
+        messages: messages,
+        temperature: 0.7,
+        max_tokens: 1500
+      })
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error(`[DeepSeek Error] ${response.status}: ${errorText}`);
-      return new Response(
-        JSON.stringify({
-          error: "Error en la API de DeepSeek",
-          status: response.status,
-          detail: errorText,
-        }),
-        { status: response.status, headers: { ...getCorsHeaders(req), "Content-Type": "application/json" } }
-      );
+      console.error("DeepSeek API Error:", errorText);
+      throw new Error(`DeepSeek API devolvió error: ${response.status} ${response.statusText}`);
     }
 
     const data = await response.json();
+    const assistantReply = data.choices?.[0]?.message?.content;
 
-    // ── Extraer respuesta limpia ────────────────────────────
-    const reply = data.choices?.[0]?.message?.content || "";
-    const usage = data.usage || {};
+    if (!assistantReply) {
+      throw new Error("Respuesta inválida de la API de DeepSeek");
+    }
 
+    // Insertar la respuesta del asistente en la tabla mensajes_chat
+    const { error: insertError } = await supabaseClient
+      .from('mensajes_chat')
+      .insert({
+        cotizacion_id,
+        enviado_por: 'asistente_ai',
+        mensaje: assistantReply
+      });
+
+    if (insertError) {
+      console.error("Error guardando respuesta en Supabase:", insertError);
+      throw insertError;
+    }
+
+    // Devolver la respuesta al cliente
     return new Response(
-      JSON.stringify({
-        reply,
-        model: data.model,
-        usage: {
-          prompt_tokens: usage.prompt_tokens,
-          completion_tokens: usage.completion_tokens,
-          total_tokens: usage.total_tokens,
-        },
-      }),
+      JSON.stringify({ success: true, reply: assistantReply }),
       {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
-        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
       }
     );
+
   } catch (error) {
-    console.error("[deepseek-router]", error);
+    console.error("Error en Edge Function:", error);
     return new Response(
-      JSON.stringify({
-        error: error instanceof Error ? error.message : "Error interno del servidor",
-      }),
-      { status: 500, headers: { ...getCorsHeaders(req), "Content-Type": "application/json" } }
+      JSON.stringify({ error: error.message }),
+      {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 500,
+      }
     );
   }
 });

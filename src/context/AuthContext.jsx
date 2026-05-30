@@ -26,6 +26,7 @@ export const AuthProvider = ({ children }) => {
   const value = {
     signUp: (data) => supabase.auth.signUp(data),
     signIn: (data) => supabase.auth.signInWithPassword(data),
+    signInAnonymously: () => supabase.auth.signInAnonymously(),
     signOut: () => supabase.auth.signOut(),
     user,
     loading
