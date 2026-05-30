@@ -87,9 +87,19 @@ export default function TripticoMakerPage() {
     <div className="min-h-screen bg-black text-white flex flex-col font-sans">
       {/* HEADER */}
       <header className="h-14 border-b border-zinc-800 bg-zinc-950 flex items-center justify-between px-4 shrink-0">
-        <div className="flex items-center gap-2">
-          <LayoutTemplate className="text-cyan-400" />
-          <h1 className="font-bold text-sm tracking-widest uppercase">Tríptico Maker</h1>
+        <div className="flex items-center gap-4">
+          <button 
+            onClick={() => window.location.hash = '#/'}
+            className="flex items-center gap-1 text-zinc-400 hover:text-white transition-colors"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            <span className="text-xs font-bold uppercase tracking-wider">Volver</span>
+          </button>
+          <div className="w-px h-6 bg-zinc-800"></div>
+          <div className="flex items-center gap-2">
+            <LayoutTemplate className="text-cyan-400" />
+            <h1 className="font-bold text-sm tracking-widest uppercase hidden sm:block">Tríptico Maker</h1>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <button
@@ -153,9 +163,8 @@ export default function TripticoMakerPage() {
           </div>
         </aside>
 
-        {/* CENTER CANVAS */}
-        <main className="flex-1 bg-zinc-900 overflow-y-auto flex flex-col">
-          <div className="flex-1 p-4 lg:p-8 flex items-center justify-center relative overflow-hidden">
+        <main className="flex-1 bg-zinc-900 overflow-y-auto">
+          <div className="p-4 lg:p-8 min-h-full flex flex-col items-center">
             <TripticoCanvas
               activePage={activePage}
               selectedColIndex={selectedColIndex}

@@ -37,9 +37,8 @@ export default function TripticoCanvas({
         onClick={() => { onSelectCol(null); onSelectBlock(null); }}
         style={{
           aspectRatio: '297 / 210',
-          height: '100%',
-          maxHeight: 'calc(100% - 30px)',
-          maxWidth: '100%',
+          width: '100%',
+          minHeight: '400px',
           backgroundImage: activePage.bgImage ? `url(${activePage.bgImage})` : undefined,
           backgroundSize: 'cover',
           backgroundPosition: 'center',

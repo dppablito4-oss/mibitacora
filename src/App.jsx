@@ -19,7 +19,7 @@ const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 
 function AppLayout() {
   const location = useLocation();
-  const hidecopilot = ['/login', '/admin'].some(r => location.pathname.startsWith(r));
+  const hidecopilot = ['/login', '/admin', '/tripticos'].some(r => location.pathname.startsWith(r));
 
   return (
     <div className="relative min-h-screen bg-[#030712]">
