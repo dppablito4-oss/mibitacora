@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import QRCodeStyling from 'qr-code-styling';
 import { QrCode, Download, Image as ImageIcon } from 'lucide-react';
 
@@ -27,8 +27,8 @@ export default function QrGeneratorPage() {
   const [bgColor, setBgColor] = useState('#000000');
   const [transparent, setTransparent] = useState(false);
   
-  const [size, setSize] = useState(420);
-  const [errorLevel, setErrorLevel] = useState('M');
+  const [size] = useState(420);
+  const [errorLevel] = useState('M');
   const [fileName, setFileName] = useState('qr-pablito');
   
   const [logoFile, setLogoFile] = useState(null);

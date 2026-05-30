@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import useTripticoState from '../hooks/useTripticoState';
 import TripticoCanvas from '../components/triptico/TripticoCanvas';
 import TripticoInspector from '../components/triptico/TripticoInspector';
@@ -102,10 +102,10 @@ export default function TripticoMakerPage() {
       </header>
 
       {/* WORKSPACE */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-col lg:flex-row flex-1 overflow-hidden">
         
         {/* LEFT PANEL */}
-        <aside className="w-64 bg-zinc-950 border-r border-zinc-800 flex flex-col shrink-0 overflow-y-auto">
+        <aside className="w-full lg:w-64 bg-zinc-950 border-b lg:border-b-0 lg:border-r border-zinc-800 flex flex-col shrink-0 overflow-y-auto lg:max-h-none max-h-48">
           <AiGeneratorPanel onApply={loadFromJson} />
 
           <div className="p-4">
@@ -157,7 +157,7 @@ export default function TripticoMakerPage() {
         </main>
 
         {/* RIGHT PANEL (Inspector) */}
-        <aside className="w-72 bg-zinc-950 border-l border-zinc-800 flex flex-col shrink-0 overflow-y-auto">
+        <aside className="w-full lg:w-72 bg-zinc-950 border-t lg:border-t-0 lg:border-l border-zinc-800 flex flex-col shrink-0 overflow-y-auto">
           <TripticoInspector 
             el={selectedEl} 
             onUpdate={(changes) => updateElement(selectedEl.id, changes)}

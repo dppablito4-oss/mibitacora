@@ -165,7 +165,7 @@ export const solveCubicSteps = (a, b, c, d) => {
       latex: `x_1 = ${formatNum(x1)} \\\\ x_2 = ${formatComplex(re, im)} \\\\ x_3 = ${formatComplex(re, -im)}`
     });
   } else if (Math.abs(delta) < 1e-10) {
-    const t1 = 3 * q / p; // si p != 0 (wait, si p=0 y q=0 -> t=0)
+
     const t_simple = (p === 0) ? 0 : 3 * q / p;
     const t_double = (p === 0) ? 0 : -3 * q / (2 * p);
     
@@ -224,7 +224,7 @@ export const solveQuarticSteps = (A, B, C, D, E) => {
   });
 
   // Depresión: x = t - b/4
-  const shift = b / 4;
+
   const p = c - 3*b*b/8;
   const q = d - b*c/2 + Math.pow(b,3)/8;
   const r = e - b*d/4 + b*b*c/16 - 3*Math.pow(b,4)/256;
@@ -237,7 +237,7 @@ export const solveQuarticSteps = (A, B, C, D, E) => {
 
   // Resolvente Cúbica de Descartes
   // La resolvente en y^2 = m es: m^3 + 2p m^2 + (p^2 - 4r)m - q^2 = 0
-  const cA = 1;
+
   const cB = 2 * p;
   const cC = p*p - 4*r;
   const cD = -q*q;

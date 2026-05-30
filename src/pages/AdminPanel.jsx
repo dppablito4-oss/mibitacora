@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { supabase, getBitacora } from '../config/supabaseClient';
+import { supabase } from '../config/supabaseClient';
 import { useSiteConfig } from '../lib/useSiteConfig';
 import { Link } from 'react-router-dom';
 import { Plus, Trash2, Edit3, Eye, EyeOff, LogOut, Sparkles, ArrowLeft, Save, User, Heart, Megaphone, FileText } from 'lucide-react';
@@ -33,8 +33,6 @@ export default function AdminPanel() {
   const [tags, setTags] = useState('');
   const [publicado, setPublicado] = useState(false);
 
-  useEffect(() => { loadEntries(); }, []);
-
   const loadEntries = async () => {
     setLoading(true);
     try {
@@ -46,6 +44,8 @@ export default function AdminPanel() {
     } catch (err) { console.error(err); }
     finally { setLoading(false); }
   };
+
+  useEffect(() => { loadEntries(); }, []);
 
   const resetForm = () => {
     setTitulo(''); setContenido(''); setCategoria('general'); setTags(''); setPublicado(false); setEditingId(null);

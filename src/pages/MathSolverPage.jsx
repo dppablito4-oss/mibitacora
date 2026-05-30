@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import katex from 'katex';
 import 'katex/dist/katex.min.css';
 import { solveQuadraticSteps, solveCubicSteps, solveQuarticSteps } from '../utils/mathSolver';

@@ -5,6 +5,11 @@ import { useSiteConfig } from '../lib/useSiteConfig';
 export default function HomePage() {
   const { profile, avatarUrl, hobbies, aviso } = useSiteConfig();
 
+  const scrollToSection = (e, sectionId) => {
+    e.preventDefault();
+    document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' });
+  };
+
   return (
     <div className="pt-20">
       {/* Aviso Banner */}
