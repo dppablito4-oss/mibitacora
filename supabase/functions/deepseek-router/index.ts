@@ -16,7 +16,7 @@ serve(async (req) => {
   try {
     const { cotizacion_id, prompt, system } = await req.json();
 
-    if (!cotizacion_id || !prompt) {
+    if (cotizacion_id === undefined || !prompt) {
       return new Response(
         JSON.stringify({ error: "Faltan parámetros requeridos: cotizacion_id o prompt" }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
@@ -35,27 +35,35 @@ serve(async (req) => {
       throw new Error("DEEPSEEK_API_KEY no está configurada");
     }
 
-    // Obtener historial de la base de datos (últimos 10 mensajes de esta cotización)
-    const { data: historial, error: historyError } = await supabaseClient
-      .from('mensajes_chat')
-      .select('enviado_por, mensaje')
-      .eq('cotizacion_id', cotizacion_id)
-      .order('created_at', { ascending: false })
-      .limit(10);
+    let formattedHistory = [];
+    
+    if (cotizacion_id !== 0) {
+      // Obtener historial de la base de datos (últimos 10 mensajes de esta cotización)
+      const { data: historial, error: historyError } = await supabaseClient
+        .from('mensajes_chat')
+        .select('enviado_por, mensaje')
+        .eq('cotizacion_id', cotizacion_id)
+        .order('created_at', { ascending: false })
+        .limit(10);
 
-    if (historyError) throw historyError;
+      if (historyError) throw historyError;
 
-    // Formatear historial para DeepSeek (API compatible con OpenAI)
-    const formattedHistory = (historial || []).reverse().map(msg => ({
-      role: msg.enviado_por === 'cliente' ? 'user' : 'assistant',
-      content: msg.mensaje
-    }));
+      // Formatear historial para DeepSeek (API compatible con OpenAI)
+      formattedHistory = (historial || []).reverse().map(msg => ({
+        role: msg.enviado_por === 'cliente' ? 'user' : 'assistant',
+        content: msg.mensaje
+      }));
+    }
 
     // Construir mensajes para la API
     const messages = [
       { role: "system", content: system || "Eres P.A.B.L.O., el asistente virtual táctico de la bitácora de Pablo DP." },
       ...formattedHistory
     ];
+    
+    if (cotizacion_id === 0) {
+      messages.push({ role: "user", content: prompt });
+    }
 
     console.log("Enviando petición a DeepSeek para cotizacion_id:", cotizacion_id);
 
@@ -87,18 +95,20 @@ serve(async (req) => {
       throw new Error("Respuesta inválida de la API de DeepSeek");
     }
 
-    // Insertar la respuesta del asistente en la tabla mensajes_chat
-    const { error: insertError } = await supabaseClient
-      .from('mensajes_chat')
-      .insert({
-        cotizacion_id,
-        enviado_por: 'asistente_ai',
-        mensaje: assistantReply
-      });
+    if (cotizacion_id !== 0) {
+      // Insertar la respuesta del asistente en la tabla mensajes_chat
+      const { error: insertError } = await supabaseClient
+        .from('mensajes_chat')
+        .insert({
+          cotizacion_id,
+          enviado_por: 'asistente_ai',
+          mensaje: assistantReply
+        });
 
-    if (insertError) {
-      console.error("Error guardando respuesta en Supabase:", insertError);
-      throw insertError;
+      if (insertError) {
+        console.error("Error guardando respuesta en Supabase:", insertError);
+        throw insertError;
+      }
     }
 
     // Devolver la respuesta al cliente

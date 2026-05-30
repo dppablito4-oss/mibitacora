@@ -9,7 +9,7 @@ export const PROFILE = {
   email: 'pabloclsa87@gmail.com',
   links: {
     github: 'https://github.com/dppablito4-oss',
-    email: 'mailto:pabloclsa87@gmail.com',
+    email: 'wa.me://+51918165428',
     expo: 'https://expo.sypablitodp.site',
   },
 };

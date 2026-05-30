@@ -72,18 +72,7 @@ export default function Header() {
               <a href="#servicios" onClick={(e) => handleAnchorClick(e, 'servicios')} className="text-sm font-medium text-slate-300 transition-all hover:text-tesseract-300 hover:text-glow px-3 py-2">
                 Servicios
               </a>
-              <Link to="/scanner" className="text-sm font-medium text-slate-300 transition-all hover:text-tesseract-300 hover:text-glow px-3 py-2">
-                Escáner
-              </Link>
-              <Link to="/qr" className="text-sm font-medium text-slate-300 transition-all hover:text-tesseract-300 hover:text-glow px-3 py-2">
-                Generador QR
-              </Link>
-              <Link to="/math" className="text-sm font-medium text-slate-300 transition-all hover:text-tesseract-300 hover:text-glow px-3 py-2">
-                Math Pro
-              </Link>
-              <Link to="/tripticos" className="text-sm font-medium text-slate-300 transition-all hover:text-tesseract-300 hover:text-glow px-3 py-2 flex items-center gap-2">
-                Trípticos IA
-              </Link>
+
               <a href="#contacto" onClick={(e) => handleAnchorClick(e, 'contacto')} className="rounded-sm border border-tesseract-300/50 bg-tesseract-500 px-5 py-2.5 text-sm font-bold uppercase tracking-wider text-white shadow-[0_0_15px_rgba(6,182,212,0.5)] transition-all hover:bg-tesseract-600">
                 Contactar Enlace
               </a>
@@ -120,18 +109,7 @@ export default function Header() {
           <a href="#servicios" onClick={(e) => handleAnchorClick(e, 'servicios')} className="block rounded-md border border-transparent px-3 py-2 text-base font-medium text-slate-300 hover:border-tesseract-500/30 hover:bg-tesseract-500/10 hover:text-tesseract-300">
             Servicios
           </a>
-          <Link to="/scanner" onClick={closeMenu} className="block rounded-md border border-transparent px-3 py-2 text-base font-medium text-slate-300 hover:border-tesseract-500/30 hover:bg-tesseract-500/10 hover:text-tesseract-300">
-            Escáner
-          </Link>
-          <Link to="/qr" onClick={closeMenu} className="block rounded-md border border-transparent px-3 py-2 text-base font-medium text-slate-300 hover:border-tesseract-500/30 hover:bg-tesseract-500/10 hover:text-tesseract-300">
-            Generador QR
-          </Link>
-          <Link to="/math" onClick={closeMenu} className="block rounded-md border border-transparent px-3 py-2 text-base font-medium text-slate-300 hover:border-tesseract-500/30 hover:bg-tesseract-500/10 hover:text-tesseract-300">
-            Math Pro
-          </Link>
-          <Link to="/tripticos" onClick={closeMenu} className="block rounded-md border border-transparent px-3 py-2 text-base font-medium text-slate-300 hover:border-tesseract-500/30 hover:bg-tesseract-500/10 hover:text-tesseract-300">
-            Trípticos IA
-          </Link>
+
           <a href="#contacto" onClick={(e) => handleAnchorClick(e, 'contacto')} className="block rounded-md border border-transparent px-3 py-2 text-base font-medium text-tesseract-500 hover:border-tesseract-500/30 hover:bg-tesseract-500/10">
             Contactar Enlace
           </a>
