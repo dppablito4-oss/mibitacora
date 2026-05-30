@@ -34,28 +34,47 @@ CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
+-- Funciones auxiliares de seguridad (para evitar recursión infinita en RLS)
+CREATE OR REPLACE FUNCTION public.is_superadmin(user_id UUID)
+RETURNS BOOLEAN AS $$
+BEGIN
+  RETURN EXISTS (
+    SELECT 1 FROM public.profiles
+    WHERE id = user_id AND role = 'superadmin'
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+
+CREATE OR REPLACE FUNCTION public.is_admin_or_superadmin(user_id UUID)
+RETURNS BOOLEAN AS $$
+BEGIN
+  RETURN EXISTS (
+    SELECT 1 FROM public.profiles
+    WHERE id = user_id AND role IN ('admin', 'superadmin')
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+
 -- RLS para profiles
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+
+-- Eliminar políticas antiguas si existen
+DROP POLICY IF EXISTS "Lectura de perfil propio" ON public.profiles;
+DROP POLICY IF EXISTS "Superadmin modifica perfiles" ON public.profiles;
 
 -- Cada usuario puede leer su propio perfil
 CREATE POLICY "Lectura de perfil propio"
   ON public.profiles FOR SELECT
   USING (auth.uid() = id);
 
--- Solo superadmin puede modificar roles
+-- Solo superadmin puede modificar roles (usando la función de seguridad)
 CREATE POLICY "Superadmin modifica perfiles"
   ON public.profiles FOR ALL
   USING (
-    EXISTS (
-      SELECT 1 FROM public.profiles
-      WHERE id = auth.uid() AND role = 'superadmin'
-    )
+    public.is_superadmin(auth.uid())
   )
   WITH CHECK (
-    EXISTS (
-      SELECT 1 FROM public.profiles
-      WHERE id = auth.uid() AND role = 'superadmin'
-    )
+    public.is_superadmin(auth.uid())
   );
 
 -- Índice para búsquedas por role
@@ -111,19 +130,14 @@ CREATE POLICY "Lectura pública de site_config"
   USING (true);
 
 -- Solo superadmin puede modificar
+DROP POLICY IF EXISTS "Superadmin modifica site_config" ON public.site_config;
 CREATE POLICY "Superadmin modifica site_config"
   ON public.site_config FOR UPDATE
   USING (
-    EXISTS (
-      SELECT 1 FROM public.profiles
-      WHERE id = auth.uid() AND role = 'superadmin'
-    )
+    public.is_superadmin(auth.uid())
   )
   WITH CHECK (
-    EXISTS (
-      SELECT 1 FROM public.profiles
-      WHERE id = auth.uid() AND role = 'superadmin'
-    )
+    public.is_superadmin(auth.uid())
   );
 
 
@@ -143,16 +157,10 @@ BEGIN
       CREATE POLICY "Superadmin gestiona bitácora"
         ON public.bitacora FOR ALL
         USING (
-          EXISTS (
-            SELECT 1 FROM public.profiles
-            WHERE id = auth.uid() AND role IN ('superadmin', 'admin')
-          )
+          public.is_admin_or_superadmin(auth.uid())
         )
         WITH CHECK (
-          EXISTS (
-            SELECT 1 FROM public.profiles
-            WHERE id = auth.uid() AND role IN ('superadmin', 'admin')
-          )
+          public.is_admin_or_superadmin(auth.uid())
         );
     END IF;
 
