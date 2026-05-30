@@ -20,17 +20,78 @@ export default function TripticoMakerPage() {
     loadFromJson, resetToDefaults,
   } = state;
 
+  const [exporting, setExporting] = useState(false);
 
-
-  const handleExportPDF = () => {
+  const handleExportPDF = async () => {
+    setExporting(true);
     // Deselect elements to hide outlines during print
     setSelectedColIndex(null);
     setSelectedBlockId(null);
     
-    // Give state a moment to update before printing
-    setTimeout(() => {
-      window.print();
-    }, 100);
+    try {
+      const element = document.createElement('div');
+      
+      // Front page
+      setActivePageId('page-front');
+      await new Promise(r => setTimeout(r, 500));
+      const frontDom = document.querySelector('[data-triptico-page="page-front"]');
+      if (frontDom) {
+        const clone = frontDom.cloneNode(true);
+        clone.style.width = '297mm';
+        clone.style.height = '210mm';
+        clone.style.position = 'relative';
+        clone.style.overflow = 'hidden';
+        // Clean up editor artifacts
+        clone.querySelectorAll('[data-export-hide]').forEach(el => el.remove());
+        clone.querySelectorAll('[data-col]').forEach(c => { c.style.outline = 'none'; c.style.cursor = 'default'; });
+        element.appendChild(clone);
+      }
+
+      const pageBreak = document.createElement('div');
+      pageBreak.classList.add('html2pdf__page-break');
+      element.appendChild(pageBreak);
+
+      // Back page
+      setActivePageId('page-back');
+      await new Promise(r => setTimeout(r, 500));
+      const backDom = document.querySelector('[data-triptico-page="page-back"]');
+      if (backDom) {
+        const clone = backDom.cloneNode(true);
+        clone.style.width = '297mm';
+        clone.style.height = '210mm';
+        clone.style.position = 'relative';
+        clone.style.overflow = 'hidden';
+        clone.querySelectorAll('[data-export-hide]').forEach(el => el.remove());
+        clone.querySelectorAll('[data-col]').forEach(c => { c.style.outline = 'none'; c.style.cursor = 'default'; });
+        element.appendChild(clone);
+      }
+
+      // IMPORTANTE: Agregar el elemento temporal al DOM para que html2canvas pueda renderizar las imágenes correctamente.
+      element.style.position = 'absolute';
+      element.style.left = '-9999px';
+      element.style.top = '0';
+      document.body.appendChild(element);
+
+      const opt = {
+        margin: 0,
+        filename: 'mi-triptico.pdf',
+        image: { type: 'jpeg', quality: 1 },
+        html2canvas: { scale: 2, useCORS: true, letterRendering: true, logging: false },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' },
+      };
+
+      const html2pdfModule = await import('html2pdf.js');
+      const html2pdf = html2pdfModule.default || html2pdfModule;
+
+      await html2pdf().set(opt).from(element).save();
+      
+      document.body.removeChild(element);
+    } catch (err) {
+      console.error('Error exporting PDF:', err);
+      alert('Error exportando a PDF. Revisa la consola para más detalles.');
+    } finally {
+      setExporting(false);
+    }
   };
 
   return (
@@ -60,9 +121,10 @@ export default function TripticoMakerPage() {
           </button>
           <button
             onClick={handleExportPDF}
-            className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-1.5 px-4 rounded text-xs flex items-center gap-2 transition-all"
+            disabled={exporting}
+            className="bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold py-1.5 px-4 rounded text-xs flex items-center gap-2 transition-all"
           >
-            <Download size={14} /> Imprimir / PDF
+            {exporting ? 'Generando PDF...' : <><Download size={14} /> Exportar a PDF</>}
           </button>
         </div>
       </header>
