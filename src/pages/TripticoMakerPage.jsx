@@ -165,6 +165,5 @@ export default function TripticoMakerPage() {
         ))}
       </div>
     </div>
-    </div>
   );
 }

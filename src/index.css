@@ -376,5 +376,11 @@
 
 @keyframes fadeOut {
   to { opacity: 0; transform: translateY(10px); }
-}@ m e d i a   p r i n t   {   @ p a g e   {   s i z e :   l a n d s c a p e ;   m a r g i n :   0 ;   }   }  
- 
+}
+
+@media print {
+  @page {
+    size: landscape;
+    margin: 0;
+  }
+}
