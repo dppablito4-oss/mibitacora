@@ -26,15 +26,15 @@ export function useSiteConfig() {
         const { data, timestamp } = JSON.parse(cached);
         if (Date.now() - timestamp < CACHE_TTL) return data;
       }
-    } catch (_) {}
+    } catch (e) { /* ignore */ }
     return FALLBACK;
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const loadConfig = useCallback(async () => {
+  const loadConfig = useCallback(async (isRefresh = false) => {
     try {
-      setLoading(true);
+      if (isRefresh) setLoading(true);
       const data = await getSiteConfig();
       if (data) {
         // Merge con fallback para campos que puedan faltar
@@ -51,7 +51,7 @@ export function useSiteConfig() {
             data: merged,
             timestamp: Date.now(),
           }));
-        } catch (_) {}
+        } catch (e) { /* ignore */ }
       }
       setError(null);
     } catch (err) {
@@ -64,15 +64,16 @@ export function useSiteConfig() {
   }, []);
 
   useEffect(() => {
-    loadConfig();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadConfig(false);
   }, [loadConfig]);
 
   /**
    * Fuerza recarga desde Supabase (útil después de editar en admin).
    */
   const refreshConfig = useCallback(() => {
-    try { sessionStorage.removeItem(CACHE_KEY); } catch (_) {}
-    return loadConfig();
+    try { sessionStorage.removeItem(CACHE_KEY); } catch (e) { /* ignore */ }
+    return loadConfig(true);
   }, [loadConfig]);
 
   return {

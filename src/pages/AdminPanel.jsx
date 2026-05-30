@@ -33,19 +33,24 @@ export default function AdminPanel() {
   const [tags, setTags] = useState('');
   const [publicado, setPublicado] = useState(false);
 
-  const loadEntries = async () => {
-    setLoading(true);
+  const loadEntries = async (isRefresh = false) => {
+    if (isRefresh) setLoading(true);
     try {
       const { data, error } = await supabase
         .from('bitacora')
         .select('*')
         .order('created_at', { ascending: false });
-      if (!error) setEntries(data || []);
-    } catch (err) { console.error(err); }
+      if (error) throw error;
+      setEntries(data || []);
+    } catch (err) { 
+      console.error(err);
+      alert('Error cargando la bitácora: ' + err.message);
+    }
     finally { setLoading(false); }
   };
 
-  useEffect(() => { loadEntries(); }, []);
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => { loadEntries(false); }, []);
 
   const resetForm = () => {
     setTitulo(''); setContenido(''); setCategoria('general'); setTags(''); setPublicado(false); setEditingId(null);
@@ -83,7 +88,7 @@ export default function AdminPanel() {
       }
       setShowEditor(false);
       resetForm();
-      await loadEntries();
+      await loadEntries(true);
     } catch (err) { alert('Error: ' + err.message); }
     finally { setSaving(false); }
   };
@@ -91,12 +96,12 @@ export default function AdminPanel() {
   const handleDelete = async (id) => {
     if (!confirm('¿Eliminar esta entrada?')) return;
     await supabase.from('bitacora').delete().eq('id', id);
-    await loadEntries();
+    await loadEntries(true);
   };
 
   const togglePublished = async (entry) => {
     await supabase.from('bitacora').update({ publicado: !entry.publicado }).eq('id', entry.id);
-    await loadEntries();
+    await loadEntries(true);
   };
 
   const formatDate = (d) => new Date(d).toLocaleDateString('es-PE', { day: 'numeric', month: 'short', year: 'numeric' });

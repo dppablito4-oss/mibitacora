@@ -67,20 +67,35 @@ serve(async (req) => {
 
     console.log("Enviando petición a DeepSeek para cotizacion_id:", cotizacion_id);
 
-    // Llamada a la API de DeepSeek-V3
-    const response = await fetch("https://api.deepseek.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${apiKey}`
-      },
-      body: JSON.stringify({
-        model: "deepseek-chat", // DeepSeek-V3
-        messages: messages,
-        temperature: 0.7,
-        max_tokens: 1500
-      })
-    });
+    // Timeout control (25 seconds) to prevent 504 Edge Function hangs
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 25000);
+
+    let response;
+    try {
+      // Llamada a la API de DeepSeek-V3
+      response = await fetch("https://api.deepseek.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${apiKey}`
+        },
+        signal: controller.signal,
+        body: JSON.stringify({
+          model: "deepseek-chat", // DeepSeek-V3
+          messages: messages,
+          temperature: 0.7,
+          max_tokens: 1500
+        })
+      });
+    } catch (fetchErr) {
+      if (fetchErr.name === 'AbortError') {
+        throw new Error("Timeout: La API de DeepSeek tardó demasiado en responder.");
+      }
+      throw fetchErr;
+    } finally {
+      clearTimeout(timeoutId);
+    }
 
     if (!response.ok) {
       const errorText = await response.text();

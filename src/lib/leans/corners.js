@@ -1,9 +1,9 @@
 /**
- * corners.js — Interactive Corner Handle System
- * Manages 4 draggable corner nodes on a canvas overlay for manual document edge adjustment.
+ * corners.js — Interactive drag handles and clipping polygon on an overlay canvas
  */
+/* global cv */
 
-
+export const Corners = (() => {
 
   // State
   let overlayCanvas = null;

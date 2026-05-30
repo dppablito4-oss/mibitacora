@@ -1,10 +1,9 @@
 /**
- * scanner.js — OpenCV.js Vision Engine
- * Handles edge detection, perspective warp, and image filters.
+ * scanner.js — OpenCV image processing module
  */
+/* global cv */
 
-
-
+export const Scanner = (() => {
   /**
    * Detect the largest quadrilateral contour in the image.
    * Returns an array of 4 points [{x, y}, ...] sorted TL, TR, BR, BL.
