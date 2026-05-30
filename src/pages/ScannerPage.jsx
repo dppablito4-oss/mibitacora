@@ -3,89 +3,60 @@ import { Upload, X, Check, Image as ImageIcon, FileText, Layout, RotateCcw, Copy
 
 export default function ScannerPage() {
   useEffect(() => {
-    // Promise-based script loader for concurrent loading
-    const loadScriptPromise = (src) => {
-      return new Promise((resolve) => {
-        if (document.querySelector(`script[src="${src}"]`)) {
-          resolve();
-          return;
-        }
-        const script = document.createElement('script');
-        script.src = src;
-        script.async = true;
-        script.onload = () => {
-          if (src.includes('opencv.js')) {
-            console.log('[React] OpenCV script load completed');
-            if (typeof window.onOpenCvReady === 'function') {
-              window.onOpenCvReady();
-            }
-          }
-          resolve();
-        };
-        script.onerror = () => {
-          console.warn(`[React] Failed to load script: ${src}, continuing...`);
-          resolve();
-        };
-        document.body.appendChild(script);
-      });
-    };
-
-    // Setup Emscripten Module configuration for OpenCV.js
-    window.Module = {
-      onRuntimeInitialized: () => {
-        console.log('[React] OpenCV WebAssembly Ready (onRuntimeInitialized)');
-        window._opencvReady = true;
-        if (window.App && window.App.onOpenCvReady) {
-          window.App.onOpenCvReady();
-        }
+    // Simple script loader (callback-based, like the standalone site)
+    const loadScript = (src, onLoad) => {
+      if (document.querySelector(`script[src="${src}"]`)) {
+        if (onLoad) onLoad();
+        return;
       }
+      const script = document.createElement('script');
+      script.src = src;
+      script.async = true;
+      if (onLoad) script.onload = onLoad;
+      document.body.appendChild(script);
     };
 
-    // Define callback function in window context
+    // ── STEP 1: Define the OpenCV ready callback FIRST (before any script loads) ──
+    // This exactly mirrors the standalone site's pattern
     window.onOpenCvReady = () => {
-      console.log('[React] OpenCV Ready (onOpenCvReady)');
-      window._opencvReady = true;
+      console.log('[Scanner] OpenCV Ready');
       if (window.App && window.App.onOpenCvReady) {
         window.App.onOpenCvReady();
+      } else {
+        window._opencvReady = true;
       }
     };
 
-    const pdfJsUrl = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
-    const jsZipUrl = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
-    const opencvUrl = 'https://docs.opencv.org/4.10.0/opencv.js';
+    // ── STEP 2: Load PDF.js and JSZip (small, fast) ──
+    loadScript('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js', () => {
+      window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    });
+    loadScript('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js');
 
-    // Load PDF.js, JSZip, OpenCV.js (cached from standalone) and the App orchestrator concurrently!
-    Promise.all([
-      loadScriptPromise(pdfJsUrl),
-      loadScriptPromise(jsZipUrl),
-      loadScriptPromise(opencvUrl),
-      import('../lib/leans/app.js')
-    ]).then(([_, __, ___, appModule]) => {
-      console.log('[React] All scripts and app module loaded in parallel');
-      
-      if (window.pdfjsLib) {
-        window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-      }
-      
-      window.App = appModule.default || window.App;
-      
+    // ── STEP 3: Import app.js and init IMMEDIATELY (don't wait for OpenCV!) ──
+    // This makes tabs, buttons, and file uploads work right away.
+    // OpenCV loads in the background — user can upload files while it downloads.
+    import('../lib/leans/app.js').then((module) => {
+      window.App = module.default || window.App;
+
       if (window.App && window.App.init) {
         window.App.init();
       }
 
-      // Check if OpenCV is already ready (e.g. if loaded synchronously or from cache before Promise.all finished)
+      // If OpenCV already loaded before app init, notify it
       if (window._opencvReady || (typeof cv !== 'undefined' && cv.Mat)) {
-        if (window.App && window.App.onOpenCvReady) {
-          window.App.onOpenCvReady();
-        }
+        window.App.onOpenCvReady();
       }
-    }).catch(err => {
-      console.error('[React] Error in parallel script loading:', err);
     });
 
-    return () => {
-      // Cleanup on unmount if necessary
-    };
+    // ── STEP 4: Load OpenCV.js in the background (8.5MB, takes time) ──
+    // Exactly like the standalone: <script async src="opencv.js" onload="onOpenCvReady()">
+    loadScript('https://docs.opencv.org/4.10.0/opencv.js', () => {
+      console.log('[Scanner] OpenCV script downloaded');
+      window.onOpenCvReady();
+    });
+
+    return () => {};
   }, []);
 
   return (
