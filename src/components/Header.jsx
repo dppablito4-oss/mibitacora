@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Hexagon, List, X } from 'lucide-react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 export default function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -14,6 +15,27 @@ export default function Header() {
   }, []);
 
   const closeMenu = () => setMobileMenuOpen(false);
+
+  const handleAnchorClick = (e, targetId) => {
+    e.preventDefault();
+    closeMenu();
+
+    if (location.pathname === '/') {
+      const element = document.getElementById(targetId);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    } else {
+      navigate('/');
+      // Esperar a que ocurra la transición de ruta y luego hacer scroll
+      setTimeout(() => {
+        const element = document.getElementById(targetId);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 150);
+    }
+  };
 
   return (
     <nav
@@ -35,19 +57,19 @@ export default function Header() {
           {/* Desktop Menu */}
           <div className="hidden md:block">
             <div className="ml-10 flex items-baseline space-x-8">
-              <a href="#inicio" className="text-sm font-medium text-slate-300 transition-all hover:text-tesseract-300 hover:text-glow px-3 py-2">
+              <a href="#inicio" onClick={(e) => handleAnchorClick(e, 'inicio')} className="text-sm font-medium text-slate-300 transition-all hover:text-tesseract-300 hover:text-glow px-3 py-2">
                 Protocolo Alpha
               </a>
-              <a href="#expediente" className="text-sm font-medium text-slate-300 transition-all hover:text-tesseract-300 hover:text-glow px-3 py-2">
+              <a href="#expediente" onClick={(e) => handleAnchorClick(e, 'expediente')} className="text-sm font-medium text-slate-300 transition-all hover:text-tesseract-300 hover:text-glow px-3 py-2">
                 Expediente
               </a>
-              <a href="#arsenal" className="text-sm font-medium text-slate-300 transition-all hover:text-tesseract-300 hover:text-glow px-3 py-2">
+              <a href="#arsenal" onClick={(e) => handleAnchorClick(e, 'arsenal')} className="text-sm font-medium text-slate-300 transition-all hover:text-tesseract-300 hover:text-glow px-3 py-2">
                 Arsenal
               </a>
-              <a href="#proyectos" className="text-sm font-medium text-slate-300 transition-all hover:text-tesseract-300 hover:text-glow px-3 py-2">
+              <a href="#proyectos" onClick={(e) => handleAnchorClick(e, 'proyectos')} className="text-sm font-medium text-slate-300 transition-all hover:text-tesseract-300 hover:text-glow px-3 py-2">
                 Proyectos
               </a>
-              <a href="#servicios" className="text-sm font-medium text-slate-300 transition-all hover:text-tesseract-300 hover:text-glow px-3 py-2">
+              <a href="#servicios" onClick={(e) => handleAnchorClick(e, 'servicios')} className="text-sm font-medium text-slate-300 transition-all hover:text-tesseract-300 hover:text-glow px-3 py-2">
                 Servicios
               </a>
               <Link to="/scanner" className="text-sm font-medium text-slate-300 transition-all hover:text-tesseract-300 hover:text-glow px-3 py-2">
@@ -56,7 +78,7 @@ export default function Header() {
               <Link to="/qr" className="text-sm font-medium text-slate-300 transition-all hover:text-tesseract-300 hover:text-glow px-3 py-2">
                 Generador QR
               </Link>
-              <a href="#contacto" className="rounded-sm border border-tesseract-300/50 bg-tesseract-500 px-5 py-2.5 text-sm font-bold uppercase tracking-wider text-white shadow-[0_0_15px_rgba(6,182,212,0.5)] transition-all hover:bg-tesseract-600">
+              <a href="#contacto" onClick={(e) => handleAnchorClick(e, 'contacto')} className="rounded-sm border border-tesseract-300/50 bg-tesseract-500 px-5 py-2.5 text-sm font-bold uppercase tracking-wider text-white shadow-[0_0_15px_rgba(6,182,212,0.5)] transition-all hover:bg-tesseract-600">
                 Contactar Enlace
               </a>
             </div>
@@ -77,19 +99,19 @@ export default function Header() {
       {/* Mobile Menu */}
       <div className={`md:hidden ${mobileMenuOpen ? 'block' : 'hidden'} absolute w-full border-b border-tesseract-500/20 bg-card/95 backdrop-blur-xl`}>
         <div className="space-y-1 px-2 pb-3 pt-2 sm:px-3">
-          <a href="#inicio" onClick={closeMenu} className="block rounded-md border border-transparent px-3 py-2 text-base font-medium text-slate-300 hover:border-tesseract-500/30 hover:bg-tesseract-500/10 hover:text-tesseract-300">
+          <a href="#inicio" onClick={(e) => handleAnchorClick(e, 'inicio')} className="block rounded-md border border-transparent px-3 py-2 text-base font-medium text-slate-300 hover:border-tesseract-500/30 hover:bg-tesseract-500/10 hover:text-tesseract-300">
             Protocolo Alpha
           </a>
-          <a href="#expediente" onClick={closeMenu} className="block rounded-md border border-transparent px-3 py-2 text-base font-medium text-slate-300 hover:border-tesseract-500/30 hover:bg-tesseract-500/10 hover:text-tesseract-300">
+          <a href="#expediente" onClick={(e) => handleAnchorClick(e, 'expediente')} className="block rounded-md border border-transparent px-3 py-2 text-base font-medium text-slate-300 hover:border-tesseract-500/30 hover:bg-tesseract-500/10 hover:text-tesseract-300">
             Expediente
           </a>
-          <a href="#arsenal" onClick={closeMenu} className="block rounded-md border border-transparent px-3 py-2 text-base font-medium text-slate-300 hover:border-tesseract-500/30 hover:bg-tesseract-500/10 hover:text-tesseract-300">
+          <a href="#arsenal" onClick={(e) => handleAnchorClick(e, 'arsenal')} className="block rounded-md border border-transparent px-3 py-2 text-base font-medium text-slate-300 hover:border-tesseract-500/30 hover:bg-tesseract-500/10 hover:text-tesseract-300">
             Arsenal
           </a>
-          <a href="#proyectos" onClick={closeMenu} className="block rounded-md border border-transparent px-3 py-2 text-base font-medium text-slate-300 hover:border-tesseract-500/30 hover:bg-tesseract-500/10 hover:text-tesseract-300">
+          <a href="#proyectos" onClick={(e) => handleAnchorClick(e, 'proyectos')} className="block rounded-md border border-transparent px-3 py-2 text-base font-medium text-slate-300 hover:border-tesseract-500/30 hover:bg-tesseract-500/10 hover:text-tesseract-300">
             Proyectos
           </a>
-          <a href="#servicios" onClick={closeMenu} className="block rounded-md border border-transparent px-3 py-2 text-base font-medium text-slate-300 hover:border-tesseract-500/30 hover:bg-tesseract-500/10 hover:text-tesseract-300">
+          <a href="#servicios" onClick={(e) => handleAnchorClick(e, 'servicios')} className="block rounded-md border border-transparent px-3 py-2 text-base font-medium text-slate-300 hover:border-tesseract-500/30 hover:bg-tesseract-500/10 hover:text-tesseract-300">
             Servicios
           </a>
           <Link to="/scanner" onClick={closeMenu} className="block rounded-md border border-transparent px-3 py-2 text-base font-medium text-slate-300 hover:border-tesseract-500/30 hover:bg-tesseract-500/10 hover:text-tesseract-300">
@@ -98,7 +120,7 @@ export default function Header() {
           <Link to="/qr" onClick={closeMenu} className="block rounded-md border border-transparent px-3 py-2 text-base font-medium text-slate-300 hover:border-tesseract-500/30 hover:bg-tesseract-500/10 hover:text-tesseract-300">
             Generador QR
           </Link>
-          <a href="#contacto" onClick={closeMenu} className="block rounded-md border border-transparent px-3 py-2 text-base font-medium text-tesseract-500 hover:border-tesseract-500/30 hover:bg-tesseract-500/10">
+          <a href="#contacto" onClick={(e) => handleAnchorClick(e, 'contacto')} className="block rounded-md border border-transparent px-3 py-2 text-base font-medium text-tesseract-500 hover:border-tesseract-500/30 hover:bg-tesseract-500/10">
             Contactar Enlace
           </a>
         </div>

@@ -45,7 +45,7 @@ export default function HomePage() {
               {profile.bio}
             </p>
             <div className="flex flex-wrap justify-center gap-4 md:justify-start">
-              <a href="#proyectos" className="flex items-center gap-2 border border-tesseract-500 bg-transparent px-8 py-3.5 font-bold uppercase tracking-wider text-tesseract-300 transition-all hover:bg-tesseract-500 hover:text-white shadow-[0_0_15px_rgba(6,182,212,0.2)] hover:shadow-[0_0_25px_rgba(6,182,212,0.6)]">
+              <a href="#proyectos" onClick={(e) => scrollToSection(e, 'proyectos')} className="flex items-center gap-2 border border-tesseract-500 bg-transparent px-8 py-3.5 font-bold uppercase tracking-wider text-tesseract-300 transition-all hover:bg-tesseract-500 hover:text-white shadow-[0_0_15px_rgba(6,182,212,0.2)] hover:shadow-[0_0_25px_rgba(6,182,212,0.6)]">
                 Acceder Datos <span className="text-xl">›</span>
               </a>
             </div>
