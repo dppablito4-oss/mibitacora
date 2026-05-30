@@ -1,6 +1,6 @@
-import { Type, Image as ImageIcon, FileImage, Trash2, ArrowUp, ArrowDown, Copy } from 'lucide-react';
+import { Type, Image as ImageIcon, FileImage, Trash2, Copy } from 'lucide-react';
 
-export default function TripticoInspector({ el, onUpdate, onDuplicate, onDelete, onMoveUp, onMoveDown }) {
+export default function TripticoInspector({ el, onUpdate, onDuplicate, onDelete }) {
   if (!el) {
     return (
       <div className="p-8 text-center text-zinc-500 text-sm">

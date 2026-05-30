@@ -1,11 +1,10 @@
 import { Monitor, Server, Brain, GitBranch, Code2 } from 'lucide-react';
 import { SKILLS } from '../data/siteData';
-import { useScrollAnimation, scrollAnimClass } from '../lib/useScrollAnimation';
+
 
 const ICON_MAP = { Monitor, Server, Brain, GitBranch, Code2 };
 
 export default function Skills() {
-  const { ref, isVisible } = useScrollAnimation();
   return (
     <section id="skills" className="relative py-24">
       <div className="mx-auto max-w-5xl px-6">

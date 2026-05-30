@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { updateSiteConfig } from '../../config/supabaseClient';
-import { Megaphone, Save, Check, Eye, EyeOff, Link as LinkIcon, Type } from 'lucide-react';
+import { Megaphone, Save, Check, Eye, EyeOff } from 'lucide-react';
 
 const TIPOS = [
   { value: 'info', label: 'Info', color: 'bg-accent-500/15 text-accent-400 border-accent-500/30' },

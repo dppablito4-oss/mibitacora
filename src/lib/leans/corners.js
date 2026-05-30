@@ -1,7 +1,7 @@
 /**
  * corners.js — Interactive drag handles and clipping polygon on an overlay canvas
  */
-/* global cv */
+
 
 export const Corners = (() => {
 
@@ -155,7 +155,7 @@ export const Corners = (() => {
     draw();
   }
 
-  function onPointerUp(e) {
+  function onPointerUp() {
     if (isDragging) {
       isDragging = false;
       activePointIndex = -1;

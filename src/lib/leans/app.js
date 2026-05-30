@@ -29,7 +29,6 @@ const App = (() => {
 
   // Bulk processing state
   let bulkQueue = [];
-  let isProcessingBulk = false;
 
   function createTabData(name) {
     return {
@@ -381,7 +380,6 @@ const App = (() => {
       loadSingleImageToEditor(validFiles[0]);
     } else {
       bulkQueue = validFiles;
-      isProcessingBulk = true;
       processBulkQueue();
     }
   }
@@ -478,7 +476,6 @@ const App = (() => {
   async function processBulkQueue() {
     const tab = currentTab();
     if (bulkQueue.length === 0) {
-      isProcessingBulk = false;
       showToast('Carga múltiple completada', 'success');
       tab.activePageIndex = tab.scannedPages.length - 1;
       renderPagesStrip();
@@ -695,7 +692,7 @@ const App = (() => {
         } else {
           showToast('No se detectó documento. Ajusta las esquinas.', 'info');
         }
-      } catch (err) {
+      } catch {
         showToast('Ajusta las esquinas manualmente', 'info');
       } finally {
         if (detectMat) detectMat.delete();
@@ -1019,7 +1016,7 @@ const App = (() => {
     return false;
   }
 
-  function handleDragLeave(e) {
+  function handleDragLeave() {
     this.classList.remove('drag-over');
   }
 
@@ -1048,7 +1045,7 @@ const App = (() => {
     return false;
   }
 
-  function handleDragEnd(e) {
+  function handleDragEnd() {
     this.classList.remove('dragging');
     const thumbs = dom.pagesStripList.querySelectorAll('.page-thumb');
     thumbs.forEach(t => t.classList.remove('drag-over'));

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Send, Mail, User, MessageSquare, CheckCircle } from 'lucide-react';
+import { Send, CheckCircle, Mail } from 'lucide-react';
 import { useScrollAnimation, scrollAnimClass } from '../lib/useScrollAnimation';
 import { trackEvent } from '../lib/analytics';
 

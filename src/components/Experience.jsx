@@ -1,9 +1,7 @@
 import { Briefcase } from 'lucide-react';
 import { EXPERIENCE } from '../data/siteData';
-import { useScrollAnimation, scrollAnimClass } from '../lib/useScrollAnimation';
 
 export default function Experience() {
-  const { ref, isVisible } = useScrollAnimation();
   return (
     <section id="experiencia" className="relative py-24">
       <div className="mx-auto max-w-5xl px-6">

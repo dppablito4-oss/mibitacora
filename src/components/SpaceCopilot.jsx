@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { supabase } from '../config/supabaseClient';
 import { useAuth } from '../context/AuthContext';
 import { useSiteConfig } from '../lib/useSiteConfig';
@@ -33,7 +33,7 @@ export default function SpaceCopilot() {
   useEffect(() => {
     if (!user?.id) return;
     const loadQuote = async () => {
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('cotizaciones')
         .select('*')
         .eq('cliente_id', user.id)
@@ -54,6 +54,7 @@ export default function SpaceCopilot() {
     if (isOpen && !activeQuote && !loading) {
       loadQuote();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, isOpen, isAdmin]);
 
   // 3. Suscribirse a mensajes_chat en tiempo real
@@ -220,7 +221,6 @@ export default function SpaceCopilot() {
 
     setUploading(true);
     try {
-      const fileExt = file.name.split('.').pop();
       // Nombre único con timestamp para evitar colisiones
       const fileName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
       const filePath = `${user.id}/${fileName}`;

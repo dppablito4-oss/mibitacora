@@ -1,4 +1,4 @@
-import { Navigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useEffect, useState } from 'react';
 import { supabase } from '../config/supabaseClient';
@@ -7,14 +7,6 @@ export default function AdminRoute({ children }) {
   const { user, loading } = useAuth();
   const [isAdmin, setIsAdmin] = useState(null);
   const [checking, setChecking] = useState(true);
-
-  useEffect(() => {
-    if (!loading && user) {
-      checkAdminStatus();
-    } else if (!loading && !user) {
-      setChecking(false);
-    }
-  }, [user, loading]);
 
   const checkAdminStatus = async () => {
     try {
@@ -29,12 +21,22 @@ export default function AdminRoute({ children }) {
       } else {
         setIsAdmin(false);
       }
-    } catch (e) {
+    } catch {
       setIsAdmin(false);
     } finally {
       setChecking(false);
     }
   };
+
+  useEffect(() => {
+    if (!loading && user) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      checkAdminStatus();
+    } else if (!loading && !user) {
+      setChecking(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, loading]);
 
   if (loading || checking) {
     return (

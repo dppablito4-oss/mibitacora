@@ -57,6 +57,7 @@ function useFitText(ref, content, maxFontPx, enabled) {
     }
     const fitCqw = containerW > 0 ? (lo / containerW) * 100 : lo / 16;
     setFontSize(`${fitCqw.toFixed(3)}cqw`);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [content, maxFontPx, enabled]);
 
   useEffect(() => {
@@ -68,6 +69,7 @@ function useFitText(ref, content, maxFontPx, enabled) {
     const ro = new ResizeObserver(compute);
     ro.observe(ref.current);
     return () => ro.disconnect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [compute, enabled, maxFontPx]);
 
   return fontSize;

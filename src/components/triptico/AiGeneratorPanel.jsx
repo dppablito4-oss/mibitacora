@@ -103,7 +103,7 @@ Rellena con datos reales. Mantén las "x" en 2, 35 y 68 para respetar las 3 colu
       const parsed = JSON.parse(manualJson);
       onApply(parsed);
       setManualJson('');
-    } catch (e) {
+    } catch {
       alert('JSON Inválido. Asegúrate de copiarlo correctamente.');
     }
   };

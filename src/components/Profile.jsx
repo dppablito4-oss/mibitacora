@@ -1,6 +1,5 @@
-import { Mail, ExternalLink, MapPin, ArrowDown, Code2 } from 'lucide-react';
+import { Code2, MapPin, Mail, ExternalLink } from 'lucide-react';
 import { PROFILE } from '../data/siteData';
-import { trackCTA } from '../lib/analytics';
 
 export default function Profile() {
   return (

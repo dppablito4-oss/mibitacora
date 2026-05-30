@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { updateSiteConfig, uploadAvatar } from '../../config/supabaseClient';
-import { Camera, Save, Check, Link as LinkIcon, User, Mail, Calendar, Type, FileText } from 'lucide-react';
+import { Camera, Save, Check, Link as LinkIcon, User } from 'lucide-react';
 
 export default function AdminProfileTab({ config, onSaved }) {
   const [profile, setProfile] = useState(config?.profile || {});

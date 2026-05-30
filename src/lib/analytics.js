@@ -20,7 +20,7 @@ export function trackEvent(event, metadata = {}) {
       .then(({ error }) => {
         if (error) console.warn('[Analytics]', error.message);
       });
-  } catch (_) {
+  } catch {
     // Silently fail — analytics should never break the app
   }
 }

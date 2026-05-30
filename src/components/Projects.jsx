@@ -1,10 +1,8 @@
 import { ArrowUpRight } from 'lucide-react';
 import { PROJECTS } from '../data/siteData';
-import { useScrollAnimation, scrollAnimClass } from '../lib/useScrollAnimation';
-import { trackCTA } from '../lib/analytics';
+
 
 export default function Projects() {
-  const { ref, isVisible } = useScrollAnimation();
   return (
     <section id="proyectos" className="relative py-24">
       <div className="relative mx-auto max-w-5xl px-6">

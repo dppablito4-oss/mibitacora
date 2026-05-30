@@ -26,7 +26,7 @@ export function useSiteConfig() {
         const { data, timestamp } = JSON.parse(cached);
         if (Date.now() - timestamp < CACHE_TTL) return data;
       }
-    } catch (e) { /* ignore */ }
+    } catch { /* ignore */ }
     return FALLBACK;
   });
   const [loading, setLoading] = useState(true);
@@ -51,7 +51,7 @@ export function useSiteConfig() {
             data: merged,
             timestamp: Date.now(),
           }));
-        } catch (e) { /* ignore */ }
+        } catch { /* ignore */ }
       }
       setError(null);
     } catch (err) {
@@ -72,7 +72,7 @@ export function useSiteConfig() {
    * Fuerza recarga desde Supabase (útil después de editar en admin).
    */
   const refreshConfig = useCallback(() => {
-    try { sessionStorage.removeItem(CACHE_KEY); } catch (e) { /* ignore */ }
+    try { sessionStorage.removeItem(CACHE_KEY); } catch { /* ignore */ }
     return loadConfig(true);
   }, [loadConfig]);
 

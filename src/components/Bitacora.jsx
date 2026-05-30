@@ -24,6 +24,7 @@ export default function Bitacora() {
     finally { setLoading(false); }
   };
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { loadEntries(); }, []);
 
   const filtered = filter === 'all' ? entries : entries.filter(e => e.categoria === filter);
