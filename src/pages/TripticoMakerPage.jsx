@@ -29,63 +29,42 @@ export default function TripticoMakerPage() {
     setSelectedBlockId(null);
     
     try {
-      const element = document.createElement('div');
-      
       // Front page
       setActivePageId('page-front');
-      await new Promise(r => setTimeout(r, 500));
+      await new Promise(r => setTimeout(r, 600)); // Esperar que renderice
       const frontDom = document.querySelector('[data-triptico-page="page-front"]');
-      if (frontDom) {
-        const clone = frontDom.cloneNode(true);
-        clone.style.width = '297mm';
-        clone.style.height = '210mm';
-        clone.style.position = 'relative';
-        clone.style.overflow = 'hidden';
-        // Clean up editor artifacts
-        clone.querySelectorAll('[data-export-hide]').forEach(el => el.remove());
-        clone.querySelectorAll('[data-col]').forEach(c => { c.style.outline = 'none'; c.style.cursor = 'default'; });
-        element.appendChild(clone);
-      }
-
-      const pageBreak = document.createElement('div');
-      pageBreak.classList.add('html2pdf__page-break');
-      element.appendChild(pageBreak);
-
+      
       // Back page
       setActivePageId('page-back');
-      await new Promise(r => setTimeout(r, 500));
+      await new Promise(r => setTimeout(r, 600));
       const backDom = document.querySelector('[data-triptico-page="page-back"]');
-      if (backDom) {
-        const clone = backDom.cloneNode(true);
-        clone.style.width = '297mm';
-        clone.style.height = '210mm';
-        clone.style.position = 'relative';
-        clone.style.overflow = 'hidden';
-        clone.querySelectorAll('[data-export-hide]').forEach(el => el.remove());
-        clone.querySelectorAll('[data-col]').forEach(c => { c.style.outline = 'none'; c.style.cursor = 'default'; });
-        element.appendChild(clone);
-      }
-
-      // IMPORTANTE: Agregar el elemento temporal al DOM para que html2canvas pueda renderizar las imágenes correctamente.
-      element.style.position = 'absolute';
-      element.style.left = '-9999px';
-      element.style.top = '0';
-      document.body.appendChild(element);
-
-      const opt = {
-        margin: 0,
-        filename: 'mi-triptico.pdf',
-        image: { type: 'jpeg', quality: 1 },
-        html2canvas: { scale: 2, useCORS: true, letterRendering: true, logging: false },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' },
-      };
-
-      const html2pdfModule = await import('html2pdf.js');
-      const html2pdf = html2pdfModule.default || html2pdfModule;
-
-      await html2pdf().set(opt).from(element).save();
       
-      document.body.removeChild(element);
+      if (!frontDom || !backDom) throw new Error('Páginas no encontradas en el DOM');
+
+      // Ocultar artefactos de edición
+      const hideNodes = document.querySelectorAll('[data-export-hide]');
+      hideNodes.forEach(n => { n.dataset.origDisplay = n.style.display; n.style.display = 'none'; });
+      const cols = document.querySelectorAll('[data-col]');
+      cols.forEach(c => { c.dataset.origOutline = c.style.outline; c.style.outline = 'none'; });
+
+      const { toPng } = await import('html-to-image');
+      const { jsPDF } = await import('jspdf');
+
+      // Generar imágenes (usamos pixelRatio 2 para mejor calidad)
+      const frontDataUrl = await toPng(frontDom, { quality: 1, pixelRatio: 2 });
+      const backDataUrl = await toPng(backDom, { quality: 1, pixelRatio: 2 });
+
+      // Restaurar artefactos de edición
+      hideNodes.forEach(n => { n.style.display = n.dataset.origDisplay || ''; });
+      cols.forEach(c => { c.style.outline = c.dataset.origOutline || ''; });
+
+      // Generar PDF
+      const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+      pdf.addImage(frontDataUrl, 'PNG', 0, 0, 297, 210);
+      pdf.addPage();
+      pdf.addImage(backDataUrl, 'PNG', 0, 0, 297, 210);
+      
+      pdf.save('mi-triptico.pdf');
     } catch (err) {
       console.error('Error exporting PDF:', err);
       alert('Error exportando a PDF. Revisa la consola para más detalles.');
