@@ -183,7 +183,7 @@ REGLAS IMPORTANTES:
         </div>
 
         {generationsLeft > 0 ? (
-          <div>
+          <div className="mb-4">
             <button
               onClick={generateWithDeepSeek}
               disabled={loading || !topic.trim()}
@@ -196,35 +196,41 @@ REGLAS IMPORTANTES:
             </p>
           </div>
         ) : (
-          <div className="p-3 bg-zinc-950 border border-zinc-800 rounded-lg">
-            <p className="text-[10px] text-amber-400 font-bold mb-2">¡Límite gratuito alcanzado!</p>
-            <p className="text-[10px] text-zinc-400 mb-3">
-              Copia el prompt, pégalo en ChatGPT o Claude, y pega el JSON resultante abajo.
-            </p>
-            <button
-              onClick={handleCopyPrompt}
-              disabled={!topic.trim()}
-              className="w-full bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold py-2 px-4 rounded text-xs flex items-center justify-center gap-2 transition-colors mb-3"
-            >
-              {copied ? <CheckCircle size={14} className="text-green-400"/> : <Copy size={14} />}
-              {copied ? '¡Copiado!' : 'Copiar Prompt para IA Externa'}
-            </button>
-
-            <textarea
-              value={manualJson}
-              onChange={e => setManualJson(e.target.value)}
-              placeholder='Pega el JSON aquí...'
-              className="w-full h-24 bg-black border border-zinc-800 rounded p-2 text-[10px] font-mono text-zinc-400 mb-2 resize-none"
-            />
-            <button
-              onClick={applyManualJson}
-              disabled={!manualJson.trim()}
-              className="w-full bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold py-2 px-4 rounded text-xs transition-colors"
-            >
-              Aplicar Diseño
-            </button>
+          <div className="mb-4 text-center">
+            <p className="text-[10px] text-amber-400 font-bold">¡Límite gratuito alcanzado!</p>
+            <p className="text-[10px] text-zinc-400">Usa la opción manual abajo.</p>
           </div>
         )}
+
+        {/* SIEMPRE MOSTRAR LA OPCIÓN MANUAL */}
+        <div className="p-3 bg-zinc-950 border border-zinc-800 rounded-lg">
+          <p className="text-[11px] text-zinc-300 font-bold mb-2">Alternativa: Usar IA Externa</p>
+          <p className="text-[10px] text-zinc-400 mb-3 leading-relaxed">
+            Si hay problemas de conexión o excediste el límite, copia el prompt, pégalo en ChatGPT o Claude, y pega el JSON resultante abajo.
+          </p>
+          <button
+            onClick={handleCopyPrompt}
+            disabled={!topic.trim()}
+            className="w-full bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold py-2 px-4 rounded text-xs flex items-center justify-center gap-2 transition-colors mb-3"
+          >
+            {copied ? <CheckCircle size={14} className="text-green-400"/> : <Copy size={14} />}
+            {copied ? '¡Copiado!' : 'Copiar Prompt para IA'}
+          </button>
+
+          <textarea
+            value={manualJson}
+            onChange={e => setManualJson(e.target.value)}
+            placeholder='Pega el JSON aquí...'
+            className="w-full h-24 bg-black border border-zinc-800 rounded p-2 text-[10px] font-mono text-zinc-400 mb-2 resize-none focus:border-cyan-800 focus:outline-none"
+          />
+          <button
+            onClick={applyManualJson}
+            disabled={!manualJson.trim()}
+            className="w-full bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold py-2 px-4 rounded text-xs transition-colors"
+          >
+            Importar Diseño JSON
+          </button>
+        </div>
       </div>
     </div>
   );
