@@ -177,6 +177,15 @@ export default function QRGeneratorApp({ uiState }) {
           </div>
         </div>
       )}
+
+      <div className="mt-4 pt-3 border-t border-zinc-700/50 text-center">
+        <p className="text-[10px] text-zinc-400 leading-relaxed">
+          Para más estilos, patrones y alta resolución, puedes<br/>
+          <a href="#/qr" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:text-cyan-300 transition-colors font-semibold underline underline-offset-2">
+            editarlo en la herramienta completa aquí.
+          </a>
+        </p>
+      </div>
     </div>
   );
 }

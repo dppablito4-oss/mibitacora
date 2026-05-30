@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Terminal, ShieldCheck, Cpu, Radar, ExternalLink, Briefcase, Megaphone, QrCode, Calculator, LayoutTemplate, ScanLine } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { SKILLS, PROJECTS, SERVICES } from '../data/siteData';
@@ -5,6 +6,22 @@ import { useSiteConfig } from '../lib/useSiteConfig';
 
 export default function HomePage() {
   const { profile, avatarUrl, hobbies, aviso } = useSiteConfig();
+
+  // Mover el Scroll-reveal observer aquí para que funcione con React.lazy()
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) entry.target.classList.add('visible');
+        });
+      },
+      { threshold: 0.08, rootMargin: '0px 0px -50px 0px' }
+    );
+
+    const revealElements = document.querySelectorAll('.reveal');
+    revealElements.forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, []);
 
   const scrollToSection = (e, sectionId) => {
     e.preventDefault();

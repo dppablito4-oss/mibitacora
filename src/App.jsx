@@ -21,22 +21,6 @@ function AppLayout() {
   const location = useLocation();
   const hidecopilot = ['/login', '/admin'].some(r => location.pathname.startsWith(r));
 
-  // Scroll-reveal observer
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) entry.target.classList.add('visible');
-        });
-      },
-      { threshold: 0.08, rootMargin: '0px 0px -50px 0px' }
-    );
-
-    const revealElements = document.querySelectorAll('.reveal');
-    revealElements.forEach((el) => observer.observe(el));
-    return () => observer.disconnect();
-  }, [location.pathname]);
-
   return (
     <div className="relative min-h-screen bg-[#030712]">
       {/* Global ambient effects */}
