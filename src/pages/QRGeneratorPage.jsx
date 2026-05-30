@@ -15,25 +15,54 @@ export default function QrGeneratorPage() {
 
   const qrRef = useRef(null);
 
+  const loadSaved = (key, defaultVal) => {
+    try {
+      const saved = localStorage.getItem('qr_config_' + key);
+      if (saved !== null) return JSON.parse(saved);
+    } catch (e) {
+      console.error(e);
+    }
+    return defaultVal;
+  };
+
   // States
-  const [payloadType, setPayloadType] = useState('url');
-  const [text, setText] = useState('https://sypablitodp.site');
-  const [waNumber, setWaNumber] = useState('');
-  const [waMessage, setWaMessage] = useState('');
+  const [payloadType, setPayloadType] = useState(() => loadSaved('payloadType', 'url'));
+  const [text, setText] = useState(() => loadSaved('text', 'https://sypablitodp.site'));
+  const [waNumber, setWaNumber] = useState(() => loadSaved('waNumber', ''));
+  const [waMessage, setWaMessage] = useState(() => loadSaved('waMessage', ''));
   
-  const [dotsShape, setDotsShape] = useState('rounded');
-  const [cornersShape, setCornersShape] = useState('extra-rounded');
-  const [dotsColor, setDotsColor] = useState('#38ff9c');
-  const [bgColor, setBgColor] = useState('#000000');
-  const [transparent, setTransparent] = useState(false);
+  const [dotsShape, setDotsShape] = useState(() => loadSaved('dotsShape', 'rounded'));
+  const [cornersShape, setCornersShape] = useState(() => loadSaved('cornersShape', 'extra-rounded'));
+  const [dotsColor, setDotsColor] = useState(() => loadSaved('dotsColor', '#38ff9c'));
+  const [bgColor, setBgColor] = useState(() => loadSaved('bgColor', '#000000'));
+  const [transparent, setTransparent] = useState(() => loadSaved('transparent', false));
   
   const [size] = useState(420);
   const [errorLevel] = useState('M');
-  const [fileName, setFileName] = useState('qr-pablito');
+  const [fileName, setFileName] = useState(() => loadSaved('fileName', 'qr-pablito'));
   
   const [logoFile, setLogoFile] = useState(null);
-  const [logoSize, setLogoSize] = useState(0.4);
-  const [logoMargin, setLogoMargin] = useState(6);
+  const [logoSize, setLogoSize] = useState(() => loadSaved('logoSize', 0.4));
+  const [logoMargin, setLogoMargin] = useState(() => loadSaved('logoMargin', 6));
+
+  // Guardar en LocalStorage cada vez que cambian
+  useEffect(() => {
+    localStorage.setItem('qr_config_payloadType', JSON.stringify(payloadType));
+    localStorage.setItem('qr_config_text', JSON.stringify(text));
+    localStorage.setItem('qr_config_waNumber', JSON.stringify(waNumber));
+    localStorage.setItem('qr_config_waMessage', JSON.stringify(waMessage));
+    localStorage.setItem('qr_config_dotsShape', JSON.stringify(dotsShape));
+    localStorage.setItem('qr_config_cornersShape', JSON.stringify(cornersShape));
+    localStorage.setItem('qr_config_dotsColor', JSON.stringify(dotsColor));
+    localStorage.setItem('qr_config_bgColor', JSON.stringify(bgColor));
+    localStorage.setItem('qr_config_transparent', JSON.stringify(transparent));
+    localStorage.setItem('qr_config_fileName', JSON.stringify(fileName));
+    localStorage.setItem('qr_config_logoSize', JSON.stringify(logoSize));
+    localStorage.setItem('qr_config_logoMargin', JSON.stringify(logoMargin));
+  }, [
+    payloadType, text, waNumber, waMessage, dotsShape, cornersShape, 
+    dotsColor, bgColor, transparent, fileName, logoSize, logoMargin
+  ]);
 
   useEffect(() => {
     if (qrRef.current) {
