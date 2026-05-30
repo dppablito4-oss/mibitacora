@@ -29,16 +29,41 @@ export default function ScannerPage() {
             window.App.init();
           }
 
-          // Load OpenCV
+          // Setup Emscripten Module configuration for OpenCV.js before loading
+          window.Module = {
+            onRuntimeInitialized: () => {
+              console.log('[React] OpenCV WebAssembly Ready (onRuntimeInitialized)');
+              if (window.App && window.App.onOpenCvReady) {
+                window.App.onOpenCvReady();
+              } else {
+                window._opencvReady = true;
+              }
+            }
+          };
+
+          // Define callback function in window context
           window.onOpenCvReady = () => {
-            console.log('[React] OpenCV Ready');
+            console.log('[React] OpenCV Ready (onOpenCvReady)');
             if (window.App && window.App.onOpenCvReady) {
               window.App.onOpenCvReady();
             } else {
               window._opencvReady = true;
             }
           };
-          loadScript('https://docs.opencv.org/4.10.0/opencv.js');
+
+          // Load OpenCV.js from a fast, reliable CDN and hook onload event to the ready callback
+          const opencvCdn = 'https://cdn.jsdelivr.net/npm/@techstark/opencv-js@4.10.0-release.1/dist/opencv.js';
+          loadScript(opencvCdn, () => {
+            console.log('[React] OpenCV script loaded');
+            // If the runtime initialized immediately
+            if (typeof cv !== 'undefined' && cv.Mat) {
+              if (window.App && window.App.onOpenCvReady) {
+                window.App.onOpenCvReady();
+              } else {
+                window._opencvReady = true;
+              }
+            }
+          });
         });
       });
     });
