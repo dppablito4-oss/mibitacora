@@ -62,7 +62,7 @@ export default function QrGeneratorPage() {
         type: dotsShape
       },
       backgroundOptions: {
-        color: transparent ? 'transparent' : bgColor,
+        color: transparent ? 'rgba(0, 0, 0, 0)' : bgColor,
       },
       cornersSquareOptions: {
         color: dotsColor,
