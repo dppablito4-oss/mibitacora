@@ -11,6 +11,7 @@ import HomePage from './pages/HomePage';
 import ScannerPage from './pages/ScannerPage';
 import QRGeneratorPage from './pages/QRGeneratorPage';
 import MathSolverPage from './pages/MathSolverPage';
+import TripticoMakerPage from './pages/TripticoMakerPage';
 
 const LoginPage = lazy(() => import('./pages/LoginPage'));
 const AdminPanel = lazy(() => import('./pages/AdminPanel'));
@@ -62,6 +63,7 @@ function AppLayout() {
             <Route path="/scanner" element={<ScannerPage />} />
             <Route path="/qr" element={<QRGeneratorPage />} />
             <Route path="/math" element={<MathSolverPage />} />
+            <Route path="/tripticos" element={<TripticoMakerPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/admin" element={<AdminRoute><AdminPanel /></AdminRoute>} />
             <Route path="*" element={<NotFoundPage />} />

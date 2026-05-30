@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.106.0",
+    "html2pdf.js": "^0.14.0",
     "katex": "^0.17.0",
     "lucide-react": "^1.16.0",
     "qr-code-styling": "^1.9.2",
