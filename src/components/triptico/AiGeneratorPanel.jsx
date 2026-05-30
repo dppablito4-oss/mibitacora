@@ -32,7 +32,7 @@ Cada columna tiene BLOQUES de contenido. Los tipos de bloque son:
 - list: lista con items array y marker (•, →, ✓, ★)
 - divider: línea separadora decorativa
 
-Devuelve SOLO un JSON válido con esta estructura (sin markdown, sin explicaciones):
+Devuelve SOLO un JSON válido con esta estructura (sin explicaciones adicionales):
 {
   "pages": [
     {
@@ -119,7 +119,7 @@ REGLAS IMPORTANTES:
         body: {
           cotizacion_id: 0,
           prompt: PROMPT_TEMPLATE(topic),
-          system: "Eres un generador estricto de JSON para trípticos escolares. Devuelve solo JSON válido, sin markdown, sin explicaciones."
+          system: "Eres un generador estricto de JSON para trípticos escolares. Devuelve solo JSON válido, sin explicaciones."
         }
       });
 

@@ -23,26 +23,32 @@ serve(async (req) => {
       );
     }
 
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      return new Response(
-        JSON.stringify({ error: "No autorizado. Token de sesión ausente." }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 401 }
-      );
-    }
+    let user = null;
 
-    const supabaseClientAuth = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
-      { global: { headers: { Authorization: authHeader } } }
-    );
-    
-    const { data: { user }, error: authError } = await supabaseClientAuth.auth.getUser();
-    if (authError || !user) {
-      return new Response(
-        JSON.stringify({ error: "Token de sesión inválido o expirado." }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 401 }
+    // Solo exigimos autenticación si no es una petición pública (cotizacion_id !== 0)
+    if (cotizacion_id !== 0) {
+      const authHeader = req.headers.get("Authorization");
+      if (!authHeader) {
+        return new Response(
+          JSON.stringify({ error: "No autorizado. Token de sesión ausente." }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 401 }
+        );
+      }
+
+      const supabaseClientAuth = createClient(
+        Deno.env.get("SUPABASE_URL") ?? "",
+        Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+        { global: { headers: { Authorization: authHeader } } }
       );
+      
+      const { data: authData, error: authError } = await supabaseClientAuth.auth.getUser();
+      if (authError || !authData.user) {
+        return new Response(
+          JSON.stringify({ error: "Token de sesión inválido o expirado." }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 401 }
+        );
+      }
+      user = authData.user;
     }
 
     // Inicializar cliente Supabase con el Service Role Key
@@ -136,7 +142,7 @@ serve(async (req) => {
     // Interceptar herramientas del sistema en el Edge Function
     try {
       const parsedReply = JSON.parse(assistantReply);
-      if (parsedReply.tool_name === 'save_note' && parsedReply.ui_state?.note_content) {
+      if (user && parsedReply.tool_name === 'save_note' && parsedReply.ui_state?.note_content) {
         const { error: noteError } = await supabaseClient
           .from('alpha_notes')
           .insert({
