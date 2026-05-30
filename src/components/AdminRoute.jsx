@@ -1,4 +1,4 @@
-import { Navigate } from 'react-router-dom';
+import { Navigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useEffect, useState } from 'react';
 import { supabase } from '../config/supabaseClient';
@@ -17,14 +17,6 @@ export default function AdminRoute({ children }) {
   }, [user, loading]);
 
   const checkAdminStatus = async () => {
-    // Verificación rápida por email
-    if (user.email === 'pabloclsa87@gmail.com') {
-      setIsAdmin(true);
-      setChecking(false);
-      return;
-    }
-
-    // Verificación en BD
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -32,7 +24,7 @@ export default function AdminRoute({ children }) {
         .eq('id', user.id)
         .single();
 
-      if (!error && data?.role === 'superadmin') {
+      if (!error && (data?.role === 'superadmin' || data?.role === 'admin')) {
         setIsAdmin(true);
       } else {
         setIsAdmin(false);
@@ -67,13 +59,13 @@ export default function AdminRoute({ children }) {
           <h1 className="text-4xl font-bold uppercase tracking-widest text-red-500 mb-4">Acceso Denegado</h1>
           <p className="text-slate-400 mb-8 max-w-md mx-auto">Esta área está clasificada y requiere credenciales de Nivel 7. Sus coordenadas han sido registradas.</p>
           <div className="flex justify-center gap-4">
-            <a href="/#" className="px-6 py-3 border border-tesseract-500/30 bg-tesseract-500/10 text-tesseract-300 font-bold uppercase tracking-wider hover:bg-tesseract-500 hover:text-white transition-all">
+            <Link to="/" className="px-6 py-3 border border-tesseract-500/30 bg-tesseract-500/10 text-tesseract-300 font-bold uppercase tracking-wider hover:bg-tesseract-500 hover:text-white transition-all">
               Volver al inicio
-            </a>
+            </Link>
             {!user && (
-              <a href="/#/login" className="px-6 py-3 bg-dark border border-slate-700 text-slate-400 font-bold uppercase tracking-wider hover:border-slate-500 hover:text-slate-200 transition-all">
+              <Link to="/login" className="px-6 py-3 bg-dark border border-slate-700 text-slate-400 font-bold uppercase tracking-wider hover:border-slate-500 hover:text-slate-200 transition-all">
                 Login
-              </a>
+              </Link>
             )}
           </div>
         </div>

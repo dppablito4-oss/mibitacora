@@ -1,3 +1,4 @@
+import { Briefcase } from 'lucide-react';
 import { EXPERIENCE } from '../data/siteData';
 import { useScrollAnimation, scrollAnimClass } from '../lib/useScrollAnimation';
 

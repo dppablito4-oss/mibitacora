@@ -4,29 +4,6 @@ Portafolio y bitácora personal de **Pablo DP**. Un espacio para compartir proye
 
 🔗 [space.sypablitodp.site](https://space.sypablitodp.site)
 
-## 🛠️ Tech Stack
-
-- **Frontend:** React 19, Vite 8, Tailwind CSS 4
-- **Backend:** Supabase (PostgreSQL, Auth, Edge Functions)
-- **IA:** DeepSeek (via Supabase Edge Function proxy)
-- **Deploy:** GitHub Pages + GitHub Actions CI/CD
-
-## 📦 Setup Local
-
-```bash
-# 1. Clonar e instalar
-git clone https://github.com/dppablito4-oss/mibitacora.git
-cd mibitacora
-npm install
-
-# 2. Configurar variables de entorno
-cp .env.example .env
-# Edita .env con tus credenciales de Supabase
-
-# 3. Dev server
-npm run dev
-```
-
 ## 🚀 Proyectos Destacados
 
 - **[Pablito Expo](https://expo.sypablitodp.site)** — Editor de presentaciones con canvas y generación IA

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Navigate } from 'react-router-dom';
+import { Navigate, Link } from 'react-router-dom';
 import { Sparkles, Mail, Lock, ArrowRight, Eye, EyeOff } from 'lucide-react';
 
 export default function LoginPage() {
@@ -36,10 +36,10 @@ export default function LoginPage() {
       <div className="relative w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-10">
-          <a href="/" className="inline-flex items-center gap-2 text-lg font-semibold tracking-tight mb-6">
+          <Link to="/" className="inline-flex items-center gap-2 text-lg font-semibold tracking-tight mb-6">
             <Sparkles size={18} className="text-accent-400" />
             <span className="text-zinc-100 font-bold">Space</span>
-          </a>
+          </Link>
           <h1 className="text-2xl font-bold text-zinc-100 mt-4">Panel Admin</h1>
           <p className="text-sm text-zinc-500 mt-2">Inicia sesión para gestionar la bitácora</p>
         </div>

@@ -1,9 +1,32 @@
-import { Terminal, ShieldCheck, Cpu, Radar, ExternalLink, Briefcase } from 'lucide-react';
-import { PROFILE, SKILLS, PROJECTS, SERVICES } from '../data/siteData';
+import { Terminal, ShieldCheck, Cpu, Radar, ExternalLink, Briefcase, Megaphone } from 'lucide-react';
+import { SKILLS, PROJECTS, SERVICES } from '../data/siteData';
+import { useSiteConfig } from '../lib/useSiteConfig';
 
 export default function HomePage() {
+  const { profile, avatarUrl, hobbies, aviso } = useSiteConfig();
+
   return (
     <div className="pt-20">
+      {/* Aviso Banner */}
+      {aviso.activo && aviso.texto && (
+        <div className={`mx-auto max-w-6xl px-4 mt-2 animate-fade-in`}>
+          <div className={`rounded-xl border px-4 py-3 text-sm flex items-center gap-3 ${
+            aviso.tipo === 'warning' ? 'bg-amber-500/10 text-amber-300 border-amber-500/20' :
+            aviso.tipo === 'promo' ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20' :
+            aviso.tipo === 'urgent' ? 'bg-red-500/10 text-red-300 border-red-500/20' :
+            'bg-tesseract-500/10 text-tesseract-300 border-tesseract-500/20'
+          }`}>
+            <Megaphone size={16} className="shrink-0" />
+            <span className="flex-1">{aviso.texto}</span>
+            {aviso.link && (
+              <a href={aviso.link} target="_blank" rel="noopener noreferrer" className="text-xs underline shrink-0 opacity-75 hover:opacity-100">
+                Ver más →
+              </a>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Hero Section */}
       <section id="inicio" className="flex min-h-[calc(100vh-80px)] items-center justify-center px-4 py-20 md:py-32">
         <div className="mx-auto flex max-w-6xl flex-col-reverse items-center gap-12 md:flex-row">
@@ -14,10 +37,12 @@ export default function HomePage() {
             </div>
             <h1 className="mb-6 text-5xl font-bold leading-tight tracking-tight text-white uppercase md:text-6xl lg:text-7xl">
               Hola, soy <br />
-              <span className="text-glow bg-gradient-to-r from-tesseract-300 via-tesseract-500 to-blue-600 bg-clip-text text-transparent">Samuel Y. Pablo</span>
+              <span className="text-glow bg-gradient-to-r from-tesseract-300 via-tesseract-500 to-blue-600 bg-clip-text text-transparent">
+                {profile.name?.split(' ').slice(0, 3).join(' ') || 'Samuel Y. Pablo'}
+              </span>
             </h1>
             <p className="mx-auto mb-8 max-w-2xl text-lg font-light text-slate-400 md:mx-0 md:text-xl">
-              {PROFILE.bio}
+              {profile.bio}
             </p>
             <div className="flex flex-wrap justify-center gap-4 md:justify-start">
               <a href="#proyectos" className="flex items-center gap-2 border border-tesseract-500 bg-transparent px-8 py-3.5 font-bold uppercase tracking-wider text-tesseract-300 transition-all hover:bg-tesseract-500 hover:text-white shadow-[0_0_15px_rgba(6,182,212,0.2)] hover:shadow-[0_0_25px_rgba(6,182,212,0.6)]">
@@ -26,16 +51,23 @@ export default function HomePage() {
             </div>
           </div>
           
-          {/* Foto de perfil (Selfie / Informal) */}
+          {/* Foto de perfil — ahora dinámica desde Supabase */}
           <div className="flex flex-1 justify-center py-10 md:justify-end md:py-0 animate-fade-up" style={{ animationDelay: '200ms' }}>
             <div className="relative w-64 h-64 md:w-80 md:h-80 rounded-full border-4 border-tesseract-500/30 p-2 shadow-[0_0_30px_rgba(6,182,212,0.3)] group overflow-hidden">
               <div className="w-full h-full rounded-full overflow-hidden relative bg-dark">
-                {/* Reemplaza el src con la ruta de tu foto real, por ejemplo: /mi-foto.jpg */}
-                <img 
-                  src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=800&auto=format&fit=crop" 
-                  alt="Samuel Y. Pablo Claudio" 
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 grayscale hover:grayscale-0"
-                />
+                {avatarUrl ? (
+                  <img 
+                    src={avatarUrl} 
+                    alt={profile.name || 'Avatar'} 
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-tesseract-900/40 to-dark">
+                    <span className="text-7xl md:text-8xl font-extralight text-tesseract-300/60 select-none">
+                      {profile.name?.[0] || 'P'}
+                    </span>
+                  </div>
+                )}
                 <div className="absolute inset-0 bg-tesseract-500/10 mix-blend-overlay pointer-events-none"></div>
               </div>
             </div>
@@ -51,38 +83,61 @@ export default function HomePage() {
             <h2 className="text-glow mb-4 text-3xl font-bold uppercase tracking-widest text-white md:text-4xl">Expediente Clasificado</h2>
             <div className="mx-auto mb-8 h-1 w-24 bg-tesseract-500 shadow-[0_0_10px_rgba(6,182,212,0.8)]"></div>
             
-            {/* Personal Data Grid */}
+            {/* Personal Data Grid — ahora dinámico */}
             <div className="mx-auto max-w-2xl bg-dark/80 border border-tesseract-500/30 p-6 shadow-[0_0_20px_rgba(6,182,212,0.1)] text-left mb-12">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="border-b border-slate-800 pb-2">
                   <span className="block text-xs text-tesseract-500 uppercase tracking-widest font-bold mb-1">Nombre Clave</span>
-                  <span className="text-slate-200 font-mono text-sm">{PROFILE.name}</span>
+                  <span className="text-slate-200 font-mono text-sm">{profile.name}</span>
                 </div>
                 <div className="border-b border-slate-800 pb-2">
                   <span className="block text-xs text-tesseract-500 uppercase tracking-widest font-bold mb-1">Especialidad</span>
-                  <span className="text-slate-200 font-mono text-sm">{PROFILE.tagline}</span>
+                  <span className="text-slate-200 font-mono text-sm">{profile.tagline}</span>
                 </div>
                 <div className="border-b md:border-b-0 border-slate-800 pb-2 md:pb-0">
                   <span className="block text-xs text-tesseract-500 uppercase tracking-widest font-bold mb-1">Fecha de Nacimiento</span>
-                  <span className="text-slate-200 font-mono text-sm">{PROFILE.birth}</span>
+                  <span className="text-slate-200 font-mono text-sm">{profile.birth}</span>
                 </div>
                 <div>
                   <span className="block text-xs text-tesseract-500 uppercase tracking-widest font-bold mb-1">Sexo</span>
-                  <span className="text-slate-200 font-mono text-sm">{PROFILE.gender}</span>
+                  <span className="text-slate-200 font-mono text-sm">{profile.gender}</span>
                 </div>
               </div>
             </div>
           </div>
+
+          {/* Hobbies — sección nueva, solo aparece si hay hobbies */}
+          {hobbies.length > 0 && (
+            <div className="reveal mb-16">
+              <h3 className="text-glow mb-6 text-xl font-bold uppercase tracking-widest text-white text-center">Intereses & Hobbies</h3>
+              <div className="mx-auto flex max-w-3xl flex-wrap justify-center gap-3">
+                {hobbies.map((hobby, i) => (
+                  <div
+                    key={hobby.id || i}
+                    className={`reveal reveal-delay-${(i % 3) + 1} group flex items-center gap-3 border border-tesseract-500/20 bg-dark/80 px-5 py-3 transition-all hover:border-tesseract-400 hover:shadow-[0_0_15px_rgba(6,182,212,0.2)]`}
+                  >
+                    <span className="text-xl">{hobby.emoji}</span>
+                    <div>
+                      <span className="text-sm font-medium text-slate-200">{hobby.name}</span>
+                      {hobby.description && (
+                        <p className="text-[11px] text-slate-500">{hobby.description}</p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
           
           <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
             {[
-              { icon: Terminal, title: 'Frontend Core', desc: 'Arquitectura de interfaces reactivas y sistemas de componentes para misiones de alta prioridad.', color: 'tesseract-500', rgb: '6,182,212' },
-              { icon: ShieldCheck, title: 'Seguridad UI', desc: 'Implementación de diseños blindados y responsivos, a prueba de fallos en cualquier dispositivo de campo.', color: 'blue-500', rgb: '59,130,246' },
-              { icon: Cpu, title: 'Optimización', desc: 'Calibración de rendimiento y gestión de estado para asegurar una respuesta táctica en milisegundos.', color: 'tesseract-700', rgb: '8,145,178' }
+              { icon: Terminal, title: 'Frontend Core', desc: 'Arquitectura de interfaces reactivas y sistemas de componentes para misiones de alta prioridad.', borderColor: 'border-tesseract-500/20', hoverBorder: 'hover:border-tesseract-500', bgCorner: 'bg-tesseract-500/5', iconBg: 'bg-tesseract-500/10', iconBorder: 'border-tesseract-500/30', iconText: 'text-tesseract-300', hoverIconBg: 'hover:bg-tesseract-500', shadowColor: 'hover:shadow-[0_0_20px_rgba(6,182,212,0.15)]', iconShadow: 'shadow-[0_0_10px_rgba(6,182,212,0.2)]' },
+              { icon: ShieldCheck, title: 'Seguridad UI', desc: 'Implementación de diseños blindados y responsivos, a prueba de fallos en cualquier dispositivo de campo.', borderColor: 'border-blue-500/20', hoverBorder: 'hover:border-blue-500', bgCorner: 'bg-blue-500/5', iconBg: 'bg-blue-500/10', iconBorder: 'border-blue-500/30', iconText: 'text-blue-400', hoverIconBg: 'hover:bg-blue-500', shadowColor: 'hover:shadow-[0_0_20px_rgba(59,130,246,0.15)]', iconShadow: 'shadow-[0_0_10px_rgba(59,130,246,0.2)]' },
+              { icon: Cpu, title: 'Optimización', desc: 'Calibración de rendimiento y gestión de estado para asegurar una respuesta táctica en milisegundos.', borderColor: 'border-tesseract-700/20', hoverBorder: 'hover:border-tesseract-700', bgCorner: 'bg-tesseract-700/5', iconBg: 'bg-tesseract-700/10', iconBorder: 'border-tesseract-700/30', iconText: 'text-tesseract-300', hoverIconBg: 'hover:bg-tesseract-700', shadowColor: 'hover:shadow-[0_0_20px_rgba(8,145,178,0.15)]', iconShadow: 'shadow-[0_0_10px_rgba(8,145,178,0.2)]' }
             ].map((item, i) => (
-              <div key={item.title} className={`reveal reveal-delay-${i + 1} group relative overflow-hidden border border-${item.color}/20 bg-dark/80 p-8 transition-all hover:border-${item.color} hover:shadow-[0_0_20px_rgba(${item.rgb},0.15)]`}>
-                <div className={`absolute right-0 top-0 h-16 w-16 rounded-bl-full bg-${item.color}/5`}></div>
-                <div className={`mb-6 flex h-12 w-12 items-center justify-center border border-${item.color}/30 bg-${item.color}/10 text-${item.color === 'blue-500' ? 'blue-400' : 'tesseract-300'} shadow-[0_0_10px_rgba(${item.rgb},0.2)] transition-all group-hover:scale-110 group-hover:bg-${item.color} group-hover:text-white`}>
+              <div key={item.title} className={`reveal reveal-delay-${i + 1} group relative overflow-hidden border ${item.borderColor} bg-dark/80 p-8 transition-all ${item.hoverBorder} ${item.shadowColor}`}>
+                <div className={`absolute right-0 top-0 h-16 w-16 rounded-bl-full ${item.bgCorner}`}></div>
+                <div className={`mb-6 flex h-12 w-12 items-center justify-center border ${item.iconBorder} ${item.iconBg} ${item.iconText} ${item.iconShadow} transition-all group-hover:scale-110 ${item.hoverIconBg} group-hover:text-white`}>
                   <item.icon size={24} />
                 </div>
                 <h3 className="mb-3 text-xl font-bold uppercase tracking-wider text-white">{item.title}</h3>
@@ -184,7 +239,7 @@ export default function HomePage() {
           <p className="mx-auto mb-10 max-w-2xl text-lg font-light text-slate-400">
             Frecuencias abiertas. Transmita sus requerimientos de servicios o consultas de desarrollo.
           </p>
-          <a href={`mailto:${PROFILE.email}`} className="group inline-flex items-center gap-3 border border-tesseract-500 bg-tesseract-500/10 px-8 py-4 text-lg font-bold uppercase tracking-wider text-tesseract-300 shadow-[0_0_20px_rgba(6,182,212,0.3)] transition-all hover:bg-tesseract-500 hover:text-white hover:shadow-[0_0_30px_rgba(6,182,212,0.6)]">
+          <a href={`mailto:${profile.email}`} className="group inline-flex items-center gap-3 border border-tesseract-500 bg-tesseract-500/10 px-8 py-4 text-lg font-bold uppercase tracking-wider text-tesseract-300 shadow-[0_0_20px_rgba(6,182,212,0.3)] transition-all hover:bg-tesseract-500 hover:text-white hover:shadow-[0_0_30px_rgba(6,182,212,0.6)]">
             <Radar className="transition-transform group-hover:animate-spin" size={24} /> Iniciar Transmisión
           </a>
         </div>

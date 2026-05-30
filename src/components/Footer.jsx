@@ -1,7 +1,9 @@
 import { Heart, Sparkles } from 'lucide-react';
-import { PROFILE } from '../data/siteData';
+import { useSiteConfig } from '../lib/useSiteConfig';
 
 export default function Footer() {
+  const { profile } = useSiteConfig();
+
   return (
     <footer className="relative border-t border-tesseract-500/10 bg-dark py-14">
       <div className="mx-auto flex max-w-5xl flex-col items-center gap-6 px-6 relative z-10">
@@ -15,14 +17,15 @@ export default function Footer() {
           <span>SISTEMA CREADO CON</span>
           <Heart size={12} className="text-tesseract-500" fill="currentColor" />
           <span>POR</span>
-          <span className="font-bold text-tesseract-300 tracking-widest">{PROFILE.name}</span>
+          <span className="font-bold text-tesseract-300 tracking-widest">{profile.name}</span>
         </div>
 
         {/* Copyright */}
         <p className="font-mono text-[11px] text-slate-700 tracking-widest">
-          © {new Date().getFullYear()} {PROFILE.subdomain} — ACCESO CLASIFICADO
+          © {new Date().getFullYear()} {profile.subdomain} — ACCESO CLASIFICADO
         </p>
       </div>
     </footer>
   );
 }
+

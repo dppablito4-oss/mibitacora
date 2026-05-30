@@ -1,4 +1,4 @@
-import { Mail, ExternalLink, MapPin, ArrowDown } from 'lucide-react';
+import { Mail, ExternalLink, MapPin, ArrowDown, Code2 } from 'lucide-react';
 import { PROFILE } from '../data/siteData';
 import { trackCTA } from '../lib/analytics';
 
