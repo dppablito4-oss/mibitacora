@@ -257,9 +257,10 @@ export const Corners = (() => {
   }
 
   // Public API
-  export const Corners = {
+  return {
     init,
     getPoints,
     destroy,
     draw
   };
+})();

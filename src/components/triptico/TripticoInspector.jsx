@@ -1,11 +1,10 @@
-import React from 'react';
-import { Type, Image as ImageIcon, Layout, Box, Trash2, Copy } from 'lucide-react';
+import { Type, Image as ImageIcon, FileImage, Trash2, ArrowUp, ArrowDown, Copy } from 'lucide-react';
 
-export default function TripticoInspector({ el, onUpdate, onDuplicate, onDelete }) {
+export default function TripticoInspector({ el, onUpdate, onDuplicate, onDelete, onMoveUp, onMoveDown }) {
   if (!el) {
     return (
       <div className="p-8 text-center text-zinc-500 text-sm">
-        <Box className="mx-auto mb-3 opacity-20" size={32} />
+        <FileImage className="mx-auto mb-3 opacity-20" size={32} />
         Selecciona un elemento para editar sus propiedades
       </div>
     );

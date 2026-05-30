@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '../../config/supabaseClient';
 import { Sparkles, Loader2, Copy, CheckCircle } from 'lucide-react';
 
@@ -9,10 +9,10 @@ export default function AiGeneratorPanel({ onApply }) {
   const [copied, setCopied] = useState(false);
   const [manualJson, setManualJson] = useState('');
 
-  // Cargar usos restantes del LocalStorage
   useEffect(() => {
     const saved = localStorage.getItem('triptico_ai_uses');
     if (saved) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setGenerationsLeft(parseInt(saved));
     } else {
       localStorage.setItem('triptico_ai_uses', '2');

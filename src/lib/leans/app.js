@@ -3,7 +3,7 @@
  * Manages UI states, multi-page scanning, bulk upload, re-adjusting, D&D reordering,
  * and document tabs (max 3 simultaneous documents).
  */
-/* global cv, pdfjsLib */
+/* global cv, pdfjsLib, JSZip */
 
 import { Scanner } from './scanner.js';
 import { Corners } from './corners.js';

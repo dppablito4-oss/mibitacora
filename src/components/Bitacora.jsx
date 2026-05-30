@@ -16,8 +16,6 @@ export default function Bitacora() {
   const [filter, setFilter] = useState('all');
   const { ref, isVisible } = useScrollAnimation();
 
-  useEffect(() => { loadEntries(); }, []);
-
   const loadEntries = async () => {
     try {
       const data = await getBitacora(50);
@@ -25,6 +23,8 @@ export default function Bitacora() {
     } catch (err) { console.error('Error loading bitácora:', err); }
     finally { setLoading(false); }
   };
+
+  useEffect(() => { loadEntries(); }, []);
 
   const filtered = filter === 'all' ? entries : entries.filter(e => e.categoria === filter);
   const formatDate = (d) => new Date(d).toLocaleDateString('es-PE', { day: 'numeric', month: 'short', year: 'numeric' });

@@ -402,7 +402,7 @@ export const Scanner = (() => {
   }
 
   // Public API
-  export const Scanner = {
+  return {
     detectEdges,
     warpPerspective,
     applyFilter,
@@ -410,3 +410,4 @@ export const Scanner = (() => {
     drawToCanvas,
     sortCorners
   };
+})();
