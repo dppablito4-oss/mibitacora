@@ -15,20 +15,23 @@ export default function TripticoCanvas({
   if (!activePage) return null;
 
   return (
-    <div className="w-full max-w-5xl flex flex-col items-center">
-      <div className="text-[10px] text-zinc-500 font-mono mb-2 flex items-center gap-2">
+    <div className="w-full h-full flex flex-col items-center justify-center">
+      <div className="text-[10px] text-zinc-500 font-mono mb-2 flex items-center gap-2 shrink-0">
         <span>A4 HORIZONTAL (297x210mm)</span>
         <span className="text-zinc-700">·</span>
         <span>{activePage.id === 'page-front' ? 'LADO EXTERIOR' : 'LADO INTERIOR'}</span>
       </div>
 
       <div
-        className="w-full relative overflow-hidden bg-white shadow-2xl focus:outline-none"
+        className="relative overflow-hidden bg-white shadow-2xl focus:outline-none shrink-0"
         ref={canvasRef}
         onClick={() => onSelectEl(null)}
         tabIndex={-1}
         style={{
           aspectRatio: '297 / 210', // A4 Landscape ratio
+          height: '100%',
+          maxHeight: 'calc(100% - 30px)',
+          maxWidth: '100%',
           backgroundImage: activePage.bgImage ? `url(${activePage.bgImage})` : undefined,
           backgroundSize: 'cover',
           backgroundPosition: 'center',

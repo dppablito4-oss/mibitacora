@@ -171,13 +171,10 @@ export default function ScannerPage() {
 
       </main>
 
-      {/* Loader Overlay */}
-      <div id="opencv-loader" className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-dark/90 backdrop-blur-sm transition-opacity duration-300">
-        <div className="w-12 h-12 border-4 border-tesseract-500/30 border-t-tesseract-500 rounded-full animate-spin mb-4"></div>
-        <div className="text-center">
-          <strong className="block text-white text-lg tracking-wider uppercase mb-1">Cargando motor de visión</strong>
-          <span className="text-slate-400 text-sm">Preparando OpenCV.js...</span>
-        </div>
+      {/* Loader Overlay (Non-blocking) */}
+      <div id="opencv-loader" className="fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-tesseract-900/90 border border-tesseract-500/30 text-white px-5 py-3 rounded-lg backdrop-blur-md shadow-[0_0_20px_rgba(6,182,212,0.3)] transition-opacity duration-500">
+        <div className="w-5 h-5 border-2 border-tesseract-500/30 border-t-tesseract-500 rounded-full animate-spin"></div>
+        <div className="text-sm font-medium tracking-wide">Cargando motor de visión...</div>
       </div>
 
       {/* Toasts */}

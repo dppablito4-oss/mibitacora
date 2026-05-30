@@ -145,7 +145,7 @@ export default function TripticoMakerPage() {
             </button>
           </div>
           
-          <div className="flex-1 p-8 flex items-center justify-center relative">
+          <div className="flex-1 p-4 lg:p-8 flex items-center justify-center relative overflow-hidden">
             <TripticoCanvas
               activePage={state.activePage}
               selectedElId={state.selectedElId}
