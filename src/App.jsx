@@ -10,6 +10,7 @@ import AdminRoute from './components/AdminRoute';
 import HomePage from './pages/HomePage';
 import ScannerPage from './pages/ScannerPage';
 import QRGeneratorPage from './pages/QRGeneratorPage';
+import MathSolverPage from './pages/MathSolverPage';
 
 const LoginPage = lazy(() => import('./pages/LoginPage'));
 const AdminPanel = lazy(() => import('./pages/AdminPanel'));
@@ -60,6 +61,7 @@ function AppLayout() {
             <Route path="/" element={<HomePage />} />
             <Route path="/scanner" element={<ScannerPage />} />
             <Route path="/qr" element={<QRGeneratorPage />} />
+            <Route path="/math" element={<MathSolverPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/admin" element={<AdminRoute><AdminPanel /></AdminRoute>} />
             <Route path="*" element={<NotFoundPage />} />
