@@ -4,6 +4,8 @@ import { useAuth } from '../context/AuthContext';
 import { useSiteConfig } from '../lib/useSiteConfig';
 import { MessageCircle, X, Send, Paperclip, Loader2, Phone } from 'lucide-react';
 import QRGeneratorApp from './miniapps/QRGeneratorApp';
+import MathSolverApp from './miniapps/MathSolverApp';
+import TripticoMakerApp from './miniapps/TripticoMakerApp';
 
 export default function SpaceCopilot() {
   const { user, signInAnonymously } = useAuth();
@@ -16,6 +18,7 @@ export default function SpaceCopilot() {
   const [messages, setMessages] = useState([]);
   const [prompt, setPrompt] = useState('');
   const [loading, setLoading] = useState(false);
+  const [loadingText, setLoadingText] = useState('Escribiendo...');
   const [uploading, setUploading] = useState(false);
 
   const endRef = useRef(null);
@@ -60,7 +63,22 @@ export default function SpaceCopilot() {
       loadQuote();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, isOpen, isAdmin]);
+  }, [user, activeQuote, isOpen]);
+
+  useEffect(() => {
+    let interval;
+    if (loading) {
+      const texts = ["A.L.P.H.A. escribiendo...", "Accediendo a la red...", "Procesando solicitud táctica...", "Desplegando Protocolo Alpha..."];
+      let i = 0;
+      interval = setInterval(() => {
+        i = (i + 1) % texts.length;
+        setLoadingText(texts[i]);
+      }, 1500);
+    } else {
+      setLoadingText("A.L.P.H.A. escribiendo...");
+    }
+    return () => clearInterval(interval);
+  }, [loading]);
 
   // 3. Suscribirse a mensajes_chat en tiempo real
   useEffect(() => {
@@ -103,7 +121,7 @@ export default function SpaceCopilot() {
 REGLA CRÍTICA: Responde SIEMPRE con este objeto JSON exacto:
 {
   "intent": "HERRAMIENTA_AUTOMATIZADA" | "SERVICIO_MANUAL",
-  "tool_name": "qr_generator" | null,
+  "tool_name": "qr_generator" | "math_solver" | "triptico_maker" | null,
   "action": "OPEN_MINI_APP" | "COLLECT_INFO" | "NORMAL_CHAT",
   "message": "Tu respuesta.",
   "ui_state": { "show_uploader": true | false, "panel_active": "qr_config_panel" | "chat_standard" | null }
@@ -425,8 +443,15 @@ Misión: Clasificar la solicitud de ${activeQuote.nombre_cliente} en una de dos 
                     
                     {parsedMsg}
                     
-                    {isJson && toolData?.tool_name === 'qr_generator' && (
+                    {/* UI Apps Engine */}
+                    {toolData && toolData.tool_name === 'qr_generator' && (
                       <QRGeneratorApp uiState={toolData.ui_state} />
+                    )}
+                    {toolData && toolData.tool_name === 'math_solver' && (
+                      <MathSolverApp uiState={toolData.ui_state} />
+                    )}
+                    {toolData && toolData.tool_name === 'triptico_maker' && (
+                      <TripticoMakerApp uiState={toolData.ui_state} />
                     )}
 
                     {m.archivo_url && (
@@ -445,7 +470,7 @@ Misión: Clasificar la solicitud de ${activeQuote.nombre_cliente} en una de dos 
                   <div className="border border-cyan-500/20 rounded-2xl rounded-bl-sm px-4 py-3 bg-zinc-800/80 flex items-center gap-2">
                     <Loader2 size={14} className="text-cyan-400 animate-spin" />
                     <span className="text-[10px] text-cyan-400 uppercase tracking-widest font-mono">
-                      {uploading ? 'Procesando archivo...' : 'A.L.P.H.A. escribiendo...'}
+                      {uploading ? 'Procesando archivo...' : loadingText}
                     </span>
                   </div>
                 </div>
