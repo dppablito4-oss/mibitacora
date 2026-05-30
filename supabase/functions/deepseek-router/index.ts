@@ -85,7 +85,8 @@ serve(async (req) => {
           model: "deepseek-chat", // DeepSeek-V3
           messages: messages,
           temperature: 0.7,
-          max_tokens: 1500
+          max_tokens: 1500,
+          response_format: { type: 'json_object' }
         })
       });
     } catch (fetchErr) {

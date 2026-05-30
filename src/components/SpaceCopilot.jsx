@@ -3,6 +3,7 @@ import { supabase } from '../config/supabaseClient';
 import { useAuth } from '../context/AuthContext';
 import { useSiteConfig } from '../lib/useSiteConfig';
 import { MessageCircle, X, Send, Paperclip, Loader2, Phone } from 'lucide-react';
+import QRGeneratorApp from './miniapps/QRGeneratorApp';
 
 export default function SpaceCopilot() {
   const { user, signInAnonymously } = useAuth();
@@ -98,6 +99,16 @@ export default function SpaceCopilot() {
     if (isOpen) endRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isOpen, loading]);
 
+  const JSON_INSTRUCTION = `
+REGLA CRÍTICA: Responde SIEMPRE con este objeto JSON exacto:
+{
+  "intent": "HERRAMIENTA_AUTOMATIZADA" | "SERVICIO_MANUAL",
+  "tool_name": "qr_generator" | null,
+  "action": "OPEN_MINI_APP" | "COLLECT_INFO" | "NORMAL_CHAT",
+  "message": "Tu respuesta.",
+  "ui_state": { "show_uploader": true | false, "panel_active": "qr_config_panel" | "chat_standard" | null }
+}`;
+
   // --- ACCIONES ---
 
   const handleStartAdminSession = async () => {
@@ -115,7 +126,13 @@ export default function SpaceCopilot() {
       await supabase.from('mensajes_chat').insert({
         cotizacion_id: data.id,
         enviado_por: 'asistente_ai',
-        mensaje: `¡Hola Jefe! Sistemas en línea y Protocolo Alpha activado a tu disposición. ¿Qué vamos a construir o hackear hoy?`
+        mensaje: JSON.stringify({
+          intent: "NORMAL_CHAT",
+          tool_name: null,
+          action: "NORMAL_CHAT",
+          message: `¡Hola Jefe! Sistemas en línea y Protocolo Alpha activado a tu disposición. ¿Qué vamos a construir o hackear hoy?`,
+          ui_state: { show_uploader: true, panel_active: null }
+        })
       });
     } catch (err) {
       console.error('Error iniciando sesión admin:', err);
@@ -161,7 +178,13 @@ export default function SpaceCopilot() {
       await supabase.from('mensajes_chat').insert({
         cotizacion_id: data.id,
         enviado_por: 'asistente_ai',
-        mensaje: `Saludos, ${clientName.trim()}.\n\nSoy A.L.P.H.A., una Inteligencia Artificial creada y diseñada por el Sr. Pablo. Hoy es ${fecha}. ¿En qué te puedo ayudar el día de hoy?`
+        mensaje: JSON.stringify({
+          intent: "NORMAL_CHAT",
+          tool_name: null,
+          action: "NORMAL_CHAT",
+          message: `Saludos, ${clientName.trim()}.\n\nSoy A.L.P.H.A., una Inteligencia Artificial creada y diseñada por el Sr. Pablo. Hoy es ${fecha}. ¿En qué te puedo ayudar el día de hoy?`,
+          ui_state: { show_uploader: true, panel_active: null }
+        })
       });
 
     } catch (err) {
@@ -201,9 +224,13 @@ export default function SpaceCopilot() {
 
       let systemPrompt = '';
       if (isAdmin) {
-        systemPrompt = `Eres A.L.P.H.A., la Inteligencia Artificial personal del Sr. Pablo (pablito_dp), inspirada en J.A.R.V.I.S. de Iron Man y con temática de S.H.I.E.L.D. Él es tu creador y le llamas 'Jefe' o 'Señor'. Habla de forma extremadamente leal, concisa, sarcástica a veces y muy tecnológica.`;
+        systemPrompt = `Eres A.L.P.H.A., la Inteligencia Artificial personal del Sr. Pablo (pablito_dp), inspirada en J.A.R.V.I.S. de Iron Man y con temática de S.H.I.E.L.D. Él es tu creador y le llamas 'Jefe' o 'Señor'. Habla de forma extremadamente leal, concisa, sarcástica a veces y muy tecnológica.\n${JSON_INSTRUCTION}`;
       } else {
-        systemPrompt = `Eres A.L.P.H.A., la Inteligencia Artificial creada y diseñada por el Sr. Pablo (pablito_dp), inspirada en J.A.R.V.I.S. de Iron Man y el universo de S.H.I.E.L.D. Ayudas a los clientes a cotizar servicios como: Formateo APA 7ma Edición, Creación de Monografías, Material Gráfico y CVs. Eres conciso, altamente persuasivo, tecnológico y muy educado. El cliente se llama ${activeQuote.nombre_cliente}. NO des precios exactos altos, diles que el Sr. Pablo revisará los detalles para dar la cotización final, pero anímalos a subir sus archivos aquí mismo.`;
+        systemPrompt = `Eres A.L.P.H.A., la Inteligencia Artificial creada por el Sr. Pablo (pablito_dp), inspirada en J.A.R.V.I.S. de Iron Man y el universo de S.H.I.E.L.D. 
+Misión: Clasificar la solicitud de ${activeQuote.nombre_cliente} en una de dos categorías y SIEMPRE responder en JSON.
+
+1. HERRAMIENTA_AUTOMATIZADA: Si pide algo que resolvemos con software (ej. Generar código QR, cambiar colores de QR).
+2. SERVICIO_MANUAL: Si pide un trabajo complejo (ej. Formatear tesis APA, monografías, CVs).\n${JSON_INSTRUCTION}`;
       }
 
       const { error: fnError } = await supabase.functions.invoke('deepseek-router', {
@@ -267,8 +294,8 @@ export default function SpaceCopilot() {
           cotizacion_id: activeQuote.id,
           prompt: `He subido el archivo: ${file.name}`,
           system: isAdmin
-            ? `El Jefe acaba de subir un archivo. Confirma su recepción con estilo S.H.I.E.L.D y pregúntale qué análisis deseas que ejecutes sobre él.`
-            : `El cliente acaba de subir un archivo. Confírmale que el documento ha sido recibido en la base de datos de S.H.I.E.L.D. y que el Sr. Pablo lo analizará en breve para darle un presupuesto exacto.`
+            ? `El Jefe acaba de subir un archivo. Confirma su recepción con estilo S.H.I.E.L.D y pregúntale qué análisis deseas que ejecutes sobre él.\n${JSON_INSTRUCTION}`
+            : `El cliente acaba de subir un archivo. Confírmale que el documento ha sido recibido en la base de datos de S.H.I.E.L.D. y que el Sr. Pablo lo analizará en breve para darle un presupuesto exacto.\n${JSON_INSTRUCTION}`
         }
       });
 
@@ -361,6 +388,24 @@ export default function SpaceCopilot() {
               {messages.map((m) => {
                 const isCliente = m.enviado_por === 'cliente';
                 const isAdmin = m.enviado_por === 'admin';
+                
+                // Intent Router parsing
+                let parsedMsg = m.mensaje;
+                let isJson = false;
+                let toolData = null;
+                
+                if (m.enviado_por === 'asistente_ai' && m.mensaje.trim().startsWith('{')) {
+                  try {
+                    const data = JSON.parse(m.mensaje);
+                    if (data.intent) {
+                      parsedMsg = data.message;
+                      isJson = true;
+                      toolData = data;
+                    }
+                  } catch (e) {
+                    // Si falla el parseo, dejamos el texto original
+                  }
+                }
 
                 return (
                 <div key={m.id} className={`flex ${isCliente ? 'justify-end' : 'justify-start'}`}>
@@ -377,7 +422,13 @@ export default function SpaceCopilot() {
                         <span className="w-1.5 h-1.5 rounded-full bg-amber-400" /> Pablo
                       </div>
                     )}
-                    {m.mensaje}
+                    
+                    {parsedMsg}
+                    
+                    {isJson && toolData?.tool_name === 'qr_generator' && (
+                      <QRGeneratorApp uiState={toolData.ui_state} />
+                    )}
+
                     {m.archivo_url && (
                       <a href={m.archivo_url} target="_blank" rel="noopener noreferrer" className="block mt-2 text-xs font-semibold underline text-blue-200 hover:text-white truncate">
                         🔗 Ver documento
