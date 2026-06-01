@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { LayoutTemplate, Sparkles, RefreshCw, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-export default function TripticoMakerApp({ uiState }) {
+export default function TripticoMakerApp() {
   const [topic, setTopic] = useState('');
   const [loading, setLoading] = useState(false);
   const [generated, setGenerated] = useState(false);

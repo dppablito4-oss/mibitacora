@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../../config/supabaseClient';
 import {
-  MessageCircle, Send, User, Bot, Clock,
+  MessageCircle, Send, User, Bot,
   ChevronRight, FileText, Loader2, ExternalLink,
-  CheckCircle2, AlertCircle, Zap, Search
+  Zap, Search
 } from 'lucide-react';
 
 const ESTADOS = {
@@ -25,7 +25,6 @@ export default function AdminCotizacionesTab() {
   const [searchTerm, setSearchTerm] = useState('');
   const [unreadMap, setUnreadMap] = useState({}); // { cotizacion_id: count }
   const endRef = useRef(null);
-  const channelRef = useRef(null);
 
   const selected = cotizaciones.find(c => c.id === selectedId);
 
@@ -103,8 +102,8 @@ export default function AdminCotizacionesTab() {
   // ── 3. Load messages when selecting a cotización ──
   useEffect(() => {
     if (!selectedId) return;
-    setLoadingMsgs(true);
     const loadMessages = async () => {
+      setLoadingMsgs(true);
       const { data } = await supabase
         .from('mensajes_chat')
         .select('*')
@@ -116,6 +115,7 @@ export default function AdminCotizacionesTab() {
     loadMessages();
 
     // Clear unread for this chat
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setUnreadMap(prev => { const n = { ...prev }; delete n[selectedId]; return n; });
   }, [selectedId]);
 

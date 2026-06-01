@@ -1,3 +1,4 @@
+/* global cv */
 import { useEffect } from 'react';
 import { Upload, X, Check, Image as ImageIcon, FileText, Layout, RotateCcw, Copy, Trash2, Download } from 'lucide-react';
 

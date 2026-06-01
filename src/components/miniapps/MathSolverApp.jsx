@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Calculator, Sparkles, RefreshCw, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-export default function MathSolverApp({ uiState }) {
+export default function MathSolverApp() {
   const [equation, setEquation] = useState('');
   const [loading, setLoading] = useState(false);
   const [solved, setSolved] = useState(false);

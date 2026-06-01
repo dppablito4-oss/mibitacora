@@ -1,5 +1,4 @@
-import React from 'react';
-import { Shield, Lock, FileText, Database } from 'lucide-react';
+import { Shield, FileText, Database } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function TermsPage() {

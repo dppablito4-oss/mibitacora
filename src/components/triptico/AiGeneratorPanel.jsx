@@ -1,22 +1,18 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { supabase } from '../../config/supabaseClient';
 import { Sparkles, Loader2, Copy, CheckCircle } from 'lucide-react';
 
 export default function AiGeneratorPanel({ onApply }) {
   const [topic, setTopic] = useState('');
   const [loading, setLoading] = useState(false);
-  const [generationsLeft, setGenerationsLeft] = useState(2);
+  const [generationsLeft, setGenerationsLeft] = useState(() => {
+    const saved = localStorage.getItem('triptico_ai_uses');
+    if (saved) return parseInt(saved);
+    localStorage.setItem('triptico_ai_uses', '2');
+    return 2;
+  });
   const [copied, setCopied] = useState(false);
   const [manualJson, setManualJson] = useState('');
-
-  useEffect(() => {
-    const saved = localStorage.getItem('triptico_ai_uses');
-    if (saved) {
-      setGenerationsLeft(parseInt(saved));
-    } else {
-      localStorage.setItem('triptico_ai_uses', '2');
-    }
-  }, []);
 
   const PROMPT_TEMPLATE = (topic) => `Genera el contenido para un TRÍPTICO escolar sobre: "${topic}".
 

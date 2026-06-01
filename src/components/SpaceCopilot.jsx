@@ -409,7 +409,6 @@ Misión: Clasificar la solicitud de ${activeQuote.nombre_cliente} en una de dos 
                 
                 // Intent Router parsing
                 let parsedMsg = m.mensaje;
-                let isJson = false;
                 let toolData = null;
                 
                 if (m.enviado_por === 'asistente_ai' && m.mensaje.trim().startsWith('{')) {
@@ -417,10 +416,9 @@ Misión: Clasificar la solicitud de ${activeQuote.nombre_cliente} en una de dos 
                     const data = JSON.parse(m.mensaje);
                     if (data.intent) {
                       parsedMsg = data.message;
-                      isJson = true;
                       toolData = data;
                     }
-                  } catch (e) {
+                  } catch {
                     // Si falla el parseo, dejamos el texto original
                   }
                 }

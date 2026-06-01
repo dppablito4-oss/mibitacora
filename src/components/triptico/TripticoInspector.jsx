@@ -1,5 +1,5 @@
 import {
-  Type, Image as ImageIcon, FileImage, Trash2, RotateCcw, Palette,
+  Image as ImageIcon, FileImage, Trash2, RotateCcw, Palette,
   ChevronUp, ChevronDown, List, Minus, Heading1, Heading2, AlignLeft,
 } from 'lucide-react';
 
