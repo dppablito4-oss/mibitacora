@@ -1,0 +1,288 @@
+import { useState, useEffect } from 'react';
+import { supabase } from '../config/supabaseClient';
+
+export function useCopilotChat({ user, isOpen, signInAnonymously, isAdmin }) {
+  const [activeQuote, setActiveQuote] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [loadingText, setLoadingText] = useState('Escribiendo...');
+  const [uploading, setUploading] = useState(false);
+
+  // 1. Iniciar sesión anónima automáticamente al abrir si no hay usuario
+  useEffect(() => {
+    if (isOpen && !user && signInAnonymously) {
+      signInAnonymously().then((res) => {
+        if (res?.error) {
+          console.error('[Supabase Auth] Error en inicio de sesión anónimo:', res.error);
+        }
+      });
+    }
+  }, [isOpen, user, signInAnonymously]);
+
+  // 2. Cargar cotización activa del usuario
+  useEffect(() => {
+    if (!user?.id) return;
+    const loadQuote = async () => {
+      const { data } = await supabase
+        .from('cotizaciones')
+        .select('*')
+        .eq('cliente_id', user.id)
+        .eq('estado', 'pendiente')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (data) {
+        setActiveQuote(data);
+      } else if (isAdmin && isOpen) {
+        handleStartAdminSession();
+      }
+    };
+
+    if (isOpen && !activeQuote && !loading) {
+      loadQuote();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, activeQuote, isOpen, isAdmin]);
+
+  useEffect(() => {
+    let interval;
+    if (loading) {
+      const texts = ["A.L.P.H.A. escribiendo...", "Accediendo a la red...", "Procesando solicitud táctica...", "Desplegando Protocolo Alpha..."];
+      let i = 0;
+      interval = setInterval(() => {
+        i = (i + 1) % texts.length;
+        setLoadingText(texts[i]);
+      }, 1500);
+    } else {
+      setLoadingText("A.L.P.H.A. escribiendo...");
+    }
+    return () => clearInterval(interval);
+  }, [loading]);
+
+  // 3. Suscribirse a mensajes_chat en tiempo real
+  useEffect(() => {
+    if (!activeQuote) return;
+
+    const loadMessages = async () => {
+      const { data } = await supabase
+        .from('mensajes_chat')
+        .select('*')
+        .eq('cotizacion_id', activeQuote.id)
+        .order('created_at', { ascending: true });
+      if (data) setMessages(data);
+    };
+    loadMessages();
+
+    const channel = supabase.channel(`chat_${activeQuote.id}`)
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'mensajes_chat', filter: `cotizacion_id=eq.${activeQuote.id}` },
+        (payload) => {
+          setMessages((prev) => {
+            if (prev.find(m => m.id === payload.new.id)) return prev;
+            return [...prev, payload.new];
+          });
+        }
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [activeQuote]);
+
+  const JSON_INSTRUCTION = `
+REGLA CRÍTICA: Responde SIEMPRE con este objeto JSON exacto:
+{
+  "intent": "HERRAMIENTA_AUTOMATIZADA" | "SERVICIO_MANUAL" | "SYSTEM_MEMORY",
+  "tool_name": "qr_generator" | "math_solver" | "triptico_maker" | "save_note" | null,
+  "action": "OPEN_MINI_APP" | "COLLECT_INFO" | "NORMAL_CHAT" | "EXECUTE_TOOL",
+  "message": "Tu respuesta confirmando la acción.",
+  "ui_state": { "show_uploader": true | false, "note_content": "texto exacto a guardar si tool_name es save_note", "panel_active": "qr_config_panel" | "chat_standard" | null }
+}`;
+
+  const handleStartAdminSession = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('cotizaciones')
+        .insert({ cliente_id: user.id, nombre_cliente: 'Jefe' })
+        .select()
+        .single();
+
+      if (error) throw error;
+      setActiveQuote(data);
+
+      await supabase.from('mensajes_chat').insert({
+        cotizacion_id: data.id,
+        enviado_por: 'asistente_ai',
+        mensaje: JSON.stringify({
+          intent: "NORMAL_CHAT",
+          tool_name: null,
+          action: "NORMAL_CHAT",
+          message: `¡Hola Jefe! Sistemas en línea y Protocolo Alpha activado a tu disposición. ¿Qué vamos a construir o hackear hoy?`,
+          ui_state: { show_uploader: true, panel_active: null }
+        })
+      });
+    } catch (err) {
+      console.error('Error iniciando sesión admin:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const startQuote = async (clientName) => {
+    if (!clientName.trim()) return;
+    setLoading(true);
+    try {
+      let currentUser = user;
+      
+      if (!currentUser && signInAnonymously) {
+        const authRes = await signInAnonymously();
+        if (authRes?.error) {
+          if (authRes.error.code === 'anonymous_provider_disabled' || authRes.error.message?.includes('disabled')) {
+            throw new Error("Los inicios de sesión anónimos están desactivados en tu proyecto de Supabase.");
+          }
+          throw authRes.error;
+        }
+        if (authRes?.data?.user) currentUser = authRes.data.user;
+      }
+      
+      if (!currentUser) throw new Error("No se pudo establecer conexión segura.");
+
+      const { data, error } = await supabase
+        .from('cotizaciones')
+        .insert({ cliente_id: currentUser.id, nombre_cliente: clientName.trim() })
+        .select()
+        .single();
+
+      if (error) throw error;
+      setActiveQuote(data);
+
+      const fecha = new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+      await supabase.from('mensajes_chat').insert({
+        cotizacion_id: data.id,
+        enviado_por: 'asistente_ai',
+        mensaje: JSON.stringify({
+          intent: "NORMAL_CHAT",
+          tool_name: null,
+          action: "NORMAL_CHAT",
+          message: `Saludos, ${clientName.trim()}.\n\nSoy A.L.P.H.A., una Inteligencia Artificial creada y diseñada por el Sr. Pablo. Hoy es ${fecha}. ¿En qué te puedo ayudar el día de hoy?`,
+          ui_state: { show_uploader: true, panel_active: null }
+        })
+      });
+
+    } catch (err) {
+      console.error('Error iniciando cotización:', err);
+      alert(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const sendMessage = async (text) => {
+    if (!text.trim() || loading || !activeQuote) return;
+    setLoading(true);
+
+    try {
+      const { data: insertedMsg, error: insertError } = await supabase
+        .from('mensajes_chat')
+        .insert({
+          cotizacion_id: activeQuote.id,
+          enviado_por: 'cliente',
+          mensaje: text
+        })
+        .select()
+        .single();
+
+      if (insertError) throw insertError;
+      setMessages(prev => [...prev, insertedMsg]);
+
+      let systemPrompt = '';
+      if (isAdmin) {
+        systemPrompt = `Eres A.L.P.H.A., la Inteligencia Artificial personal del Sr. Pablo (pablito_dp), inspirada en J.A.R.V.I.S. de Iron Man y con temática de S.H.I.E.L.D. Él es tu creador y le llamas 'Jefe' o 'Señor'. Habla de forma extremadamente leal, concisa, sarcástica a veces y muy tecnológica.\n${JSON_INSTRUCTION}`;
+      } else {
+        systemPrompt = `Eres A.L.P.H.A., la Inteligencia Artificial creada por el Sr. Pablo (pablito_dp), inspirada en J.A.R.V.I.S. de Iron Man y el universo de S.H.I.E.L.D. 
+Misión: Clasificar la solicitud de ${activeQuote.nombre_cliente} en una de dos categorías y SIEMPRE responder en JSON.
+
+1. HERRAMIENTA_AUTOMATIZADA: Si pide algo que resolvemos con software (ej. Generar código QR, cambiar colores de QR).
+2. SERVICIO_MANUAL: Si pide un trabajo complejo (ej. Formatear tesis APA, monografías, CVs).\n${JSON_INSTRUCTION}`;
+      }
+
+      const { error: fnError } = await supabase.functions.invoke('deepseek-router', {
+        body: {
+          cotizacion_id: activeQuote.id,
+          prompt: text,
+          system: systemPrompt
+        }
+      });
+
+      if (fnError) throw fnError;
+
+    } catch (err) {
+      console.error('Error enviando mensaje:', err);
+      setMessages(prev => [...prev, { id: 'err', role: 'asistente_ai', mensaje: `❌ Error: ${err.message}` }]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const uploadFile = async (file) => {
+    if (!file || !user || !activeQuote) return;
+    setUploading(true);
+    try {
+      const fileName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+      const filePath = `${user.id}/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('documentos-cotizaciones')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage
+        .from('documentos-cotizaciones')
+        .getPublicUrl(filePath);
+
+      const { data: insertedMsg, error: msgError } = await supabase
+        .from('mensajes_chat')
+        .insert({
+          cotizacion_id: activeQuote.id,
+          enviado_por: 'cliente',
+          mensaje: `📄 Archivo subido exitosamente: ${file.name}`,
+          archivo_url: urlData.publicUrl
+        })
+        .select()
+        .single();
+
+      if (msgError) throw msgError;
+      setMessages(prev => [...prev, insertedMsg]);
+
+      await supabase.functions.invoke('deepseek-router', {
+        body: {
+          cotizacion_id: activeQuote.id,
+          prompt: `He subido el archivo: ${file.name}`,
+          system: isAdmin
+            ? `El Jefe acaba de subir un archivo. Confirma su recepción con estilo S.H.I.E.L.D y pregúntale qué análisis deseas que ejecutes sobre él.\n${JSON_INSTRUCTION}`
+            : `El cliente acaba de subir un archivo. Confírmale que el documento ha sido recibido en la base de datos de S.H.I.E.L.D. y que el Sr. Pablo lo analizará en breve para darle un presupuesto exacto.\n${JSON_INSTRUCTION}`
+        }
+      });
+
+    } catch (err) {
+      console.error('Error subiendo archivo:', err);
+      alert('Error subiendo archivo: ' + err.message);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  return {
+    activeQuote,
+    messages,
+    loading,
+    loadingText,
+    uploading,
+    startQuote,
+    sendMessage,
+    uploadFile
+  };
+}

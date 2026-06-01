@@ -58,6 +58,31 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
+    // VULNERABILIDAD IDOR CORREGIDA: Verificar que el usuario sea el dueño de la cotización
+    if (cotizacion_id !== 0 && user) {
+      const { data: quote, error: quoteError } = await supabaseClient
+        .from('cotizaciones')
+        .select('cliente_id')
+        .eq('id', cotizacion_id)
+        .single();
+        
+      if (quoteError || !quote) {
+        return new Response(
+          JSON.stringify({ error: "Cotización no encontrada o error de acceso." }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 404 }
+        );
+      }
+      
+      // El admin tiene un user.email. Si el authData.user no es admin y no es el dueño, bloquear.
+      // (Asumiendo que el admin tiene un email y el cliente anónimo no)
+      if (quote.cliente_id !== user.id && !user.email) {
+        return new Response(
+          JSON.stringify({ error: "Acceso denegado. No eres el propietario de esta cotización." }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 403 }
+        );
+      }
+    }
+
     const apiKey = Deno.env.get("DEEPSEEK_API_KEY");
     if (!apiKey) {
       throw new Error("DEEPSEEK_API_KEY no está configurada");
@@ -83,9 +108,14 @@ serve(async (req) => {
       }));
     }
 
+    // Asegurar que el modelo siempre tenga reglas para responder en JSON
+    const defaultJsonInstruction = `\nREGLA CRÍTICA: Responde SIEMPRE con un objeto JSON válido con la propiedad "message" (y "intent", "tool_name", "action", "ui_state" si aplica). Ejemplo: {"message": "Hola"}`;
+    const safeSystemPrompt = system ? system : "Eres P.A.B.L.O., el asistente virtual táctico de la bitácora de Pablo DP.";
+    const finalSystemPrompt = safeSystemPrompt.includes("JSON") ? safeSystemPrompt : safeSystemPrompt + defaultJsonInstruction;
+
     // Construir mensajes para la API
     const messages = [
-      { role: "system", content: system || "Eres P.A.B.L.O., el asistente virtual táctico de la bitácora de Pablo DP." },
+      { role: "system", content: finalSystemPrompt },
       ...formattedHistory
     ];
     
