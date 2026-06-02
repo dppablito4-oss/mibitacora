@@ -1,6 +1,47 @@
 import { useState } from 'react';
 import { supabase } from '../../config/supabaseClient';
-import { Sparkles, Loader2, Copy, CheckCircle } from 'lucide-react';
+import { 
+  Sparkles, Loader2, Copy, CheckCircle, UploadCloud, 
+  FileText, Trash2, ChevronDown, ChevronUp 
+} from 'lucide-react';
+
+// Carga dinámica de PDF.js desde CDN para extraer texto de PDFs locales
+const loadPdfjs = () => {
+  if (window.pdfjsLib) return Promise.resolve(window.pdfjsLib);
+  return new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js';
+    script.onload = () => {
+      window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+      resolve(window.pdfjsLib);
+    };
+    script.onerror = () => reject(new Error('No se pudo cargar la biblioteca PDF.js'));
+    document.head.appendChild(script);
+  });
+};
+
+const extractTextFromPdf = async (file) => {
+  const pdfjsLib = await loadPdfjs();
+  const arrayBuffer = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+  let text = '';
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    const content = await page.getTextContent();
+    const strings = content.items.map(item => item.str);
+    text += strings.join(' ') + '\n';
+  }
+  return text;
+};
+
+const extractTextFromTxt = (file) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => resolve(e.target.result);
+    reader.onerror = (e) => reject(new Error('No se pudo leer el archivo de texto'));
+    reader.readAsText(file);
+  });
+};
 
 export default function AiGeneratorPanel({ onApply }) {
   const [topic, setTopic] = useState('');
@@ -14,97 +55,162 @@ export default function AiGeneratorPanel({ onApply }) {
   const [copied, setCopied] = useState(false);
   const [manualJson, setManualJson] = useState('');
 
-  const PROMPT_TEMPLATE = (topic) => `Genera el contenido para un TRÍPTICO escolar sobre: "${topic}".
+  // Estados de Configuración Avanzada
+  const [showConfig, setShowConfig] = useState(false);
+  const [useFormalCover, setUseFormalCover] = useState(true);
+  const [coverData, setCoverData] = useState({
+    institution: '',
+    student: '',
+    teacher: '',
+    gradeSection: '',
+    year: new Date().getFullYear().toString()
+  });
+  const [includeIntro, setIncludeIntro] = useState(true);
+  const [block6Mode, setBlock6Mode] = useState('contenido'); // 'contenido', 'anexos', 'datos_curiosos'
 
-Un tríptico es una hoja A4 horizontal dividida en 3 columnas iguales, con 2 caras:
-- EXTERIOR (anverso): Contraportada | Dorso | Portada  
-- INTERIOR (reverso): Panel 1 (Introducción) | Panel 2 (Desarrollo) | Panel 3 (Conclusión)
+  // Estados de Archivo
+  const [file, setFile] = useState(null);
+  const [extractedText, setExtractedText] = useState('');
+  const [fileLoading, setFileLoading] = useState(false);
 
-Cada columna tiene BLOQUES de contenido. Los tipos de bloque son:
+  const PROMPT_TEMPLATE = (topic) => {
+    let coverInstruction = '';
+    if (useFormalCover) {
+      coverInstruction = `
+- Bloque 1 (Portada / Carátula): DEBE ser una carátula escolar formal. Agrega exactamente los siguientes bloques y textos en el Bloque 1:
+  1. Un bloque de tipo "heading" con el nombre de la institución: "${coverData.institution || 'Institución Educativa'}" (style: {"fontSize": 14, "color": "#333333", "textAlign": "center"})
+  2. Un bloque de tipo "divider" (style: {"color": "#22d3ee", "thickness": 1, "marginY": 6})
+  3. Un bloque de tipo "heading" con el título del tema principal: "${topic}" (style: {"fontSize": 24, "color": "#000000", "fontWeight": "900", "textAlign": "center"})
+  4. Un bloque de tipo "image" representativo de la portada (deja un link general de Unsplash sobre el tema)
+  5. Un bloque de tipo "paragraph" con los datos del estudiante, profesor, grado y año en formato de carátula escolar:
+     "Estudiante: ${coverData.student || 'Nombre del Estudiante'}\\nDocente: ${coverData.teacher || 'Nombre del Docente'}\\nGrado: ${coverData.gradeSection || 'Grado y Sección'}\\nAño: ${coverData.year || '2026'}" (style: {"fontSize": 10, "color": "#444444", "textAlign": "center", "lineHeight": 1.6})
+`;
+    } else {
+      coverInstruction = `
+- Bloque 1 (Portada / Carátula): Crea una portada atractiva e informativa para el tema "${topic}" con un título principal llamativo, un subtítulo descriptivo, una imagen representativa y un divisor.
+`;
+    }
+
+    let introInstruction = '';
+    if (includeIntro) {
+      introInstruction = `
+- Bloque 2 (Presentación / Introducción): Debe redactarse una presentación o introducción al tema del tríptico, explicando de forma clara su propósito y relevancia, acompañada de un párrafo descriptivo y opcionalmente un divisor decorativo.
+`;
+    } else {
+      introInstruction = `
+- Bloque 2 (Presentación / Introducción): NO incluyas una introducción formal. Comienza directamente con el desarrollo o primer subtema importante del tema para aprovechar al máximo el espacio de la hoja.
+`;
+    }
+
+    let block6Instruction = '';
+    if (block6Mode === 'anexos') {
+      block6Instruction = `
+- Bloque 6 (Dorso / Anexos): Este bloque debe ser una sección dedicada a ANEXOS y evidencias visuales. Agrega bloques de tipo "image" con URLs reales de Unsplash sobre el tema, y textos descriptivos breves como pie de foto para cada imagen. Es una galería visual de evidencias del experimento o proyecto.
+`;
+    } else if (block6Mode === 'datos_curiosos') {
+      block6Instruction = `
+- Bloque 6 (Dorso / Datos Curiosos): Este bloque debe contener datos interesantes, preguntas de reflexión o un glosario/términos clave sobre el tema. Agrega un encabezado de "Dato Curioso" o "Sabías que..." y listas o párrafos explicativos rápidos y dinámicos.
+`;
+    } else {
+      block6Instruction = `
+- Bloque 6 (Dorso / Contenido): Este bloque debe actuar como la continuación del tema de los bloques anteriores (continuación del desarrollo o conclusión secundaria), agregando información descriptiva detallada sobre "${topic}".
+`;
+    }
+
+    let sourceTextInstruction = '';
+    if (extractedText) {
+      sourceTextInstruction = `
+REGLA CRÍTICA DE CONTENIDO: El usuario ha proporcionado un documento fuente con información y apuntes. Extrae la información REAL, datos exactos y conceptos directamente de este texto para rellenar los bloques del tríptico:
+"""
+${extractedText.substring(0, 15000)}
+"""
+`;
+    }
+
+    return `Genera el contenido en español para un TRÍPTICO escolar sobre el tema: "${topic}".
+
+Un tríptico es una hoja A4 horizontal dividida en 3 columnas iguales por cara. La numeración física y lógica de las columnas es la siguiente:
+- LADO EXTERIOR (anverso): Bloque 5 (Contraportada) | Bloque 6 (Dorso) | Bloque 1 (Portada)
+- LADO INTERIOR (reverso): Bloque 2 (Presentación) | Bloque 3 (Desarrollo) | Bloque 4 (Desarrollo/Conclusión)
+
+Estructura de las páginas del JSON:
+1. "page-front" (Exterior): Contiene las columnas correspondientes al Bloque 5 (Contraportada), Bloque 6 (Dorso) y Bloque 1 (Portada) en ese orden exacto de columnas.
+2. "page-back" (Interior): Contiene las columnas correspondientes al Bloque 2 (Presentación), Bloque 3 (Desarrollo) y Bloque 4 (Desarrollo/Conclusión) en ese orden exacto de columnas.
+
+Cada columna tiene un array de BLOQUES de contenido. Los tipos de bloque válidos son:
 - heading: título grande (fontSize 18-32)
 - subheading: subtítulo (fontSize 14-18)  
-- paragraph: párrafo de texto (fontSize 11-14)
+- paragraph: párrafo de texto (fontSize 10-14)
 - image: imagen con URL de Unsplash (src: "https://images.unsplash.com/photo-XXXXX?w=400&h=300&fit=crop")
 - list: lista con items array y marker (•, →, ✓, ★)
 - divider: línea separadora decorativa
 
-Devuelve SOLO un JSON válido con esta estructura (sin explicaciones adicionales):
+${coverInstruction}
+${introInstruction}
+${block6Instruction}
+${sourceTextInstruction}
+
+REGLAS GENERALES:
+1. Completa todo el tríptico con textos detallados e informativos sobre "${topic}". Evita textos de relleno o placeholders.
+2. En el Bloque 5 (Contraportada / Referencias), incluye bibliografía y fuentes reales sobre el tema en formato APA o enlaces educativos útiles.
+3. Para cada columna, usa variedad de bloques (heading + divider + paragraph + list, etc.).
+4. Devuelve SOLO un objeto JSON válido con la siguiente estructura y sin explicaciones adicionales:
 {
   "pages": [
     {
       "id": "page-front",
       "bgColor": "#ffffff",
       "columns": [
-        {
-          "label": "Contraportada",
-          "blocks": [
-            {"type": "heading", "text": "Referencias", "style": {"fontSize": 18, "color": "#000", "fontWeight": "700", "textAlign": "center"}},
-            {"type": "divider", "style": {"color": "#22d3ee", "thickness": 2, "marginY": 6}},
-            {"type": "paragraph", "text": "Fuentes y bibliografía...", "style": {"fontSize": 11, "color": "#555", "textAlign": "center"}}
-          ]
-        },
-        {
-          "label": "Dorso",
-          "blocks": [
-            {"type": "image", "src": "https://images.unsplash.com/photo-RELEVANTE?w=400&h=300&fit=crop", "style": {"height": 100, "borderRadius": 8}},
-            {"type": "paragraph", "text": "Dato curioso o resumen visual", "style": {"fontSize": 11, "color": "#666", "textAlign": "center"}}
-          ]
-        },
-        {
-          "label": "Portada",
-          "blocks": [
-            {"type": "heading", "text": "TÍTULO", "style": {"fontSize": 30, "color": "#000", "fontWeight": "900", "textAlign": "center"}},
-            {"type": "divider", "style": {"color": "#22d3ee", "thickness": 3, "marginY": 8}},
-            {"type": "paragraph", "text": "Subtítulo descriptivo", "style": {"fontSize": 14, "color": "#555", "textAlign": "center"}},
-            {"type": "image", "src": "URL_IMAGEN_PORTADA", "style": {"height": 100, "borderRadius": 8}}
-          ]
-        }
+        { "label": "Contraportada", "blocks": [...] },
+        { "label": "Dorso", "blocks": [...] },
+        { "label": "Portada", "blocks": [...] }
       ]
     },
     {
       "id": "page-back",
       "bgColor": "#ffffff",
       "columns": [
-        {
-          "label": "Introducción",
-          "blocks": [
-            {"type": "heading", "text": "¿Qué es?", "style": {"fontSize": 22, "color": "#000", "fontWeight": "700"}},
-            {"type": "divider", "style": {"color": "#22d3ee", "thickness": 2, "marginY": 6}},
-            {"type": "paragraph", "text": "Definición completa...", "style": {"fontSize": 12, "color": "#333"}},
-            {"type": "subheading", "text": "Datos clave", "style": {"fontSize": 14, "color": "#1a1a1a", "fontWeight": "600"}},
-            {"type": "list", "items": ["Dato 1", "Dato 2", "Dato 3"], "style": {"fontSize": 11, "color": "#444", "marker": "•"}}
-          ]
-        },
-        {
-          "label": "Desarrollo",
-          "blocks": [
-            {"type": "heading", "text": "Causas", "style": {"fontSize": 22, "color": "#000", "fontWeight": "700"}},
-            {"type": "divider", "style": {"color": "#22d3ee", "thickness": 2, "marginY": 6}},
-            {"type": "paragraph", "text": "Explicación detallada...", "style": {"fontSize": 12, "color": "#333"}},
-            {"type": "list", "items": ["Causa 1", "Causa 2", "Causa 3"], "style": {"fontSize": 11, "color": "#444", "marker": "→"}}
-          ]
-        },
-        {
-          "label": "Conclusión",
-          "blocks": [
-            {"type": "heading", "text": "Soluciones", "style": {"fontSize": 22, "color": "#000", "fontWeight": "700"}},
-            {"type": "divider", "style": {"color": "#22d3ee", "thickness": 2, "marginY": 6}},
-            {"type": "paragraph", "text": "Propuestas concretas...", "style": {"fontSize": 12, "color": "#333"}},
-            {"type": "subheading", "text": "¿Qué podemos hacer?", "style": {"fontSize": 14, "fontWeight": "600"}},
-            {"type": "list", "items": ["Acción 1", "Acción 2", "Acción 3"], "style": {"fontSize": 11, "color": "#444", "marker": "✓"}}
-          ]
-        }
+        { "label": "Presentación", "blocks": [...] },
+        { "label": "Desarrollo", "blocks": [...] },
+        { "label": "Conclusión", "blocks": [...] }
       ]
     }
   ]
-}
+}`;
+  };
 
-REGLAS IMPORTANTES:
-1. Llena TODO con información REAL y detallada sobre "${topic}".
-2. Usa VARIOS tipos de bloque por columna (heading + divider + paragraph + subheading + list + image).
-3. Para imágenes usa URLs reales de Unsplash relacionadas al tema.
-4. Los textos deben ser informativos, como un tríptico escolar real impreso.
-5. Devuelve SOLO el JSON, nada más.`;
+  const handleFileChange = async (e) => {
+    const selectedFile = e.target.files?.[0];
+    if (!selectedFile) return;
+    
+    setFileLoading(true);
+    try {
+      let text = '';
+      if (selectedFile.name.endsWith('.pdf')) {
+        text = await extractTextFromPdf(selectedFile);
+      } else if (selectedFile.name.endsWith('.txt')) {
+        text = await extractTextFromTxt(selectedFile);
+      } else {
+        alert('Formato no soportado. Sube un archivo PDF o TXT.');
+        setFileLoading(false);
+        return;
+      }
+      
+      setFile(selectedFile);
+      setExtractedText(text);
+      
+      // Auto-rellenar tema si no hay nada escrito
+      if (!topic.trim()) {
+        const cleanName = selectedFile.name.replace(/\.[^/.]+$/, "").replace(/_-/g, " ");
+        setTopic(cleanName);
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Error al leer el archivo: ' + err.message);
+    } finally {
+      setFileLoading(false);
+    }
+  };
 
   const generateWithDeepSeek = async () => {
     if (!topic.trim() || generationsLeft <= 0) return;
@@ -174,6 +280,7 @@ REGLAS IMPORTANTES:
       </h3>
 
       <div className="space-y-4">
+        {/* TEMA */}
         <div>
           <label className="block text-[10px] text-zinc-500 mb-1 font-bold">TEMA DEL TRÍPTICO</label>
           <input
@@ -185,14 +292,164 @@ REGLAS IMPORTANTES:
           />
         </div>
 
+        {/* CARGA DE ARCHIVO */}
+        <div className="p-3 bg-zinc-950 border border-zinc-800 rounded-lg">
+          <label className="block text-[10px] text-zinc-500 mb-1.5 font-bold uppercase">Apuntes o PDF del Proyecto</label>
+          {file ? (
+            <div className="flex items-center justify-between bg-zinc-900/60 p-2 rounded border border-cyan-900/30">
+              <div className="flex items-center gap-2 overflow-hidden">
+                <FileText size={16} className="text-cyan-400 shrink-0" />
+                <span className="text-xs text-zinc-200 truncate font-mono">{file.name}</span>
+              </div>
+              <button 
+                onClick={() => { setFile(null); setExtractedText(''); }}
+                className="text-zinc-500 hover:text-red-400 p-1 transition-colors"
+                title="Eliminar archivo"
+              >
+                <Trash2 size={14} />
+              </button>
+            </div>
+          ) : (
+            <label className="flex flex-col items-center justify-center border border-dashed border-zinc-800 hover:border-cyan-500/50 rounded p-4 text-center cursor-pointer transition-all hover:bg-zinc-900/30">
+              <UploadCloud size={20} className="text-zinc-500 mb-1.5" />
+              <span className="text-[11px] text-zinc-400 font-semibold">Subir PDF o archivo TXT</span>
+              <span className="text-[9px] text-zinc-600 mt-0.5">La IA extraerá la información real</span>
+              <input 
+                type="file" 
+                accept=".pdf,.txt" 
+                onChange={handleFileChange}
+                disabled={fileLoading}
+                className="hidden" 
+              />
+            </label>
+          )}
+          {fileLoading && (
+            <div className="flex items-center gap-1.5 text-[9px] text-cyan-400 font-mono mt-1.5">
+              <Loader2 size={10} className="animate-spin" />
+              <span>Procesando archivo...</span>
+            </div>
+          )}
+          {!fileLoading && extractedText && (
+            <div className="text-[9px] text-emerald-400 font-mono mt-1.5 flex items-center gap-1">
+              <CheckCircle size={10} />
+              <span>Texto extraído ({extractedText.length} caracteres)</span>
+            </div>
+          )}
+        </div>
+
+        {/* AJUSTES ESTRUCTURA */}
+        <div>
+          <button
+            type="button"
+            onClick={() => setShowConfig(!showConfig)}
+            className="flex items-center justify-between w-full p-2 bg-zinc-950 border border-zinc-800 hover:bg-zinc-900/50 rounded transition-colors text-left text-xs font-bold text-zinc-400"
+          >
+            <span>Ajustes de Estructura</span>
+            {showConfig ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+          </button>
+
+          {showConfig && (
+            <div className="mt-3 p-3 bg-zinc-950 border border-zinc-800 rounded-lg space-y-3">
+              {/* Opción Carátula */}
+              <div className="space-y-2 border-b border-zinc-900/60 pb-3">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={useFormalCover}
+                    onChange={e => setUseFormalCover(e.target.checked)}
+                    className="rounded bg-zinc-900 border-zinc-700 text-cyan-600 focus:ring-cyan-500 h-3.5 w-3.5"
+                  />
+                  <span className="text-[11px] text-zinc-300 font-bold uppercase">Carátula Escolar (Bloque 1)</span>
+                </label>
+
+                {useFormalCover && (
+                  <div className="space-y-2 pl-5">
+                    <input
+                      type="text"
+                      placeholder="Colegio / Institución"
+                      value={coverData.institution}
+                      onChange={e => setCoverData({ ...coverData, institution: e.target.value })}
+                      className="w-full bg-zinc-900 border border-zinc-800 rounded p-1.5 text-xs text-white placeholder:text-zinc-600"
+                    />
+                    <input
+                      type="text"
+                      placeholder="Nombre del Estudiante"
+                      value={coverData.student}
+                      onChange={e => setCoverData({ ...coverData, student: e.target.value })}
+                      className="w-full bg-zinc-900 border border-zinc-800 rounded p-1.5 text-xs text-white placeholder:text-zinc-600"
+                    />
+                    <input
+                      type="text"
+                      placeholder="Docente / Profesor"
+                      value={coverData.teacher}
+                      onChange={e => setCoverData({ ...coverData, teacher: e.target.value })}
+                      className="w-full bg-zinc-900 border border-zinc-800 rounded p-1.5 text-xs text-white placeholder:text-zinc-600"
+                    />
+                    <div className="grid grid-cols-2 gap-2">
+                      <input
+                        type="text"
+                        placeholder="Grado y Sección"
+                        value={coverData.gradeSection}
+                        onChange={e => setCoverData({ ...coverData, gradeSection: e.target.value })}
+                        className="bg-zinc-900 border border-zinc-800 rounded p-1.5 text-xs text-white placeholder:text-zinc-600"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Año escolar"
+                        value={coverData.year}
+                        onChange={e => setCoverData({ ...coverData, year: e.target.value })}
+                        className="bg-zinc-900 border border-zinc-800 rounded p-1.5 text-xs text-white placeholder:text-zinc-600"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Opción Presentación */}
+              <div className="space-y-1 border-b border-zinc-900/60 pb-3">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={includeIntro}
+                    onChange={e => setIncludeIntro(e.target.checked)}
+                    className="rounded bg-zinc-900 border-zinc-700 text-cyan-600 focus:ring-cyan-500 h-3.5 w-3.5"
+                  />
+                  <span className="text-[11px] text-zinc-300 font-bold uppercase">Incluir Presentación (Bloque 2)</span>
+                </label>
+                <p className="text-[9px] text-zinc-500 pl-5 leading-normal">
+                  Reserva el Bloque 2 para una introducción y justificación del tema.
+                </p>
+              </div>
+
+              {/* Opción Modo Bloque 6 */}
+              <div className="space-y-1">
+                <label className="block text-[10px] text-zinc-500 mb-1 font-bold uppercase">Modo del Bloque 6 (Dorso)</label>
+                <select
+                  value={block6Mode}
+                  onChange={e => setBlock6Mode(e.target.value)}
+                  className="w-full bg-zinc-900 border border-zinc-800 text-xs text-white p-1.5 rounded"
+                >
+                  <option value="contenido">Modo Contenido (Seguir desarrollo)</option>
+                  <option value="anexos">Modo Anexos (Galería visual/fotos)</option>
+                  <option value="datos_curiosos">Modo Datos Curiosos / Preguntas</option>
+                </select>
+                <p className="text-[9px] text-zinc-500 leading-normal pt-1">
+                  Define el tipo de contenido secundario que se imprimirá en el reverso plegado.
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* ACCIÓN DE GENERAR */}
         {generationsLeft > 0 ? (
           <div className="mb-4">
             <button
               onClick={generateWithDeepSeek}
               disabled={loading || !topic.trim()}
-              className="w-full bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 text-white font-bold py-2 px-4 rounded text-sm flex items-center justify-center gap-2 transition-colors"
+              className="w-full bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 text-white font-bold py-2.5 px-4 rounded text-xs flex items-center justify-center gap-2 transition-all active:scale-95 shadow-lg shadow-cyan-600/10 cursor-pointer"
             >
-              {loading ? <Loader2 size={16} className="animate-spin" /> : 'Generar Automáticamente'}
+              {loading ? <Loader2 size={16} className="animate-spin" /> : <><Sparkles size={13} /> Generar Automáticamente</>}
             </button>
             <p className="text-[10px] text-zinc-500 text-center mt-2">
               Te quedan {generationsLeft} generaciones gratuitas hoy.
@@ -205,7 +462,7 @@ REGLAS IMPORTANTES:
           </div>
         )}
 
-        {/* SIEMPRE MOSTRAR LA OPCIÓN MANUAL */}
+        {/* MODO MANUAL */}
         <div className="p-3 bg-zinc-950 border border-zinc-800 rounded-lg">
           <p className="text-[11px] text-zinc-300 font-bold mb-2">Alternativa: Usar IA Externa</p>
           <p className="text-[10px] text-zinc-400 mb-3 leading-relaxed">
@@ -214,7 +471,7 @@ REGLAS IMPORTANTES:
           <button
             onClick={handleCopyPrompt}
             disabled={!topic.trim()}
-            className="w-full bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold py-2 px-4 rounded text-xs flex items-center justify-center gap-2 transition-colors mb-3"
+            className="w-full bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold py-2 px-4 rounded text-xs flex items-center justify-center gap-2 transition-colors mb-3 cursor-pointer"
           >
             {copied ? <CheckCircle size={14} className="text-green-400"/> : <Copy size={14} />}
             {copied ? '¡Copiado!' : 'Copiar Prompt para IA'}
@@ -229,7 +486,7 @@ REGLAS IMPORTANTES:
           <button
             onClick={applyManualJson}
             disabled={!manualJson.trim()}
-            className="w-full bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold py-2 px-4 rounded text-xs transition-colors"
+            className="w-full bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold py-2 px-4 rounded text-xs transition-colors cursor-pointer"
           >
             Importar Diseño JSON
           </button>

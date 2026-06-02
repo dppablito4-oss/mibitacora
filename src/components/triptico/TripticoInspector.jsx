@@ -2,6 +2,7 @@ import {
   Image as ImageIcon, FileImage, Trash2, RotateCcw, Palette,
   ChevronUp, ChevronDown, List, Minus, Heading1, Heading2, AlignLeft,
 } from 'lucide-react';
+import { getColDisplayLabel } from './TripticoCanvas';
 
 /**
  * TripticoInspector — Edit properties of the selected block within a column.
@@ -40,7 +41,7 @@ export default function TripticoInspector({
       <div className="p-3 border-b border-zinc-800 shrink-0">
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-xs font-bold text-cyan-400 uppercase tracking-widest">
-            {col.label || `Columna ${selectedColIndex + 1}`}
+            {getColDisplayLabel(activePage.id === 'page-front', selectedColIndex, col.label)}
           </h3>
         </div>
         {/* Add block buttons */}

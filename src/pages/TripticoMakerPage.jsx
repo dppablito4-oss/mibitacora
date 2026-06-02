@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import useTripticoState from '../hooks/useTripticoState';
-import TripticoCanvas from '../components/triptico/TripticoCanvas';
+import TripticoCanvas, { getColDisplayLabel } from '../components/triptico/TripticoCanvas';
 import TripticoInspector from '../components/triptico/TripticoInspector';
 import AiGeneratorPanel from '../components/triptico/AiGeneratorPanel';
 // Se elimina importación estática para usar dinámica y evitar errores de ESM en Vite
@@ -155,7 +155,7 @@ export default function TripticoMakerPage() {
                       onClick={() => { setSelectedColIndex(i); setSelectedBlockId(null); }}
                       className={`w-full text-left px-3 py-1.5 rounded text-[11px] transition-colors ${selectedColIndex === i ? 'bg-cyan-900/30 text-cyan-400' : 'text-zinc-500 hover:bg-zinc-900 hover:text-zinc-300'}`}
                     >
-                      {col.label || `Columna ${i + 1}`}
+                      {getColDisplayLabel(activePageId === 'page-front', i, col.label)}
                       <span className="text-zinc-600 ml-1">({col.blocks?.length || 0} bloques)</span>
                     </button>
                   ))}

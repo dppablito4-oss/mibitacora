@@ -1,5 +1,26 @@
 import { useRef } from 'react';
 
+export const getColDisplayLabel = (isFront, colIdx, customLabel) => {
+  const cleanLabel = customLabel ? String(customLabel).trim() : '';
+  const defaultsFront = ['Contraportada', 'Dorso', 'Portada'];
+  const defaultsBack = ['Panel 1', 'Panel 2', 'Panel 3', 'Introducción', 'Desarrollo', 'Soluciones', 'Conclusión'];
+  
+  const isDefault = !cleanLabel || 
+                    defaultsFront.includes(cleanLabel) || 
+                    defaultsBack.includes(cleanLabel);
+                    
+  if (isFront) {
+    if (colIdx === 0) return isDefault ? 'Bloque 5 (Contraportada)' : `Bloque 5 (${cleanLabel})`;
+    if (colIdx === 1) return isDefault ? 'Bloque 6 (Dorso / Anexos)' : `Bloque 6 (${cleanLabel})`;
+    if (colIdx === 2) return isDefault ? 'Bloque 1 (Portada)' : `Bloque 1 (${cleanLabel})`;
+  } else {
+    if (colIdx === 0) return isDefault ? 'Bloque 2 (Presentación)' : `Bloque 2 (${cleanLabel})`;
+    if (colIdx === 1) return isDefault ? 'Bloque 3 (Desarrollo)' : `Bloque 3 (${cleanLabel})`;
+    if (colIdx === 2) return isDefault ? 'Bloque 4 (Desarrollo / Conclusión)' : `Bloque 4 (${cleanLabel})`;
+  }
+  return cleanLabel;
+};
+
 /**
  * TripticoCanvas — Renders a proper triptych: A4 landscape, 3 equal columns.
  * Each column renders its blocks (heading, subheading, paragraph, image, list, divider).
@@ -17,10 +38,6 @@ export default function TripticoCanvas({
 
   const columns = activePage.columns || [];
   const isFront = activePage.id === 'page-front';
-
-  const defaultLabels = isFront
-    ? ['Contraportada', 'Dorso', 'Portada']
-    : ['Panel 1', 'Panel 2', 'Panel 3'];
 
   return (
     <div className="w-full h-full flex flex-col items-center justify-center">
@@ -77,7 +94,7 @@ export default function TripticoCanvas({
                   fontFamily: 'monospace', textTransform: 'uppercase', letterSpacing: '0.1em',
                   fontWeight: 'bold', whiteSpace: 'nowrap', pointerEvents: 'none', zIndex: 5,
                 }}>
-                  {col.label || defaultLabels[colIdx]}
+                  {getColDisplayLabel(isFront, colIdx, col.label)}
                 </div>
 
                 {/* Render blocks */}
