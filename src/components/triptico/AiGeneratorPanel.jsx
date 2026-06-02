@@ -111,6 +111,13 @@ REGLAS IMPORTANTES:
     setLoading(true);
 
     try {
+      // Garantizar que exista una sesión activa (anónima o de usuario) para evitar error 401 JWT en la Edge Function
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) {
+        const { error: signInError } = await supabase.auth.signInAnonymously();
+        if (signInError) throw signInError;
+      }
+
       const { data, error } = await supabase.functions.invoke('deepseek-router', {
         body: {
           cotizacion_id: 0,
@@ -137,7 +144,7 @@ REGLAS IMPORTANTES:
 
     } catch (err) {
       console.error('Error generando tríptico:', err);
-      alert('Error al generar con IA. Intenta con la opción manual.');
+      alert('Error al generar con IA: ' + (err.message || err) + '\n\nIntenta con la opción manual.');
     } finally {
       setLoading(false);
     }
