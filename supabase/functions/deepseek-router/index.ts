@@ -125,9 +125,9 @@ serve(async (req) => {
 
     console.log("Enviando petición a DeepSeek para cotizacion_id:", cotizacion_id);
 
-    // Timeout control (25 seconds) to prevent 504 Edge Function hangs
+    // Timeout control (45 seconds) to prevent 504 Edge Function hangs
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 25000);
+    const timeoutId = setTimeout(() => controller.abort(), 45000);
 
     let response;
     try {
@@ -143,7 +143,7 @@ serve(async (req) => {
           model: "deepseek-chat", // DeepSeek-V3
           messages: messages,
           temperature: 0.7,
-          max_tokens: 1500,
+          max_tokens: 4000,
           response_format: { type: 'json_object' }
         })
       });

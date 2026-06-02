@@ -220,8 +220,21 @@ export default function useTripticoState() {
 
   // Load from AI-generated JSON
   const loadFromJson = useCallback((json) => {
-    if (json.pages && Array.isArray(json.pages)) {
-      const safePages = json.pages.map((page, pi) => ({
+    let targetJson = json || {};
+    if (!targetJson.pages && targetJson.reply) {
+      if (typeof targetJson.reply === 'object') {
+        targetJson = targetJson.reply;
+      } else if (typeof targetJson.reply === 'string') {
+        try {
+          targetJson = JSON.parse(targetJson.reply);
+        } catch {
+          // ignorar
+        }
+      }
+    }
+
+    if (targetJson.pages && Array.isArray(targetJson.pages)) {
+      const safePages = targetJson.pages.map((page, pi) => ({
         id: page.id || (pi === 0 ? 'page-front' : 'page-back'),
         label: page.label || (pi === 0 ? 'Exterior (Anverso)' : 'Interior (Reverso)'),
         bgColor: page.bgColor || '#ffffff',
