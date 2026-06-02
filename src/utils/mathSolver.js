@@ -206,6 +206,68 @@ export const solveCubicSteps = (a, b, c, d) => {
   return steps;
 };
 
+const solveQuarticRootsDK = (b, c, d, e) => {
+  const add = (x, y) => ({ re: x.re + y.re, im: x.im + y.im });
+  const sub = (x, y) => ({ re: x.re - y.re, im: x.im - y.im });
+  const mul = (x, y) => ({ re: x.re * y.re - x.im * y.im, im: x.re * y.im + x.im * y.re });
+  const div = (x, y) => {
+    const den = y.re * y.re + y.im * y.im;
+    if (den === 0) return { re: 0, im: 0 };
+    return {
+      re: (x.re * y.re + x.im * y.im) / den,
+      im: (x.im * y.re - x.re * y.im) / den
+    };
+  };
+
+  const evalP = (z) => {
+    let res = { re: 1, im: 0 };
+    res = add(mul(res, z), { re: b, im: 0 });
+    res = add(mul(res, z), { re: c, im: 0 });
+    res = add(mul(res, z), { re: d, im: 0 });
+    res = add(mul(res, z), { re: e, im: 0 });
+    return res;
+  };
+
+  const roots = [
+    { re: 1.0, im: 0.0 },
+    { re: 0.4, im: 0.9 },
+    { re: -0.65, im: 0.72 },
+    { re: -0.908, im: -0.297 }
+  ];
+
+  const maxCoeff = Math.max(1, Math.abs(b), Math.abs(c), Math.abs(d), Math.abs(e));
+  const scale = Math.pow(maxCoeff, 0.25);
+  for (let i = 0; i < 4; i++) {
+    roots[i].re *= scale;
+    roots[i].im *= scale;
+  }
+
+  for (let iter = 0; iter < 100; iter++) {
+    let maxDiff = 0;
+    for (let i = 0; i < 4; i++) {
+      const p = evalP(roots[i]);
+      let den = { re: 1, im: 0 };
+      for (let j = 0; j < 4; j++) {
+        if (i !== j) {
+          den = mul(den, sub(roots[i], roots[j]));
+        }
+      }
+      const delta = div(p, den);
+      roots[i] = sub(roots[i], delta);
+      const diff = Math.sqrt(delta.re * delta.re + delta.im * delta.im);
+      if (diff > maxDiff) maxDiff = diff;
+    }
+    if (maxDiff < 1e-10) break;
+  }
+
+  for (let i = 0; i < 4; i++) {
+    if (Math.abs(roots[i].im) < 1e-6) roots[i].im = 0;
+    if (Math.abs(roots[i].re) < 1e-6) roots[i].re = 0;
+  }
+
+  return roots;
+};
+
 // ==========================================
 // GRADO 4: CUÁRTICAS (Ferrari Simplificado Numérico)
 // ==========================================
@@ -248,19 +310,17 @@ export const solveQuarticSteps = (A, B, C, D, E) => {
     latex: `m^3 ${cB>=0?'+':''} ${formatNum(cB)}m^2 ${cC>=0?'+':''} ${formatNum(cC)}m ${cD>=0?'+':''} ${formatNum(cD)} = 0`
   });
 
-  // Aquí en lugar de resolver la cúbica a mano, informamos las soluciones numéricas 
-  // ya que la cuártica es extremadamente larga.
-  // Vamos a usar un solver interno para hallar las raíces usando la librería o aproximaciones,
-  // pero para no complicar el JS puro, mostraremos que de aquí se extraen las 4 raíces.
+  // Calcular raíces usando Durand-Kerner
+  // Notar que Durand-Kerner calcula raíces sobre la ecuación t^4 + p t^2 + q t + r = 0
+  const tRoots = solveQuarticRootsDK(p, 0, q, r);
+  const shift = b / 4;
+  const xRoots = tRoots.map(tr => ({ re: tr.re - shift, im: tr.im }));
   
   steps.push({
-    title: 'Paso 4: Extracción de Raíces Cuárticas (Método de Ferrari)',
-    text: `Al resolver la resolvente, obtenemos factores cuadráticos que desglosan la cuártica en dos ecuaciones de grado 2. Este proceso numéricamente nos arroja el conjunto de soluciones de $x$. (Debido a la magnitud de los cálculos, se omiten pasos algebraicos intermedios de Ferrari).`,
-    latex: `(t^2 + At + B)(t^2 - At + C) = 0`
+    title: 'Paso 4: Extracción de Raíces Cuárticas (Deshaciendo el cambio $x = t - b/4$)',
+    text: `Al resolver la resolvente cúbica de Descartes, logramos factorizar la ecuación cuártica en factores de segundo grado. Numéricamente, el algoritmo de Durand-Kerner nos proporciona las raíces de $t$, las cuales trasladamos de vuelta al plano original restando $\\frac{b}{4} = ${formatNum(shift)}$.`,
+    latex: `x_1 = ${formatComplex(xRoots[0].re, xRoots[0].im)} \\\\ x_2 = ${formatComplex(xRoots[1].re, xRoots[1].im)} \\\\ x_3 = ${formatComplex(xRoots[2].re, xRoots[2].im)} \\\\ x_4 = ${formatComplex(xRoots[3].re, xRoots[3].im)}`
   });
-
-  // Nota: Para implementar un solver de cuárticas exacto se requeriría una función larguísima,
-  // por ahora lo dejamos como una demostración didáctica de la resolvente.
   
   return steps;
 };

@@ -29,34 +29,46 @@ export default function TripticoMakerPage() {
     setSelectedBlockId(null);
     
     try {
+      const { toPng } = await import('html-to-image');
+      const { jsPDF } = await import('jspdf');
+
       // Front page
       setActivePageId('page-front');
       await new Promise(r => setTimeout(r, 600)); // Esperar que renderice
       const frontDom = document.querySelector('[data-triptico-page="page-front"]');
+      if (!frontDom) throw new Error('Página frontal no encontrada en el DOM');
+      
+      // Ocultar artefactos de edición
+      const hideNodesFront = frontDom.querySelectorAll('[data-export-hide]');
+      hideNodesFront.forEach(n => { n.dataset.origDisplay = n.style.display; n.style.display = 'none'; });
+      const colsFront = frontDom.querySelectorAll('[data-col]');
+      colsFront.forEach(c => { c.dataset.origOutline = c.style.outline; c.style.outline = 'none'; });
+
+      // Generar imagen frontal
+      const frontDataUrl = await toPng(frontDom, { quality: 1, pixelRatio: 2 });
+
+      // Restaurar artefactos de edición
+      hideNodesFront.forEach(n => { n.style.display = n.dataset.origDisplay || ''; });
+      colsFront.forEach(c => { c.style.outline = c.dataset.origOutline || ''; });
       
       // Back page
       setActivePageId('page-back');
       await new Promise(r => setTimeout(r, 600));
       const backDom = document.querySelector('[data-triptico-page="page-back"]');
-      
-      if (!frontDom || !backDom) throw new Error('Páginas no encontradas en el DOM');
+      if (!backDom) throw new Error('Página trasera no encontrada en el DOM');
 
       // Ocultar artefactos de edición
-      const hideNodes = document.querySelectorAll('[data-export-hide]');
-      hideNodes.forEach(n => { n.dataset.origDisplay = n.style.display; n.style.display = 'none'; });
-      const cols = document.querySelectorAll('[data-col]');
-      cols.forEach(c => { c.dataset.origOutline = c.style.outline; c.style.outline = 'none'; });
-
-      const { toPng } = await import('html-to-image');
-      const { jsPDF } = await import('jspdf');
-
-      // Generar imágenes (usamos pixelRatio 2 para mejor calidad)
-      const frontDataUrl = await toPng(frontDom, { quality: 1, pixelRatio: 2 });
+      const hideNodesBack = backDom.querySelectorAll('[data-export-hide]');
+      hideNodesBack.forEach(n => { n.dataset.origDisplay = n.style.display; n.style.display = 'none'; });
+      const colsBack = backDom.querySelectorAll('[data-col]');
+      colsBack.forEach(c => { c.dataset.origOutline = c.style.outline; c.style.outline = 'none'; });
+      
+      // Generar imagen trasera
       const backDataUrl = await toPng(backDom, { quality: 1, pixelRatio: 2 });
 
-      // Restaurar artefactos de edición
-      hideNodes.forEach(n => { n.style.display = n.dataset.origDisplay || ''; });
-      cols.forEach(c => { c.style.outline = c.dataset.origOutline || ''; });
+      // Restaurar
+      hideNodesBack.forEach(n => { n.style.display = n.dataset.origDisplay || ''; });
+      colsBack.forEach(c => { c.style.outline = c.dataset.origOutline || ''; });
 
       // Generar PDF
       const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });

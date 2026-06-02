@@ -16,6 +16,7 @@ export default function AdminAvisosTab({ config, onSaved }) {
     link: '',
     tipo: 'info',
   });
+
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 

@@ -19,7 +19,7 @@ const TABS = [
 
 export default function AdminPanel() {
   const { user, signOut } = useAuth();
-  const { profile, avatarUrl, hobbies, aviso, refreshConfig } = useSiteConfig();
+  const { profile, avatarUrl, hobbies, aviso, loading: configLoading, refreshConfig } = useSiteConfig();
   const [activeTab, setActiveTab] = useState('bitacora');
 
   // ── Bitácora state ──
@@ -165,6 +165,7 @@ export default function AdminPanel() {
         {/* ── Tab: Perfil ── */}
         {activeTab === 'perfil' && (
           <AdminProfileTab
+            key={configLoading ? 'loading' : 'loaded'}
             config={{ profile, avatarUrl }}
             onSaved={refreshConfig}
           />
@@ -173,6 +174,7 @@ export default function AdminPanel() {
         {/* ── Tab: Hobbies ── */}
         {activeTab === 'hobbies' && (
           <AdminHobbiesTab
+            key={configLoading ? 'loading' : 'loaded'}
             config={{ hobbies }}
             onSaved={refreshConfig}
           />
@@ -181,6 +183,7 @@ export default function AdminPanel() {
         {/* ── Tab: Avisos ── */}
         {activeTab === 'avisos' && (
           <AdminAvisosTab
+            key={configLoading ? 'loading' : 'loaded'}
             config={{ aviso }}
             onSaved={refreshConfig}
           />

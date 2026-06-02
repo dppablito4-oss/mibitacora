@@ -66,6 +66,7 @@ export default function QrGeneratorPage() {
 
   useEffect(() => {
     if (qrRef.current) {
+      qrRef.current.innerHTML = '';
       qrCode.append(qrRef.current);
     }
   }, [qrCode, qrRef]);

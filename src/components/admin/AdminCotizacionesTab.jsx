@@ -25,6 +25,11 @@ export default function AdminCotizacionesTab() {
   const [searchTerm, setSearchTerm] = useState('');
   const [unreadMap, setUnreadMap] = useState({}); // { cotizacion_id: count }
   const endRef = useRef(null);
+  const selectedIdRef = useRef(selectedId);
+
+  useEffect(() => {
+    selectedIdRef.current = selectedId;
+  }, [selectedId]);
 
   const selected = cotizaciones.find(c => c.id === selectedId);
 
@@ -65,6 +70,8 @@ export default function AdminCotizacionesTab() {
     const globalMsgChannel = supabase.channel('admin_all_messages')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'mensajes_chat' }, (payload) => {
         const msg = payload.new;
+        const currentActiveId = selectedIdRef.current;
+
         // Update last message in sidebar
         setCotizaciones(prev => {
           const updated = prev.map(c => {
@@ -82,12 +89,12 @@ export default function AdminCotizacionesTab() {
         });
 
         // Track unread if not the active chat
-        if (msg.cotizacion_id !== selectedId && msg.enviado_por === 'cliente') {
+        if (msg.cotizacion_id !== currentActiveId && msg.enviado_por === 'cliente') {
           setUnreadMap(prev => ({ ...prev, [msg.cotizacion_id]: (prev[msg.cotizacion_id] || 0) + 1 }));
         }
 
         // If this message belongs to the active chat, add it
-        if (msg.cotizacion_id === selectedId) {
+        if (msg.cotizacion_id === currentActiveId) {
           setMessages(prev => {
             if (prev.find(m => m.id === msg.id)) return prev;
             return [...prev, msg];
@@ -97,7 +104,7 @@ export default function AdminCotizacionesTab() {
       .subscribe();
 
     return () => { supabase.removeChannel(globalMsgChannel); };
-  }, [selectedId]);
+  }, []);
 
   // ── 3. Load messages when selecting a cotización ──
   useEffect(() => {
