@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import useTripticoState from '../hooks/useTripticoState';
 import TripticoCanvas, { getColDisplayLabel } from '../components/triptico/TripticoCanvas';
 import TripticoInspector from '../components/triptico/TripticoInspector';
@@ -21,6 +21,31 @@ export default function TripticoMakerPage() {
   } = state;
 
   const [exporting, setExporting] = useState(false);
+  const [zoom, setZoom] = useState(1);
+  const mainRef = useRef(null);
+
+  // Wheel listener for Ctrl + Mouse Wheel Zoom
+  useEffect(() => {
+    const mainEl = mainRef.current;
+    if (!mainEl) return;
+
+    const handleWheel = (e) => {
+      if (e.ctrlKey) {
+        e.preventDefault();
+        const zoomStep = 0.05;
+        let newZoom = e.deltaY < 0 
+          ? zoom + zoomStep 
+          : zoom - zoomStep;
+        newZoom = Math.max(0.4, Math.min(newZoom, 3.0));
+        setZoom(Number(newZoom.toFixed(2)));
+      }
+    };
+
+    mainEl.addEventListener('wheel', handleWheel, { passive: false });
+    return () => {
+      mainEl.removeEventListener('wheel', handleWheel);
+    };
+  }, [zoom]);
 
   const handleExportPDF = async () => {
     setExporting(true);
@@ -86,7 +111,7 @@ export default function TripticoMakerPage() {
   };
 
   return (
-    <div className="min-h-screen pt-20 bg-black text-white flex flex-col font-sans print:bg-white print:pt-0">
+    <div className="h-screen pt-20 bg-black text-white flex flex-col font-sans print:bg-white print:pt-0 overflow-hidden print:h-auto print:overflow-visible">
       {/* HEADER */}
       <header className="h-14 border-b border-zinc-800 bg-zinc-950 flex items-center justify-between px-4 shrink-0 print:hidden">
         <div className="flex items-center gap-4">
@@ -165,14 +190,17 @@ export default function TripticoMakerPage() {
           </div>
         </aside>
 
-        <main className="flex-1 bg-zinc-900 overflow-y-auto">
-          <div className="p-4 lg:p-8 min-h-full flex flex-col items-center">
+        <main ref={mainRef} className="flex-1 bg-zinc-900 overflow-y-auto">
+          <div className="p-4 lg:p-8 min-h-full flex flex-col items-center justify-center">
             <TripticoCanvas
               activePage={activePage}
               selectedColIndex={selectedColIndex}
               selectedBlockId={selectedBlockId}
               onSelectCol={setSelectedColIndex}
               onSelectBlock={setSelectedBlockId}
+              zoom={zoom}
+              onResetZoom={() => setZoom(1)}
+              exporting={exporting}
             />
           </div>
         </main>
@@ -213,6 +241,7 @@ export default function TripticoMakerPage() {
               selectedBlockId={null}
               onSelectCol={() => {}}
               onSelectBlock={() => {}}
+              zoom={1}
             />
           </div>
         ))}

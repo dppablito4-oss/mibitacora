@@ -8,22 +8,11 @@ export function useCopilotChat({ user, isOpen, signInAnonymously, isAdmin }) {
   const [loadingText, setLoadingText] = useState('Escribiendo...');
   const [uploading, setUploading] = useState(false);
 
-  // 1. Iniciar sesión anónima automáticamente al abrir si no hay usuario
-  useEffect(() => {
-    if (isOpen && !user && signInAnonymously) {
-      signInAnonymously().then((res) => {
-        if (res?.error) {
-          console.error('[Supabase Auth] Error en inicio de sesión anónimo:', res.error);
-        }
-      });
-    }
-  }, [isOpen, user, signInAnonymously]);
-
-  // 2. Cargar cotización activa del usuario
+  // 1. Cargar cotización activa del usuario
   useEffect(() => {
     if (!user?.id) return;
     const loadQuote = async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('cotizaciones')
         .select('*')
         .eq('cliente_id', user.id)
@@ -43,7 +32,7 @@ export function useCopilotChat({ user, isOpen, signInAnonymously, isAdmin }) {
       loadQuote();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, activeQuote, isOpen, isAdmin]);
+  }, [user, activeQuote, isOpen, isAdmin, loading]);
 
   useEffect(() => {
     let interval;
@@ -101,6 +90,7 @@ REGLA CRÍTICA: Responde SIEMPRE con este objeto JSON exacto:
 }`;
 
   const handleStartAdminSession = async () => {
+    console.log('[Copilot] handleStartAdminSession triggered');
     setLoading(true);
     try {
       const { data, error } = await supabase
@@ -109,10 +99,11 @@ REGLA CRÍTICA: Responde SIEMPRE con este objeto JSON exacto:
         .select()
         .single();
 
+      console.log('[Copilot] handleStartAdminSession insert result. data:', data, 'error:', error);
       if (error) throw error;
       setActiveQuote(data);
 
-      await supabase.from('mensajes_chat').insert({
+      const msgRes = await supabase.from('mensajes_chat').insert({
         cotizacion_id: data.id,
         enviado_por: 'asistente_ai',
         mensaje: JSON.stringify({
@@ -123,8 +114,9 @@ REGLA CRÍTICA: Responde SIEMPRE con este objeto JSON exacto:
           ui_state: { show_uploader: true, panel_active: null }
         })
       });
+      console.log('[Copilot] handleStartAdminSession insert message result:', msgRes);
     } catch (err) {
-      console.error('Error iniciando sesión admin:', err);
+      console.error('[Copilot] Error iniciando sesión admin:', err);
     } finally {
       setLoading(false);
     }

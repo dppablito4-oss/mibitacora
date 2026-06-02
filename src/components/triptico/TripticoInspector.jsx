@@ -74,8 +74,24 @@ export default function TripticoInspector({
         )}
       </div>
 
-      {/* Column background */}
-      <div className="p-3 border-t border-zinc-800 shrink-0">
+      {/* Column settings */}
+      <div className="p-3 border-t border-zinc-800 shrink-0 space-y-3">
+        {/* Margins selector */}
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-[10px] text-zinc-500 font-bold uppercase">Márgenes (Padding)</span>
+          <select
+            value={col.padding !== undefined ? col.padding : '4% 5%'}
+            onChange={e => onUpdateColumn(selectedColIndex, { padding: e.target.value })}
+            className="bg-zinc-900 border border-zinc-700 text-xs text-white p-1 rounded cursor-pointer"
+          >
+            <option value="4% 5%">Normal</option>
+            <option value="2% 3%">Compacto</option>
+            <option value="1% 1%">Mínimo</option>
+            <option value="0">Lleno (Sin márgenes)</option>
+          </select>
+        </div>
+
+        {/* Background color */}
         <div className="flex items-center gap-2">
           <Palette size={12} className="text-zinc-500" />
           <span className="text-[10px] text-zinc-500 font-bold uppercase">Fondo columna</span>

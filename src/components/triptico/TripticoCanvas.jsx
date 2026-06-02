@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, useState, useEffect } from 'react';
 
 export const getColDisplayLabel = (isFront, colIdx, customLabel) => {
   const cleanLabel = customLabel ? String(customLabel).trim() : '';
@@ -31,62 +31,116 @@ export default function TripticoCanvas({
   selectedBlockId,
   onSelectCol,
   onSelectBlock,
+  zoom = 1,
+  onResetZoom,
+  exporting = false,
 }) {
-  const canvasRef = useRef(null);
+  const containerRef = useRef(null);
+  const [containerWidth, setContainerWidth] = useState(1000);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const observer = new ResizeObserver((entries) => {
+      for (let entry of entries) {
+        setContainerWidth(entry.contentRect.width);
+      }
+    });
+    observer.observe(containerRef.current);
+    return () => observer.disconnect();
+  }, []);
 
   if (!activePage) return null;
 
   const columns = activePage.columns || [];
   const isFront = activePage.id === 'page-front';
 
+  const canvasWidth = 1122;
+  const canvasHeight = 794;
+  const padding = 32;
+  const availableWidth = Math.max(containerWidth - padding, 400);
+  const baseScale = Math.min(availableWidth / canvasWidth, 1);
+  const finalScale = exporting ? 1 : (baseScale * zoom);
+
   return (
-    <div className="w-full h-full flex flex-col items-center justify-center">
-      <div className="text-[10px] text-zinc-500 font-mono mb-2 flex items-center gap-2 shrink-0">
+    <div ref={containerRef} className="w-full flex flex-col items-center justify-center overflow-visible select-none">
+      <div className="text-[10px] text-zinc-500 font-mono mb-2 flex items-center gap-2 shrink-0 select-none print:hidden">
         <span>A4 HORIZONTAL (297x210mm)</span>
         <span className="text-zinc-700">·</span>
         <span>{isFront ? 'LADO EXTERIOR (ANVERSO)' : 'LADO INTERIOR (REVERSO)'}</span>
+        {zoom !== 1 && (
+          <>
+            <span className="text-zinc-700">·</span>
+            <span className="text-cyan-400 font-bold">{Math.round(zoom * 100)}% Zoom</span>
+            <button 
+              onClick={() => onResetZoom && onResetZoom()}
+              className="text-[9px] text-zinc-500 hover:text-zinc-300 ml-1 underline cursor-pointer"
+            >
+              Restablecer
+            </button>
+          </>
+        )}
       </div>
 
-      <div
-        ref={canvasRef}
-        data-triptico-page={activePage.id}
-        className="relative overflow-hidden bg-white shadow-2xl shrink-0"
-        onClick={() => { onSelectCol(null); onSelectBlock(null); }}
+      <div 
         style={{
-          aspectRatio: '297 / 210',
-          width: '100%',
-          minHeight: '400px',
-          backgroundImage: activePage.bgImage ? `url(${activePage.bgImage})` : undefined,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundColor: activePage.bgColor || '#ffffff',
-          containerType: 'inline-size',
+          width: `${canvasWidth * finalScale}px`,
+          height: `${canvasHeight * finalScale}px`,
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'flex-start',
+          overflow: 'visible',
+          transition: exporting ? 'none' : 'width 0.1s ease-out, height 0.1s ease-out',
         }}
+        className="relative shrink-0 print:m-0"
       >
-        <div style={{ display: 'flex', width: '100%', height: '100%' }}>
-          {columns.map((col, colIdx) => {
-            const isColSelected = selectedColIndex === colIdx;
+        <div
+          data-triptico-page={activePage.id}
+          className="relative overflow-hidden bg-white shadow-2xl shrink-0"
+          onClick={() => { onSelectCol(null); onSelectBlock(null); }}
+          style={{
+            width: `${canvasWidth}px`,
+            height: `${canvasHeight}px`,
+            transform: `scale(${finalScale})`,
+            transformOrigin: 'top center',
+            backgroundImage: activePage.bgImage ? `url(${activePage.bgImage})` : undefined,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundColor: activePage.bgColor || '#ffffff',
+            containerType: 'inline-size',
+            position: 'absolute',
+            top: 0,
+            left: '50%',
+            marginLeft: `-${canvasWidth / 2}px`,
+            transition: exporting ? 'none' : 'transform 0.1s ease-out',
+            boxSizing: 'border-box',
+          }}
+        >
+          <div style={{ display: 'flex', width: '100%', height: '100%', boxSizing: 'border-box' }}>
+            {columns.map((col, colIdx) => {
+              const isColSelected = selectedColIndex === colIdx;
+              const colPadding = col.padding !== undefined ? col.padding : '4% 5%';
 
-            return (
-              <div
-                key={col.id || colIdx}
-                data-col={colIdx}
-                onClick={(e) => { e.stopPropagation(); onSelectCol(colIdx); onSelectBlock(null); }}
-                style={{
-                  flex: '1 1 0%',
-                  borderRight: colIdx < 2 ? '1px dashed rgba(0,0,0,0.15)' : 'none',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  padding: '4% 5%',
-                  position: 'relative',
-                  cursor: 'pointer',
-                  outline: isColSelected ? '2px solid #22d3ee' : 'none',
-                  outlineOffset: '-2px',
-                  backgroundColor: col.bgColor || 'transparent',
-                  transition: 'outline-color 0.15s ease',
-                  overflow: 'hidden',
-                }}
-              >
+              return (
+                <div
+                  key={col.id || colIdx}
+                  data-col={colIdx}
+                  onClick={(e) => { e.stopPropagation(); onSelectCol(colIdx); onSelectBlock(null); }}
+                  style={{
+                    flex: '1 1 0%',
+                    borderRight: colIdx < 2 ? '1px dashed rgba(0,0,0,0.15)' : 'none',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    padding: colPadding,
+                    position: 'relative',
+                    cursor: 'pointer',
+                    outline: isColSelected ? '2px solid #22d3ee' : 'none',
+                    outlineOffset: '-2px',
+                    backgroundColor: col.bgColor || 'transparent',
+                    transition: 'outline-color 0.15s ease',
+                    overflow: 'hidden',
+                    boxSizing: 'border-box',
+                  }}
+                >
                 {/* Column label */}
                 <div data-export-hide="true" style={{
                   position: 'absolute', top: '1.5%', left: '50%', transform: 'translateX(-50%)',
@@ -125,6 +179,7 @@ export default function TripticoCanvas({
           })}
         </div>
       </div>
+    </div>
     </div>
   );
 }
