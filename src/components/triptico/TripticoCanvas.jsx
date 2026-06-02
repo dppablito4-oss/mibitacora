@@ -157,6 +157,7 @@ export default function TripticoCanvas({
                     key={block.id}
                     block={block}
                     isSelected={selectedBlockId === block.id}
+                    colPadding={colPadding}
                     onSelect={(e) => {
                       e.stopPropagation();
                       onSelectCol(colIdx);
@@ -185,17 +186,45 @@ export default function TripticoCanvas({
 }
 
 // ── Block Renderer ──────────────────────────────────────────────────────────────
-function BlockRenderer({ block, isSelected, onSelect }) {
+function BlockRenderer({ block, isSelected, onSelect, colPadding }) {
   const s = block.style || {};
 
   const selectedOutline = isSelected
     ? { outline: '1.5px solid rgba(34,211,238,0.7)', outlineOffset: '1px', borderRadius: '2px' }
     : {};
 
+  // Parse horizontal padding from colPadding (e.g. "4% 5%")
+  const getHorizontalPadding = (paddingStr) => {
+    if (!paddingStr) return '0%';
+    const parts = String(paddingStr).trim().split(/\s+/);
+    if (parts.length > 1) {
+      return parts[1];
+    }
+    return parts[0];
+  };
+
+  const horizontalPadding = getHorizontalPadding(colPadding);
+
+  // Layout styles based on selected settings
+  const layoutStyle = {
+    ...(s.fullWidth ? {
+      marginLeft: `calc(-1 * ${horizontalPadding})`,
+      marginRight: `calc(-1 * ${horizontalPadding})`,
+      width: `calc(100% + 2 * ${horizontalPadding})`,
+      maxWidth: 'none',
+      boxSizing: 'border-box',
+    } : {}),
+    ...(s.fillHeight ? {
+      flexGrow: 1,
+      display: 'flex',
+      flexDirection: 'column',
+    } : {}),
+  };
+
   switch (block.type) {
     case 'heading':
       return (
-        <div onClick={onSelect} style={{ cursor: 'pointer', ...selectedOutline }}>
+        <div onClick={onSelect} style={{ cursor: 'pointer', ...selectedOutline, ...layoutStyle }}>
           <h3 style={{
             fontSize: `${((s.fontSize || 22) / 16).toFixed(3)}cqw`,
             fontWeight: s.fontWeight || '700',
@@ -213,7 +242,7 @@ function BlockRenderer({ block, isSelected, onSelect }) {
 
     case 'subheading':
       return (
-        <div onClick={onSelect} style={{ cursor: 'pointer', ...selectedOutline }}>
+        <div onClick={onSelect} style={{ cursor: 'pointer', ...selectedOutline, ...layoutStyle }}>
           <h4 style={{
             fontSize: `${((s.fontSize || 16) / 16).toFixed(3)}cqw`,
             fontWeight: s.fontWeight || '600',
@@ -230,7 +259,7 @@ function BlockRenderer({ block, isSelected, onSelect }) {
 
     case 'paragraph':
       return (
-        <div onClick={onSelect} style={{ cursor: 'pointer', ...selectedOutline }}>
+        <div onClick={onSelect} style={{ cursor: 'pointer', ...selectedOutline, ...layoutStyle }}>
           <p style={{
             fontSize: `${((s.fontSize || 12) / 16).toFixed(3)}cqw`,
             color: s.color || '#333333',
@@ -239,6 +268,7 @@ function BlockRenderer({ block, isSelected, onSelect }) {
             margin: '0 0 0.4cqw 0',
             whiteSpace: 'pre-wrap',
             wordBreak: 'break-word',
+            ...(s.fillHeight ? { flexGrow: 1, height: '100%' } : {}),
           }}>
             {block.text || ''}
           </p>
@@ -250,6 +280,7 @@ function BlockRenderer({ block, isSelected, onSelect }) {
         <div onClick={onSelect} style={{
           cursor: 'pointer', margin: '0.3cqw 0',
           ...selectedOutline,
+          ...layoutStyle,
         }}>
           {block.src ? (
             <img
@@ -258,20 +289,22 @@ function BlockRenderer({ block, isSelected, onSelect }) {
               draggable={false}
               style={{
                 width: '100%',
-                height: `${((s.height || 120) / 16).toFixed(1)}cqw`,
+                height: s.fillHeight ? '100%' : `${((s.height || 120) / 16).toFixed(1)}cqw`,
                 objectFit: s.objectFit || 'cover',
-                borderRadius: `${((s.borderRadius || 4) / 16).toFixed(2)}cqw`,
+                borderRadius: s.fullWidth ? '0px' : `${((s.borderRadius || 4) / 16).toFixed(2)}cqw`,
                 display: 'block',
+                ...(s.fillHeight ? { flexGrow: 1 } : {}),
               }}
             />
           ) : (
             <div style={{
               width: '100%',
-              height: `${((s.height || 120) / 16).toFixed(1)}cqw`,
+              height: s.fillHeight ? '100%' : `${((s.height || 120) / 16).toFixed(1)}cqw`,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               border: '1.5px dashed rgba(0,0,0,0.15)',
-              borderRadius: `${((s.borderRadius || 4) / 16).toFixed(2)}cqw`,
+              borderRadius: s.fullWidth ? '0px' : `${((s.borderRadius || 4) / 16).toFixed(2)}cqw`,
               color: 'rgba(0,0,0,0.25)', fontSize: '0.75cqw',
+              ...(s.fillHeight ? { flexGrow: 1 } : {}),
             }}>
               🖼️ Imagen (sin URL)
             </div>
@@ -284,9 +317,11 @@ function BlockRenderer({ block, isSelected, onSelect }) {
         <div onClick={onSelect} style={{
           cursor: 'pointer', margin: '0.2cqw 0 0.5cqw 0',
           ...selectedOutline,
+          ...layoutStyle,
         }}>
           <ul style={{
             listStyle: 'none', padding: 0, margin: 0,
+            ...(s.fillHeight ? { flexGrow: 1, height: '100%' } : {}),
           }}>
             {(block.items || []).map((item, i) => (
               <li key={i} style={{
@@ -318,6 +353,7 @@ function BlockRenderer({ block, isSelected, onSelect }) {
           cursor: 'pointer',
           margin: `${((s.marginY || 8) / 16).toFixed(2)}cqw 0`,
           ...selectedOutline,
+          ...layoutStyle,
         }}>
           <hr style={{
             border: 'none',

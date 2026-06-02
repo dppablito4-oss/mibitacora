@@ -47,6 +47,15 @@ export default function TripticoMakerPage() {
     };
   }, [zoom]);
 
+  // Lock body scroll while in the editor page
+  useEffect(() => {
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, []);
+
   const handleExportPDF = async () => {
     setExporting(true);
     // Deselect elements to hide outlines during print
@@ -190,7 +199,7 @@ export default function TripticoMakerPage() {
           </div>
         </aside>
 
-        <main ref={mainRef} className="flex-1 bg-zinc-900 overflow-y-auto">
+        <main ref={mainRef} className="flex-1 bg-zinc-900 overflow-auto">
           <div className="p-4 lg:p-8 min-h-full flex flex-col items-center justify-center">
             <TripticoCanvas
               activePage={activePage}

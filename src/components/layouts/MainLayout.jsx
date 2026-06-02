@@ -7,6 +7,7 @@ import CookieBanner from '../CookieBanner';
 export default function MainLayout() {
   const location = useLocation();
   const hidecopilot = ['/login', '/admin'].some(r => location.pathname.startsWith(r));
+  const hideFooter = ['/login', '/admin', '/tripticos'].some(r => location.pathname.startsWith(r));
 
   return (
     <div className="relative min-h-screen bg-[#030712]">
@@ -22,7 +23,7 @@ export default function MainLayout() {
         <Outlet />
       </main>
 
-      {!hidecopilot && <Footer />}
+      {!hideFooter && <Footer />}
       {!hidecopilot && <SpaceCopilot />}
       <CookieBanner />
     </div>

@@ -334,6 +334,40 @@ function BlockEditor({ block, colIndex, onUpdateBlock, onUpdateBlockStyle, onDel
           </div>
         </div>
       )}
+
+      {/* ── Common Layout Settings ── */}
+      <BlockLayoutSettings block={block} onUpdateStyle={updateStyle} />
+    </div>
+  );
+}
+
+// ── Block Layout Settings Component ──
+function BlockLayoutSettings({ block, onUpdateStyle }) {
+  const s = block.style || {};
+  return (
+    <div className="border-t border-zinc-800/80 pt-3 mt-3 space-y-2">
+      <h5 className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">Ajustes de Layout de Bloque</h5>
+      <div className="flex flex-col gap-2">
+        <label className="flex items-center gap-2 text-[11px] text-zinc-300 cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={!!s.fullWidth}
+            onChange={e => onUpdateStyle({ fullWidth: e.target.checked })}
+            className="rounded border-zinc-700 bg-zinc-900 text-cyan-500 focus:ring-cyan-500"
+          />
+          <span>De extremo a extremo (Ancho completo)</span>
+        </label>
+        
+        <label className="flex items-center gap-2 text-[11px] text-zinc-300 cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={!!s.fillHeight}
+            onChange={e => onUpdateStyle({ fillHeight: e.target.checked })}
+            className="rounded border-zinc-700 bg-zinc-900 text-cyan-500 focus:ring-cyan-500"
+          />
+          <span>Expandir altura (Llenar columna)</span>
+        </label>
+      </div>
     </div>
   );
 }
