@@ -11,7 +11,9 @@ export default function SpaceCopilot() {
   const { user, userRole, signInAnonymously } = useAuth();
   const { profile } = useSiteConfig();
   const [isOpen, setIsOpen] = useState(false);
-  const [clientName, setClientName] = useState('');
+  const [clientName, setClientName] = useState(() => {
+    return localStorage.getItem('copilot_name') || localStorage.getItem('golpe_apodo') || '';
+  });
   const [prompt, setPrompt] = useState('');
   
   const isAdmin = userRole === 'admin' || userRole === 'superadmin';

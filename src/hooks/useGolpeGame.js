@@ -190,12 +190,11 @@ export function useGolpeGame(partidaId) {
   const toggleListo = async () => {
     if (!miJugador) return;
     try {
-      const { error: updateErr } = await supabase
-        .from('partida_jugadores')
-        .update({ listo: !miJugador.listo })
-        .eq('id', miJugador.id);
+      const { error: rpcErr } = await supabase.rpc('toggle_listo', {
+        p_partida_id: partidaId
+      });
 
-      if (updateErr) throw updateErr;
+      if (rpcErr) throw rpcErr;
       await fetchGameState();
     } catch (err) {
       logger.error('Error toggling ready state:', err);
