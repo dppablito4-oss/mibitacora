@@ -1,22 +1,53 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '../config/supabaseClient';
+import logger from '../utils/logger';
 
 const AuthContext = createContext({});
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [userRole, setUserRole] = useState('user');
   const [loading, setLoading] = useState(true);
+
+  const fetchUserRole = async (userId) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', userId)
+        .single();
+      if (data?.role) {
+        setUserRole(data.role);
+      } else {
+        setUserRole('user');
+      }
+      if (error) logger.error('Error fetching user role:', error);
+    } catch (err) {
+      logger.error('Error fetching user role:', err);
+      setUserRole('user');
+    }
+  };
 
   useEffect(() => {
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      setUser(session?.user ?? null);
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
+      if (currentUser?.id) {
+        await fetchUserRole(currentUser.id);
+      }
       setLoading(false);
     };
     checkSession();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
+      if (currentUser?.id) {
+        await fetchUserRole(currentUser.id);
+      } else {
+        setUserRole('user');
+      }
       setLoading(false);
     });
 
@@ -29,6 +60,7 @@ export const AuthProvider = ({ children }) => {
     signInAnonymously: () => supabase.auth.signInAnonymously(),
     signOut: () => supabase.auth.signOut(),
     user,
+    userRole,
     loading
   };
 
@@ -43,3 +75,4 @@ export const AuthProvider = ({ children }) => {
 export const useAuth = () => {
   return useContext(AuthContext);
 };
+

@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { supabase } from '../../config/supabaseClient';
+import { useToast } from '../../context/ToastContext';
+import logger from '../../utils/logger';
 import { 
   Sparkles, Loader2, Copy, CheckCircle, UploadCloud, 
   FileText, Trash2, ChevronDown, ChevronUp 
@@ -44,6 +46,7 @@ const extractTextFromTxt = (file) => {
 };
 
 export default function AiGeneratorPanel({ onApply }) {
+  const { showToast } = useToast();
   const [topic, setTopic] = useState('');
   const [loading, setLoading] = useState(false);
   const [generationsLeft, setGenerationsLeft] = useState(() => {
@@ -205,8 +208,8 @@ REGLAS GENERALES:
         setTopic(cleanName);
       }
     } catch (err) {
-      console.error(err);
-      alert('Error al leer el archivo: ' + err.message);
+      logger.error(err);
+      showToast('Error al leer el archivo: ' + err.message, 'error');
     } finally {
       setFileLoading(false);
     }
@@ -249,8 +252,8 @@ REGLAS GENERALES:
       localStorage.setItem('triptico_ai_uses', left.toString());
 
     } catch (err) {
-      console.error('Error generando tríptico:', err);
-      alert('Error al generar con IA: ' + (err.message || err) + '\n\nIntenta con la opción manual.');
+      logger.error('Error generando tríptico:', err);
+      showToast('Error al generar con IA: ' + (err.message || err), 'error');
     } finally {
       setLoading(false);
     }

@@ -2,8 +2,11 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../config/supabaseClient';
 import { useSiteConfig } from '../lib/useSiteConfig';
+import { useToast } from '../context/ToastContext';
+import logger from '../utils/logger';
 import { Link } from 'react-router-dom';
 import { Plus, Trash2, Edit3, Eye, EyeOff, LogOut, Sparkles, ArrowLeft, Save, User, Heart, Megaphone, FileText, MessageCircle } from 'lucide-react';
+import ConfirmDialog from '../components/ConfirmDialog';
 import AdminProfileTab from '../components/admin/AdminProfileTab';
 import AdminHobbiesTab from '../components/admin/AdminHobbiesTab';
 import AdminAvisosTab from '../components/admin/AdminAvisosTab';
@@ -20,7 +23,9 @@ const TABS = [
 export default function AdminPanel() {
   const { user, signOut } = useAuth();
   const { profile, avatarUrl, hobbies, aviso, loading: configLoading, refreshConfig } = useSiteConfig();
+  const { showToast } = useToast();
   const [activeTab, setActiveTab] = useState('bitacora');
+  const [deletingId, setDeletingId] = useState(null);
 
   // ── Bitácora state ──
   const [entries, setEntries] = useState([]);
@@ -45,8 +50,8 @@ export default function AdminPanel() {
       if (error) throw error;
       setEntries(data || []);
     } catch (err) { 
-      console.error(err);
-      alert('Error cargando la bitácora: ' + err.message);
+      logger.error(err);
+      showToast('Error cargando la bitácora: ' + err.message, 'error');
     }
     finally { setLoading(false); }
   };
@@ -91,13 +96,19 @@ export default function AdminPanel() {
       setShowEditor(false);
       resetForm();
       await loadEntries(true);
-    } catch (err) { alert('Error: ' + err.message); }
+    } catch (err) { showToast('Error: ' + err.message, 'error'); }
     finally { setSaving(false); }
   };
 
   const handleDelete = async (id) => {
-    if (!confirm('¿Eliminar esta entrada?')) return;
+    setDeletingId(id);
+  };
+
+  const confirmDelete = async () => {
+    const id = deletingId;
+    setDeletingId(null);
     await supabase.from('bitacora').delete().eq('id', id);
+    showToast('Entrada eliminada', 'success');
     await loadEntries(true);
   };
 
@@ -292,6 +303,17 @@ export default function AdminPanel() {
           </>
         )}
       </main>
+
+      {/* Confirm Delete Dialog */}
+      {deletingId && (
+        <ConfirmDialog
+          title="¿Eliminar esta entrada?"
+          message="Esta acción no se puede deshacer. La entrada se borrará permanentemente."
+          confirmLabel="Eliminar"
+          onConfirm={confirmDelete}
+          onCancel={() => setDeletingId(null)}
+        />
+      )}
     </div>
   );
 }

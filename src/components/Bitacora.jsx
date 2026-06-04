@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { getBitacora } from '../config/supabaseClient';
 import { Calendar, Tag, ArrowRight } from 'lucide-react';
 import { useScrollAnimation, scrollAnimClass } from '../lib/useScrollAnimation';
+import logger from '../utils/logger';
 
 const CAT_ACCENT = {
   general: 'text-white/40',
@@ -20,7 +21,7 @@ export default function Bitacora() {
     try {
       const data = await getBitacora(50);
       setEntries(data || []);
-    } catch (err) { console.error('Error loading bitácora:', err); }
+    } catch (err) { logger.error('Error loading bitácora:', err); }
     finally { setLoading(false); }
   };
 

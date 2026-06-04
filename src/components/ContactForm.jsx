@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Send, CheckCircle, Mail } from 'lucide-react';
 import { useScrollAnimation, scrollAnimClass } from '../lib/useScrollAnimation';
 import { trackEvent } from '../lib/analytics';
+import logger from '../utils/logger';
 
 export default function ContactForm() {
   const [name, setName] = useState('');
@@ -22,7 +23,7 @@ export default function ContactForm() {
       setSent(true);
       setName(''); setEmail(''); setMessage('');
       setTimeout(() => setSent(false), 5000);
-    } catch (err) { console.error(err); }
+    } catch (err) { logger.error(err); }
     finally { setSending(false); }
   };
 

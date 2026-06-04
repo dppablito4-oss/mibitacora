@@ -1,6 +1,7 @@
 /* global cv */
 import { useEffect } from 'react';
 import { Upload, X, Check, Image as ImageIcon, FileText, Layout, RotateCcw, Copy, Trash2, Download } from 'lucide-react';
+import logger from '../utils/logger';
 
 export default function ScannerPage() {
   useEffect(() => {
@@ -20,7 +21,7 @@ export default function ScannerPage() {
     // ── STEP 1: Define the OpenCV ready callback FIRST (before any script loads) ──
     // This exactly mirrors the standalone site's pattern
     window.onOpenCvReady = () => {
-      console.log('[Scanner] OpenCV Ready');
+      logger.log('[Scanner] OpenCV Ready');
       if (window.App && window.App.onOpenCvReady) {
         window.App.onOpenCvReady();
       } else {
@@ -54,7 +55,7 @@ export default function ScannerPage() {
     // ── STEP 4: Load OpenCV.js in the background (8.5MB, takes time) ──
     // Exactly like the standalone: <script async src="opencv.js" onload="onOpenCvReady()">
     loadScript('https://docs.opencv.org/4.10.0/opencv.js', () => {
-      console.log('[Scanner] OpenCV script downloaded');
+      logger.log('[Scanner] OpenCV script downloaded');
       window.onOpenCvReady();
     });
 

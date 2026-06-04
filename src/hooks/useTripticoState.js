@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
+import logger from '../utils/logger';
 
 const uid = () => Math.random().toString(36).slice(2, 8);
 
@@ -108,7 +109,7 @@ export default function useTripticoState() {
       try {
         return JSON.parse(saved);
       } catch (e) {
-        console.error("Error parsing saved triptico state", e);
+        logger.error("Error parsing saved triptico state", e);
       }
     }
     return createDefaultPages();

@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../../config/supabaseClient';
+import { useToast } from '../../context/ToastContext';
+import logger from '../../utils/logger';
 import {
   MessageCircle, Send, User, Bot,
   ChevronRight, FileText, Loader2, ExternalLink,
@@ -13,6 +15,7 @@ const ESTADOS = {
 };
 
 export default function AdminCotizacionesTab() {
+  const { showToast } = useToast();
   // ── State ──
   const [cotizaciones, setCotizaciones] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
@@ -158,7 +161,8 @@ export default function AdminCotizacionesTab() {
         });
       }
     } catch (err) {
-      console.error('Error sending reply:', err);
+      logger.error('Error sending reply:', err);
+      showToast('Error enviando respuesta', 'error');
     } finally {
       setSending(false);
     }

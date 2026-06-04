@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { QrCode, Calculator, LayoutTemplate, ScanLine } from 'lucide-react';
+import { QrCode, Calculator, LayoutTemplate, ScanLine, Gamepad2 } from 'lucide-react';
 
 export default function ModulosSection() {
   const containerVariants = {
@@ -34,7 +34,7 @@ export default function ModulosSection() {
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-50px" }}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
+          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6"
         >
           <motion.div variants={itemVariants}>
             <Link to="/scanner" className="group block border border-slate-800 bg-dark p-6 transition-all hover:border-tesseract-500 hover:shadow-[0_0_20px_rgba(6,182,212,0.15)] rounded-xl relative overflow-hidden">
@@ -69,6 +69,15 @@ export default function ModulosSection() {
               <LayoutTemplate className="text-tesseract-400 mb-4 transition-transform group-hover:scale-110" size={32} />
               <h3 className="text-lg font-bold text-white mb-2">Trípticos IA</h3>
               <p className="text-sm text-slate-400">Generador de trípticos impulsado por DeepSeek V3.</p>
+            </Link>
+          </motion.div>
+
+          <motion.div variants={itemVariants}>
+            <Link to="/golpe" className="group block border border-slate-800 bg-dark p-6 transition-all hover:border-rose-500 hover:shadow-[0_0_20px_rgba(244,63,94,0.15)] rounded-xl relative overflow-hidden">
+              <div className="absolute inset-0 bg-rose-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <Gamepad2 className="text-rose-400 mb-4 transition-transform group-hover:scale-110" size={32} />
+              <h3 className="text-lg font-bold text-white mb-2">El Golpe</h3>
+              <p className="text-sm text-slate-400">Juego de cartas multijugador en tiempo real con amigos.</p>
             </Link>
           </motion.div>
         </motion.div>

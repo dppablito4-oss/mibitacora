@@ -378,6 +378,44 @@
   to { opacity: 0; transform: translateY(10px); }
 }
 
+/* ── Toast Component Animations ──────────────────────────────── */
+@keyframes toastSlideIn {
+  from { opacity: 0; transform: translateX(100%) scale(0.95); }
+  to { opacity: 1; transform: translateX(0) scale(1); }
+}
+
+@keyframes toastSlideOut {
+  from { opacity: 1; transform: translateX(0) scale(1); }
+  to { opacity: 0; transform: translateX(100%) scale(0.95); }
+}
+
+.toast-enter {
+  animation: toastSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.toast-exit {
+  animation: toastSlideOut 0.3s ease-out both;
+}
+
+/* ── ConfirmDialog Animations ────────────────────────────────── */
+@keyframes confirmBackdropIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes confirmDialogIn {
+  from { opacity: 0; transform: scale(0.95) translateY(8px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.confirm-backdrop-enter {
+  animation: confirmBackdropIn 0.2s ease-out both;
+}
+
+.confirm-dialog-enter {
+  animation: confirmDialogIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
 @media print {
   @page {
     size: landscape;

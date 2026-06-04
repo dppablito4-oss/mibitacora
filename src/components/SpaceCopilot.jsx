@@ -8,13 +8,13 @@ import MathSolverApp from './miniapps/MathSolverApp';
 import TripticoMakerApp from './miniapps/TripticoMakerApp';
 
 export default function SpaceCopilot() {
-  const { user, signInAnonymously } = useAuth();
+  const { user, userRole, signInAnonymously } = useAuth();
   const { profile } = useSiteConfig();
   const [isOpen, setIsOpen] = useState(false);
   const [clientName, setClientName] = useState('');
   const [prompt, setPrompt] = useState('');
   
-  const isAdmin = user && user.email;
+  const isAdmin = userRole === 'admin' || userRole === 'superadmin';
 
   const {
     activeQuote,

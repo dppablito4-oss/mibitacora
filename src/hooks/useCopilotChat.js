@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../config/supabaseClient';
+import logger from '../utils/logger';
 
 export function useCopilotChat({ user, isOpen, signInAnonymously, isAdmin }) {
   const [activeQuote, setActiveQuote] = useState(null);
@@ -90,7 +91,7 @@ REGLA CRÍTICA: Responde SIEMPRE con este objeto JSON exacto:
 }`;
 
   const handleStartAdminSession = async () => {
-    console.log('[Copilot] handleStartAdminSession triggered');
+    logger.log('[Copilot] handleStartAdminSession triggered');
     setLoading(true);
     try {
       const { data, error } = await supabase
@@ -99,7 +100,7 @@ REGLA CRÍTICA: Responde SIEMPRE con este objeto JSON exacto:
         .select()
         .single();
 
-      console.log('[Copilot] handleStartAdminSession insert result. data:', data, 'error:', error);
+      logger.log('[Copilot] handleStartAdminSession insert result. data:', data, 'error:', error);
       if (error) throw error;
       setActiveQuote(data);
 
@@ -114,9 +115,9 @@ REGLA CRÍTICA: Responde SIEMPRE con este objeto JSON exacto:
           ui_state: { show_uploader: true, panel_active: null }
         })
       });
-      console.log('[Copilot] handleStartAdminSession insert message result:', msgRes);
+      logger.log('[Copilot] handleStartAdminSession insert message result:', msgRes);
     } catch (err) {
-      console.error('[Copilot] Error iniciando sesión admin:', err);
+      logger.error('[Copilot] Error iniciando sesión admin:', err);
     } finally {
       setLoading(false);
     }
@@ -164,7 +165,7 @@ REGLA CRÍTICA: Responde SIEMPRE con este objeto JSON exacto:
       });
 
     } catch (err) {
-      console.error('Error iniciando cotización:', err);
+      logger.error('Error iniciando cotización:', err);
       alert(err.message);
     } finally {
       setLoading(false);
@@ -211,7 +212,7 @@ Misión: Clasificar la solicitud de ${activeQuote.nombre_cliente} en una de dos 
       if (fnError) throw fnError;
 
     } catch (err) {
-      console.error('Error enviando mensaje:', err);
+      logger.error('Error enviando mensaje:', err);
       setMessages(prev => [...prev, { id: 'err', role: 'asistente_ai', mensaje: `❌ Error: ${err.message}` }]);
     } finally {
       setLoading(false);
@@ -260,7 +261,7 @@ Misión: Clasificar la solicitud de ${activeQuote.nombre_cliente} en una de dos 
       });
 
     } catch (err) {
-      console.error('Error subiendo archivo:', err);
+      logger.error('Error subiendo archivo:', err);
       alert('Error subiendo archivo: ' + err.message);
     } finally {
       setUploading(false);

@@ -5,9 +5,12 @@ import TripticoInspector from '../components/triptico/TripticoInspector';
 import AiGeneratorPanel from '../components/triptico/AiGeneratorPanel';
 // Se elimina importación estática para usar dinámica y evitar errores de ESM en Vite
 import { Download, LayoutTemplate, RotateCcw } from 'lucide-react';
+import { useToast } from '../context/ToastContext';
+import logger from '../utils/logger';
 
 export default function TripticoMakerPage() {
   const state = useTripticoState();
+  const { showToast } = useToast();
   const {
     pages, activePageId, setActivePageId,
     activePage,
@@ -112,8 +115,8 @@ export default function TripticoMakerPage() {
       
       pdf.save('mi-triptico.pdf');
     } catch (err) {
-      console.error('Error exporting PDF:', err);
-      alert('Error exportando a PDF. Revisa la consola para más detalles.');
+      logger.error('Error exporting PDF:', err);
+      showToast('Error exportando a PDF: ' + err.message, 'error');
     } finally {
       setExporting(false);
     }

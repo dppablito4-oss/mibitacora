@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import QRCodeStyling from 'qr-code-styling';
 import { QrCode, Download, Image as ImageIcon } from 'lucide-react';
+import logger from '../utils/logger';
 
 export default function QrGeneratorPage() {
   const [qrCode] = useState(new QRCodeStyling({
@@ -20,7 +21,7 @@ export default function QrGeneratorPage() {
       const saved = localStorage.getItem('qr_config_' + key);
       if (saved !== null) return JSON.parse(saved);
     } catch (e) {
-      console.error(e);
+      logger.error(e);
     }
     return defaultVal;
   };
@@ -42,6 +43,7 @@ export default function QrGeneratorPage() {
   const [fileName, setFileName] = useState(() => loadSaved('fileName', 'qr-pablito'));
   
   const [logoFile, setLogoFile] = useState(null);
+  const [logoUrl, setLogoUrl] = useState(null);
   const [logoSize, setLogoSize] = useState(() => loadSaved('logoSize', 0.4));
   const [logoMargin, setLogoMargin] = useState(() => loadSaved('logoMargin', 6));
 
@@ -71,6 +73,17 @@ export default function QrGeneratorPage() {
     }
   }, [qrCode, qrRef]);
 
+  // Manage logo Object URL lifecycle to prevent memory leaks
+  useEffect(() => {
+    if (logoFile) {
+      const url = URL.createObjectURL(logoFile);
+      setLogoUrl(url);
+      return () => URL.revokeObjectURL(url);
+    } else {
+      setLogoUrl(null);
+    }
+  }, [logoFile]);
+
   useEffect(() => {
     let data = text;
     if (payloadType === 'whatsapp') {
@@ -98,7 +111,7 @@ export default function QrGeneratorPage() {
         color: dotsColor,
         type: cornersShape
       },
-      image: logoFile ? URL.createObjectURL(logoFile) : undefined,
+      image: logoUrl || undefined,
       imageOptions: {
         crossOrigin: "anonymous",
         margin: logoMargin,
@@ -109,7 +122,7 @@ export default function QrGeneratorPage() {
   }, [
     qrCode, payloadType, text, waNumber, waMessage, 
     dotsShape, cornersShape, dotsColor, bgColor, transparent,
-    size, errorLevel, logoFile, logoSize, logoMargin
+    size, errorLevel, logoUrl, logoSize, logoMargin
   ]);
 
   const onDownload = (ext) => {
