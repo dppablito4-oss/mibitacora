@@ -8,6 +8,63 @@ const FALLBACK = {
   avatar_url: null,
   hobbies: [],
   aviso: { activo: false, texto: '', link: '', tipo: 'info' },
+  modules: [
+    {
+      id: 'scanner',
+      title: 'Escáner',
+      description: 'Decodificación y análisis de códigos QR en tiempo real.',
+      url: '/scanner',
+      icon: 'ScanLine',
+      isFlashy: false,
+      flashyText: '',
+      flashyColor: 'rose',
+      active: true
+    },
+    {
+      id: 'qr',
+      title: 'Generador QR',
+      description: 'Creación de códigos QR ultra-personalizados y blindados.',
+      url: '/qr',
+      icon: 'QrCode',
+      isFlashy: false,
+      flashyText: '',
+      flashyColor: 'rose',
+      active: true
+    },
+    {
+      id: 'math',
+      title: 'Math Pro',
+      description: 'Resolución de polinomios paso a paso con rigor matemático.',
+      url: '/math',
+      icon: 'Calculator',
+      isFlashy: false,
+      flashyText: '',
+      flashyColor: 'rose',
+      active: true
+    },
+    {
+      id: 'tripticos',
+      title: 'Trípticos IA',
+      description: 'Generador de trípticos impulsado por DeepSeek V3.',
+      url: '/tripticos',
+      icon: 'LayoutTemplate',
+      isFlashy: false,
+      flashyText: '',
+      flashyColor: 'rose',
+      active: true
+    },
+    {
+      id: 'golpe',
+      title: 'El Golpe',
+      description: 'Juego de cartas multijugador en tiempo real con amigos.',
+      url: '/golpe',
+      icon: 'Gamepad2',
+      isFlashy: false,
+      flashyText: '',
+      flashyColor: 'rose',
+      active: true
+    }
+  ]
 };
 
 const CACHE_KEY = 'space_site_config';
@@ -43,6 +100,7 @@ export function useSiteConfig() {
           avatar_url: data.avatar_url || FALLBACK.avatar_url,
           hobbies: data.hobbies || FALLBACK.hobbies,
           aviso: { ...FALLBACK.aviso, ...(data.aviso || {}) },
+          modules: data.modules || FALLBACK.modules,
         };
         setConfig(merged);
         // Guardar en caché
@@ -81,6 +139,7 @@ export function useSiteConfig() {
     avatarUrl: config.avatar_url,
     hobbies: config.hobbies,
     aviso: config.aviso,
+    modules: config.modules,
     loading,
     error,
     refreshConfig,

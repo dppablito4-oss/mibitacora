@@ -5,16 +5,18 @@ import { useSiteConfig } from '../lib/useSiteConfig';
 import { useToast } from '../context/ToastContext';
 import logger from '../utils/logger';
 import { Link } from 'react-router-dom';
-import { Plus, Trash2, Edit3, Eye, EyeOff, LogOut, Sparkles, ArrowLeft, Save, User, Heart, Megaphone, FileText, MessageCircle } from 'lucide-react';
+import { Plus, Trash2, Edit3, Eye, EyeOff, LogOut, Sparkles, ArrowLeft, Save, User, Heart, Megaphone, FileText, MessageCircle, Layers } from 'lucide-react';
 import ConfirmDialog from '../components/ConfirmDialog';
 import AdminProfileTab from '../components/admin/AdminProfileTab';
 import AdminHobbiesTab from '../components/admin/AdminHobbiesTab';
 import AdminAvisosTab from '../components/admin/AdminAvisosTab';
 import AdminCotizacionesTab from '../components/admin/AdminCotizacionesTab';
+import AdminModulosTab from '../components/admin/AdminModulosTab';
 
 const TABS = [
   { id: 'cotizaciones', label: 'Cotizaciones', icon: MessageCircle, emoji: '💬' },
   { id: 'bitacora', label: 'Bitácora', icon: FileText, emoji: '📝' },
+  { id: 'modulos', label: 'Módulos', icon: Layers, emoji: '🧩' },
   { id: 'perfil', label: 'Perfil', icon: User, emoji: '👤' },
   { id: 'hobbies', label: 'Hobbies', icon: Heart, emoji: '🎯' },
   { id: 'avisos', label: 'Avisos', icon: Megaphone, emoji: '📢' },
@@ -22,7 +24,7 @@ const TABS = [
 
 export default function AdminPanel() {
   const { user, signOut } = useAuth();
-  const { profile, avatarUrl, hobbies, aviso, loading: configLoading, refreshConfig } = useSiteConfig();
+  const { profile, avatarUrl, hobbies, aviso, modules, loading: configLoading, refreshConfig } = useSiteConfig();
   const { showToast } = useToast();
   const [activeTab, setActiveTab] = useState('bitacora');
   const [deletingId, setDeletingId] = useState(null);
@@ -196,6 +198,15 @@ export default function AdminPanel() {
           <AdminAvisosTab
             key={configLoading ? 'loading' : 'loaded'}
             config={{ aviso }}
+            onSaved={refreshConfig}
+          />
+        )}
+
+        {/* ── Tab: Módulos ── */}
+        {activeTab === 'modulos' && (
+          <AdminModulosTab
+            key={configLoading ? 'loading' : 'loaded'}
+            config={{ modules }}
             onSaved={refreshConfig}
           />
         )}
