@@ -244,7 +244,8 @@ export default function GolpeGamePage() {
       showToast('Has abandonado la partida.', 'info');
       navigate('/golpe');
     } catch (err) {
-      showToast('Error al abandonar la partida.', 'error');
+      logger.error('Error al abandonar partida:', err);
+      showToast(err.message || 'Error al abandonar la partida.', 'error');
     }
   };
 

@@ -102,8 +102,14 @@ export function useGolpeGame(partidaId) {
   useEffect(() => {
     if (!partidaId || !user) return;
 
-    // Cargar estado inicial
-    fetchGameState();
+    // Cargar estado inicial de forma asíncrona para evitar setStates sincrónicos en el efecto
+    let active = true;
+    const initFetch = async () => {
+      if (active) {
+        await fetchGameState();
+      }
+    };
+    initFetch();
 
     logger.log(`Subscribing to realtime updates for game: ${partidaId}`);
 
@@ -141,6 +147,7 @@ export function useGolpeGame(partidaId) {
       });
 
     return () => {
+      active = false;
       logger.log(`Cleaning up realtime channel for game: ${partidaId}`);
       supabase.removeChannel(channel);
     };
@@ -159,7 +166,7 @@ export function useGolpeGame(partidaId) {
       return data; // retorna partidaId
     } catch (err) {
       logger.error('Error creating match:', err);
-      throw new Error(err.message || 'No se pudo crear la partida.');
+      throw new Error(err.message || 'No se pudo crear la partida.', { cause: err });
     }
   };
 
@@ -192,7 +199,7 @@ export function useGolpeGame(partidaId) {
       await fetchGameState();
     } catch (err) {
       logger.error('Error toggling ready state:', err);
-      throw new Error(err.message || 'No se pudo actualizar el estado.');
+      throw new Error(err.message || 'No se pudo actualizar el estado.', { cause: err });
     }
   };
 
@@ -206,7 +213,7 @@ export function useGolpeGame(partidaId) {
       await fetchGameState();
     } catch (err) {
       logger.error('Error starting match:', err);
-      throw new Error(rpcErr?.message || err.message || 'No se pudo iniciar la partida.');
+      throw new Error(err.message || 'No se pudo iniciar la partida.', { cause: err });
     }
   };
 
@@ -221,7 +228,7 @@ export function useGolpeGame(partidaId) {
       await fetchGameState();
     } catch (err) {
       logger.error('Error drawing card:', err);
-      throw new Error(err.message || 'Error al robar carta.');
+      throw new Error(err.message || 'Error al robar carta.', { cause: err });
     }
   };
 
@@ -236,7 +243,7 @@ export function useGolpeGame(partidaId) {
       await fetchGameState();
     } catch (err) {
       logger.error('Error discarding card:', err);
-      throw new Error(err.message || 'Error al descartar carta.');
+      throw new Error(err.message || 'Error al descartar carta.', { cause: err });
     }
   };
 
@@ -251,7 +258,7 @@ export function useGolpeGame(partidaId) {
       await fetchGameState();
     } catch (err) {
       logger.error('Error playing Golpe:', err);
-      throw new Error(err.message || 'Error al declarar Golpe.');
+      throw new Error(err.message || 'Error al declarar Golpe.', { cause: err });
     }
   };
 
@@ -268,7 +275,7 @@ export function useGolpeGame(partidaId) {
       setMiJugador(null);
     } catch (err) {
       logger.error('Error leaving match:', err);
-      throw new Error(err.message || 'Error al abandonar la partida.');
+      throw new Error(err.message || 'Error al abandonar la partida.', { cause: err });
     }
   };
 

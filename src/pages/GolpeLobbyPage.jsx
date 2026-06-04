@@ -27,8 +27,8 @@ export default function GolpeLobbyPage() {
   // Buscar si el usuario tiene una partida activa
   useEffect(() => {
     if (!user) {
-      setCheckingActive(false);
-      return;
+      const timer = setTimeout(() => setCheckingActive(false), 0);
+      return () => clearTimeout(timer);
     }
 
     const checkActiveGame = async () => {
@@ -113,7 +113,7 @@ export default function GolpeLobbyPage() {
         currentUser = data?.user;
       }
 
-      const { data: jugadorId, error } = await supabase.rpc('unirse_a_partida', {
+      const { error } = await supabase.rpc('unirse_a_partida', {
         p_partida_id: cleanId,
         p_nombre: apodo.trim()
       });

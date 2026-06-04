@@ -90,7 +90,9 @@ const App = (() => {
     cacheDom();
     bindEvents();
 
-    // Create the first tab
+    // Reset module-level variables to prevent state leak across React mounts
+    tabs = [];
+    tabIdCounter = 0;
     tabs.push(createTabData());
     activeTabIndex = 0;
     renderTabsBar();

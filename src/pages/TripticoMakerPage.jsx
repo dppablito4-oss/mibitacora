@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import useTripticoState from '../hooks/useTripticoState';
-import TripticoCanvas, { getColDisplayLabel } from '../components/triptico/TripticoCanvas';
+import TripticoCanvas from '../components/triptico/TripticoCanvas';
+import { getColDisplayLabel } from '../utils/tripticoHelpers';
 import TripticoInspector from '../components/triptico/TripticoInspector';
 import AiGeneratorPanel from '../components/triptico/AiGeneratorPanel';
 // Se elimina importación estática para usar dinámica y evitar errores de ESM en Vite

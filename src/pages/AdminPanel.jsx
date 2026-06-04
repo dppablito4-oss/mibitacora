@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../config/supabaseClient';
 import { useSiteConfig } from '../lib/useSiteConfig';
@@ -40,7 +40,7 @@ export default function AdminPanel() {
   const [tags, setTags] = useState('');
   const [publicado, setPublicado] = useState(false);
 
-  const loadEntries = async (isRefresh = false) => {
+  const loadEntries = useCallback(async (isRefresh = false) => {
     if (isRefresh) setLoading(true);
     try {
       const { data, error } = await supabase
@@ -54,10 +54,10 @@ export default function AdminPanel() {
       showToast('Error cargando la bitácora: ' + err.message, 'error');
     }
     finally { setLoading(false); }
-  };
+  }, [showToast]);
 
   // eslint-disable-next-line react-hooks/set-state-in-effect
-  useEffect(() => { loadEntries(false); }, []);
+  useEffect(() => { loadEntries(false); }, [loadEntries]);
 
   const resetForm = () => {
     setTitulo(''); setContenido(''); setCategoria('general'); setTags(''); setPublicado(false); setEditingId(null);

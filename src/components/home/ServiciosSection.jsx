@@ -11,7 +11,7 @@ export default function ServiciosSection({ services }) {
           viewport={{ once: true }}
           className="mb-16 text-center"
         >
-          <h2 className="text-glow mb-4 text-3xl font-bold uppercase tracking-widest text-white md:text-4xl">Servicios Tácticos</h2>
+          <h2 className="text-glow mb-4 text-3xl font-bold uppercase tracking-widest text-white md:text-4xl">Servicios</h2>
           <div className="mx-auto mb-6 h-1 w-24 bg-tesseract-300 shadow-[0_0_10px_rgba(103,232,249,0.8)]"></div>
           <p className="text-lg font-light text-slate-400 max-w-2xl mx-auto">
             Operaciones y formatos especializados a disposición.

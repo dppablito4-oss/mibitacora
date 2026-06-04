@@ -13,7 +13,7 @@ export function useCopilotChat({ user, isOpen, signInAnonymously, isAdmin }) {
   useEffect(() => {
     if (!user?.id) return;
     const loadQuote = async () => {
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('cotizaciones')
         .select('*')
         .eq('cliente_id', user.id)

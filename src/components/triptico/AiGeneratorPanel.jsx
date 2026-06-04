@@ -40,7 +40,7 @@ const extractTextFromTxt = (file) => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = (e) => resolve(e.target.result);
-    reader.onerror = (e) => reject(new Error('No se pudo leer el archivo de texto'));
+    reader.onerror = () => reject(new Error('No se pudo leer el archivo de texto'));
     reader.readAsText(file);
   });
 };
@@ -77,9 +77,8 @@ export default function AiGeneratorPanel({ onApply }) {
   const [fileLoading, setFileLoading] = useState(false);
 
   const PROMPT_TEMPLATE = (topic) => {
-    let coverInstruction = '';
-    if (useFormalCover) {
-      coverInstruction = `
+    const coverInstruction = useFormalCover
+      ? `
 - Bloque 1 (Portada / Carátula): DEBE ser una carátula escolar formal. Agrega exactamente los siguientes bloques y textos en el Bloque 1:
   1. Un bloque de tipo "heading" con el nombre de la institución: "${coverData.institution || 'Institución Educativa'}" (style: {"fontSize": 14, "color": "#333333", "textAlign": "center"})
   2. Un bloque de tipo "divider" (style: {"color": "#22d3ee", "thickness": 1, "marginY": 6})
@@ -87,48 +86,39 @@ export default function AiGeneratorPanel({ onApply }) {
   4. Un bloque de tipo "image" representativo de la portada (deja un link general de Unsplash sobre el tema)
   5. Un bloque de tipo "paragraph" con los datos del estudiante, profesor, grado y año en formato de carátula escolar:
      "Estudiante: ${coverData.student || 'Nombre del Estudiante'}\\nDocente: ${coverData.teacher || 'Nombre del Docente'}\\nGrado: ${coverData.gradeSection || 'Grado y Sección'}\\nAño: ${coverData.year || '2026'}" (style: {"fontSize": 10, "color": "#444444", "textAlign": "center", "lineHeight": 1.6})
-`;
-    } else {
-      coverInstruction = `
+`
+      : `
 - Bloque 1 (Portada / Carátula): Crea una portada atractiva e informativa para el tema "${topic}" con un título principal llamativo, un subtítulo descriptivo, una imagen representativa y un divisor.
 `;
-    }
 
-    let introInstruction = '';
-    if (includeIntro) {
-      introInstruction = `
+    const introInstruction = includeIntro
+      ? `
 - Bloque 2 (Presentación / Introducción): Debe redactarse una presentación o introducción al tema del tríptico, explicando de forma clara su propósito y relevancia, acompañada de un párrafo descriptivo y opcionalmente un divisor decorativo.
-`;
-    } else {
-      introInstruction = `
+`
+      : `
 - Bloque 2 (Presentación / Introducción): NO incluyas una introducción formal. Comienza directamente con el desarrollo o primer subtema importante del tema para aprovechar al máximo el espacio de la hoja.
 `;
-    }
 
-    let block6Instruction = '';
-    if (block6Mode === 'anexos') {
-      block6Instruction = `
+    const block6Instruction = block6Mode === 'anexos'
+      ? `
 - Bloque 6 (Dorso / Anexos): Este bloque debe ser una sección dedicada a ANEXOS y evidencias visuales. Agrega bloques de tipo "image" con URLs reales de Unsplash sobre el tema, y textos descriptivos breves como pie de foto para cada imagen. Es una galería visual de evidencias del experimento o proyecto.
-`;
-    } else if (block6Mode === 'datos_curiosos') {
-      block6Instruction = `
+`
+      : block6Mode === 'datos_curiosos'
+      ? `
 - Bloque 6 (Dorso / Datos Curiosos): Este bloque debe contener datos interesantes, preguntas de reflexión o un glosario/términos clave sobre el tema. Agrega un encabezado de "Dato Curioso" o "Sabías que..." y listas o párrafos explicativos rápidos y dinámicos.
-`;
-    } else {
-      block6Instruction = `
+`
+      : `
 - Bloque 6 (Dorso / Contenido): Este bloque debe actuar como la continuación del tema de los bloques anteriores (continuación del desarrollo o conclusión secundaria), agregando información descriptiva detallada sobre "${topic}".
 `;
-    }
 
-    let sourceTextInstruction = '';
-    if (extractedText) {
-      sourceTextInstruction = `
+    const sourceTextInstruction = extractedText
+      ? `
 REGLA CRÍTICA DE CONTENIDO: El usuario ha proporcionado un documento fuente con información y apuntes. Extrae la información REAL, datos exactos y conceptos directamente de este texto para rellenar los bloques del tríptico:
 """
 ${extractedText.substring(0, 15000)}
 """
-`;
-    }
+`
+      : '';
 
     return `Genera el contenido en español para un TRÍPTICO escolar sobre el tema: "${topic}".
 

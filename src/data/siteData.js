@@ -4,7 +4,7 @@ export const PROFILE = {
   subdomain: 'PABLITODP',
   birth: '19-11-2004',
   gender: 'MASCULINO',
-  tagline: 'Desarrollador Web Táctico & Digital Creator',
+  tagline: 'Desarrollador Web & Digital Creator',
   bio: 'Construyo interfaces de alta tecnología y ofrezco servicios digitales precisos.',
   email: 'pabloclsa87@gmail.com',
   whatsapp: '51918165428',

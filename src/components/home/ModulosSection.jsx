@@ -22,7 +22,7 @@ export default function ModulosSection() {
           viewport={{ once: true }}
           className="mb-16 text-center"
         >
-          <h2 className="text-glow mb-4 text-3xl font-bold uppercase tracking-widest text-white md:text-4xl">Módulos Tácticos</h2>
+          <h2 className="text-glow mb-4 text-3xl font-bold uppercase tracking-widest text-white md:text-4xl">Módulos</h2>
           <div className="mx-auto h-1 w-24 bg-tesseract-500 shadow-[0_0_10px_rgba(6,182,212,0.8)]"></div>
           <p className="mt-4 text-lg font-light text-slate-400 max-w-2xl mx-auto">
             Herramientas especializadas integradas en el sistema para operaciones de campo.

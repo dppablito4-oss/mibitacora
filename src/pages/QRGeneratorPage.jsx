@@ -77,10 +77,14 @@ export default function QrGeneratorPage() {
   useEffect(() => {
     if (logoFile) {
       const url = URL.createObjectURL(logoFile);
-      setLogoUrl(url);
-      return () => URL.revokeObjectURL(url);
+      const timer = setTimeout(() => setLogoUrl(url), 0);
+      return () => {
+        clearTimeout(timer);
+        URL.revokeObjectURL(url);
+      };
     } else {
-      setLogoUrl(null);
+      const timer = setTimeout(() => setLogoUrl(null), 0);
+      return () => clearTimeout(timer);
     }
   }, [logoFile]);
 
@@ -144,7 +148,7 @@ export default function QrGeneratorPage() {
         <header className="flex flex-col md:flex-row items-start md:items-end justify-between gap-6">
           <div>
             <p className="text-emerald-400 font-bold text-xs uppercase tracking-[0.18em] mb-3">QR Studio</p>
-            <h1 className="text-4xl md:text-5xl font-extrabold text-white tracking-tight mb-4">Generador de QR Táctico</h1>
+            <h1 className="text-4xl md:text-5xl font-extrabold text-white tracking-tight mb-4">Generador de QR</h1>
             <p className="text-slate-400 max-w-xl text-sm md:text-base leading-relaxed">
               Crea códigos QR ultra-personalizados para links, textos o mensajes de WhatsApp. Ajusta formas, colores y añade tu logotipo.
             </p>

@@ -2,7 +2,7 @@ import {
   Image as ImageIcon, FileImage, Trash2, RotateCcw, Palette,
   ChevronUp, ChevronDown, List, Minus, Heading1, Heading2, AlignLeft,
 } from 'lucide-react';
-import { getColDisplayLabel } from './TripticoCanvas';
+import { getColDisplayLabel } from '../../utils/tripticoHelpers';
 
 /**
  * TripticoInspector — Edit properties of the selected block within a column.
