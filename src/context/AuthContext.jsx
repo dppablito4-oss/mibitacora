@@ -29,14 +29,25 @@ export const AuthProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      const currentUser = session?.user ?? null;
-      setUser(currentUser);
-      if (currentUser?.id) {
-        await fetchUserRole(currentUser.id);
-      }
+    // Failsafe: forzar desbloqueo después de 2.5s si Supabase se cuelga
+    const fallbackTimer = setTimeout(() => {
       setLoading(false);
+    }, 2500);
+
+    const checkSession = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const currentUser = session?.user ?? null;
+        setUser(currentUser);
+        if (currentUser?.id) {
+          await fetchUserRole(currentUser.id);
+        }
+      } catch (err) {
+        logger.error('Error checking session on mount:', err);
+      } finally {
+        clearTimeout(fallbackTimer);
+        setLoading(false);
+      }
     };
     checkSession();
 

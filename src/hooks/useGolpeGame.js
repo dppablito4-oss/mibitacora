@@ -146,8 +146,16 @@ export function useGolpeGame(partidaId) {
         logger.log(`Realtime channel status: ${status}`);
       });
 
+    // Fallback de polling de seguridad (por si Realtime falla en Supabase)
+    const pollInterval = setInterval(() => {
+      if (!isFetchingRef.current) {
+        fetchGameState();
+      }
+    }, 3000);
+
     return () => {
       active = false;
+      clearInterval(pollInterval);
       logger.log(`Cleaning up realtime channel for game: ${partidaId}`);
       supabase.removeChannel(channel);
     };
