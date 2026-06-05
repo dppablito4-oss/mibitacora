@@ -29,10 +29,10 @@ export const AuthProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    // Failsafe: forzar desbloqueo después de 2.5s si Supabase se cuelga
+    // Failsafe: forzar desbloqueo después de 1.5s si Supabase se cuelga
     const fallbackTimer = setTimeout(() => {
       setLoading(false);
-    }, 2500);
+    }, 1500);
 
     const checkSession = async () => {
       try {
@@ -77,15 +77,7 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider value={value}>
-      {loading ? (
-        <div className="min-h-screen flex items-center justify-center bg-[#030712]">
-          <div className="flex items-center gap-3">
-            <div className="w-2 h-2 bg-cyan-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-            <div className="w-2 h-2 bg-cyan-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-            <div className="w-2 h-2 bg-cyan-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-          </div>
-        </div>
-      ) : children}
+      {children}
     </AuthContext.Provider>
   );
 };

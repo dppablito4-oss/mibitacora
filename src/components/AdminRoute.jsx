@@ -1,46 +1,13 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { useEffect, useState } from 'react';
-import { supabase } from '../config/supabaseClient';
-import logger from '../utils/logger';
 
 export default function AdminRoute({ children }) {
-  const { user, loading } = useAuth();
-  const [isAdmin, setIsAdmin] = useState(null);
-  const [checking, setChecking] = useState(true);
+  const { user, userRole, loading } = useAuth();
 
-  const checkAdminStatus = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', user.id)
-        .single();
+  // AuthContext ya trae el rol del usuario — no necesitamos query extra
+  const isAdmin = userRole === 'superadmin' || userRole === 'admin';
 
-      if (!error && (data?.role === 'superadmin' || data?.role === 'admin')) {
-        setIsAdmin(true);
-      } else {
-        setIsAdmin(false);
-      }
-    } catch (err) {
-      logger.warn('Error checking admin status:', err);
-      setIsAdmin(false);
-    } finally {
-      setChecking(false);
-    }
-  };
-
-  useEffect(() => {
-    if (!loading && user) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      checkAdminStatus();
-    } else if (!loading && !user) {
-      setChecking(false);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, loading]);
-
-  if (loading || checking) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-zinc-950">
         <div className="flex items-center gap-3">
@@ -99,3 +66,4 @@ export default function AdminRoute({ children }) {
 
   return children;
 }
+
