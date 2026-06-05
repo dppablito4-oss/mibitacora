@@ -1,8 +1,10 @@
 import { useState, useRef } from 'react';
 import { updateSiteConfig, uploadAvatar } from '../../config/supabaseClient';
+import { useToast } from '../../context/ToastContext';
 import { Camera, Save, Check, Link as LinkIcon, User } from 'lucide-react';
 
 export default function AdminProfileTab({ config, onSaved }) {
+  const { showToast } = useToast();
   const [profile, setProfile] = useState(config?.profile || {});
   const [avatarUrl, setAvatarUrl] = useState(config?.avatarUrl || '');
   const [avatarPreview, setAvatarPreview] = useState(null);
@@ -53,7 +55,7 @@ export default function AdminProfileTab({ config, onSaved }) {
       setTimeout(() => setSaved(false), 3000);
       if (onSaved) onSaved();
     } catch (err) {
-      alert('Error al guardar: ' + err.message);
+      showToast('Error al guardar: ' + err.message, 'error');
     } finally {
       setSaving(false);
     }

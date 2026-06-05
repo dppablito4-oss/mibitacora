@@ -184,7 +184,7 @@ REGLAS GENERALES:
       } else if (selectedFile.name.endsWith('.txt')) {
         text = await extractTextFromTxt(selectedFile);
       } else {
-        alert('Formato no soportado. Sube un archivo PDF o TXT.');
+        showToast('Formato no soportado. Sube un archivo PDF o TXT.', 'warning');
         setFileLoading(false);
         return;
       }
@@ -261,7 +261,7 @@ REGLAS GENERALES:
       onApply(parsed);
       setManualJson('');
     } catch {
-      alert('JSON Inválido. Asegúrate de copiarlo correctamente.');
+      showToast('JSON Inválido. Asegúrate de copiarlo correctamente.', 'error');
     }
   };
 

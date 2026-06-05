@@ -2,11 +2,12 @@ import { Outlet, useLocation } from 'react-router-dom';
 import Header from '../Header';
 import Footer from '../Footer';
 import SpaceCopilot from '../SpaceCopilot';
+import ScrollToTop from '../ScrollToTop';
 import CookieBanner from '../CookieBanner';
 
 export default function MainLayout() {
   const location = useLocation();
-  const hidecopilot = ['/login', '/admin'].some(r => location.pathname.startsWith(r));
+  const hideCopilot = ['/login', '/admin'].some(r => location.pathname.startsWith(r));
   const hideFooter = ['/login', '/admin', '/tripticos'].some(r => location.pathname.startsWith(r));
 
   return (
@@ -17,14 +18,15 @@ export default function MainLayout() {
         <div className="absolute -bottom-[20%] left-[10%] h-[500px] w-[500px] rounded-full bg-tesseract-600/[0.04] blur-[100px]" />
       </div>
 
-      {!hidecopilot && <Header />}
+      {!hideCopilot && <Header />}
 
       <main className="relative z-10">
         <Outlet />
       </main>
 
       {!hideFooter && <Footer />}
-      {!hidecopilot && <SpaceCopilot />}
+      {!hideCopilot && <SpaceCopilot />}
+      <ScrollToTop />
       <CookieBanner />
     </div>
   );

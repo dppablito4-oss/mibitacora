@@ -228,7 +228,8 @@ export default function useTripticoState() {
       } else if (typeof targetJson.reply === 'string') {
         try {
           targetJson = JSON.parse(targetJson.reply);
-        } catch {
+        } catch (e) {
+          logger.warn('Error parsing reply JSON in loadFromJson:', e);
           // ignorar
         }
       }

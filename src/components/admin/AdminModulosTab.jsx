@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { updateSiteConfig } from '../../config/supabaseClient';
+import { useToast } from '../../context/ToastContext';
 import {
   Plus,
   Trash2,
@@ -59,6 +60,7 @@ const ICON_MAP = {
 };
 
 export default function AdminModulosTab({ config, onSaved }) {
+  const { showToast } = useToast();
   const [modules, setModules] = useState(config?.modules || []);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -146,7 +148,7 @@ export default function AdminModulosTab({ config, onSaved }) {
       setTimeout(() => setSaved(false), 3000);
       if (onSaved) onSaved();
     } catch (err) {
-      alert('Error al guardar: ' + err.message);
+      showToast('Error al guardar: ' + err.message, 'error');
     } finally {
       setSaving(false);
     }

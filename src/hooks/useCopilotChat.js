@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../config/supabaseClient';
+import { useToast } from '../context/ToastContext';
 import logger from '../utils/logger';
 
 export function useCopilotChat({ user, isOpen, signInAnonymously, isAdmin }) {
+  const { showToast } = useToast();
   const [activeQuote, setActiveQuote] = useState(null);
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -166,7 +168,7 @@ REGLA CRÍTICA: Responde SIEMPRE con este objeto JSON exacto:
 
     } catch (err) {
       logger.error('Error iniciando cotización:', err);
-      alert(err.message);
+      showToast(err.message, 'error');
     } finally {
       setLoading(false);
     }
@@ -262,7 +264,7 @@ Misión: Clasificar la solicitud de ${activeQuote.nombre_cliente} en una de dos 
 
     } catch (err) {
       logger.error('Error subiendo archivo:', err);
-      alert('Error subiendo archivo: ' + err.message);
+      showToast('Error subiendo archivo: ' + err.message, 'error');
     } finally {
       setUploading(false);
     }

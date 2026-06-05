@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { updateSiteConfig } from '../../config/supabaseClient';
+import { useToast } from '../../context/ToastContext';
 import { Megaphone, Save, Check, Eye, EyeOff } from 'lucide-react';
 
 const TIPOS = [
@@ -10,6 +11,7 @@ const TIPOS = [
 ];
 
 export default function AdminAvisosTab({ config, onSaved }) {
+  const { showToast } = useToast();
   const [aviso, setAviso] = useState(config?.aviso || {
     activo: false,
     texto: '',
@@ -32,7 +34,7 @@ export default function AdminAvisosTab({ config, onSaved }) {
       setTimeout(() => setSaved(false), 3000);
       if (onSaved) onSaved();
     } catch (err) {
-      alert('Error al guardar: ' + err.message);
+      showToast('Error al guardar: ' + err.message, 'error');
     } finally {
       setSaving(false);
     }

@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { updateSiteConfig } from '../../config/supabaseClient';
+import { useToast } from '../../context/ToastContext';
 import { Heart, Plus, Trash2, Save, Check, GripVertical } from 'lucide-react';
 
 export default function AdminHobbiesTab({ config, onSaved }) {
+  const { showToast } = useToast();
   const [hobbies, setHobbies] = useState(config?.hobbies || []);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -45,7 +47,7 @@ export default function AdminHobbiesTab({ config, onSaved }) {
       setTimeout(() => setSaved(false), 3000);
       if (onSaved) onSaved();
     } catch (err) {
-      alert('Error al guardar: ' + err.message);
+      showToast('Error al guardar: ' + err.message, 'error');
     } finally {
       setSaving(false);
     }

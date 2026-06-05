@@ -10,7 +10,7 @@ export const PROFILE = {
   whatsapp: '51918165428',
   links: {
     github: 'https://github.com/dppablito4-oss',
-    email: 'wa.me://+51918165428',
+    email: 'https://wa.me/+51918165428',
     expo: 'https://expo.sypablitodp.site',
   },
 };

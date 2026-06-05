@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useEffect, useState } from 'react';
 import { supabase } from '../config/supabaseClient';
+import logger from '../utils/logger';
 
 export default function AdminRoute({ children }) {
   const { user, loading } = useAuth();
@@ -21,7 +22,8 @@ export default function AdminRoute({ children }) {
       } else {
         setIsAdmin(false);
       }
-    } catch {
+    } catch (err) {
+      logger.warn('Error checking admin status:', err);
       setIsAdmin(false);
     } finally {
       setChecking(false);

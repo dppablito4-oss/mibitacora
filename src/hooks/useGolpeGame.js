@@ -151,7 +151,7 @@ export function useGolpeGame(partidaId) {
       if (!isFetchingRef.current) {
         fetchGameState();
       }
-    }, 3000);
+    }, 15000);
 
     return () => {
       active = false;
