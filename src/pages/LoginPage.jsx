@@ -4,14 +4,16 @@ import { Navigate, Link } from 'react-router-dom';
 import { Sparkles, Mail, Lock, ArrowRight, Eye, EyeOff } from 'lucide-react';
 
 export default function LoginPage() {
-  const { user, signIn } = useAuth();
+  const { user, userRole, signIn } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  if (user) return <Navigate to="/admin" replace />;
+  const isAdmin = userRole === 'superadmin' || userRole === 'admin';
+
+  if (user && isAdmin) return <Navigate to="/admin" replace />;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -49,6 +51,12 @@ export default function LoginPage() {
           {error && (
             <div className="mb-6 rounded-xl bg-red-500/10 border border-red-500/20 px-4 py-3 text-xs text-red-400">
               {error}
+            </div>
+          )}
+
+          {user && (
+            <div className="mb-6 rounded-xl bg-amber-500/10 border border-amber-500/20 px-4 py-3 text-xs text-amber-400">
+              Sesión activa: <span className="font-semibold">{user.email}</span> (sin permisos de administrador). Inicia sesión con otra cuenta.
             </div>
           )}
 
