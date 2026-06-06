@@ -8,7 +8,7 @@ import CookieBanner from '../CookieBanner';
 export default function MainLayout() {
   const location = useLocation();
   const isFullscreenPage = ['/login', '/admin'].some(r => location.pathname.startsWith(r));
-  const hideFooter = ['/login', '/admin', '/tripticos'].some(r => location.pathname.startsWith(r));
+  const hideFooter = ['/login', '/admin', '/tripticos', '/scanner'].some(r => location.pathname.startsWith(r));
 
   return (
     <div className="relative min-h-screen bg-[#030712]">
