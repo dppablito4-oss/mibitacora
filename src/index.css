@@ -19,6 +19,11 @@
   --color-tesseract-800: #155e75;
   --color-tesseract-900: #164e63;
   --color-tesseract-950: #083344;
+
+  /* Accent tokens — usados en Login, Admin, botones CTA */
+  --color-accent-400: #22d3ee;
+  --color-accent-500: #06b6d4;
+  --color-accent-600: #0891b2;
 }
 
 /* ── Base ──────────────────────────────────────────────────── */

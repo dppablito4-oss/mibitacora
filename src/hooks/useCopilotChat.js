@@ -215,7 +215,7 @@ Misión: Clasificar la solicitud de ${activeQuote.nombre_cliente} en una de dos 
 
     } catch (err) {
       logger.error('Error enviando mensaje:', err);
-      setMessages(prev => [...prev, { id: 'err', role: 'asistente_ai', mensaje: `❌ Error: ${err.message}` }]);
+      setMessages(prev => [...prev, { id: 'err-' + Date.now(), enviado_por: 'asistente_ai', mensaje: `❌ Error: ${err.message}` }]);
     } finally {
       setLoading(false);
     }

@@ -13,15 +13,12 @@
     "@supabase/supabase-js": "^2.106.0",
     "framer-motion": "^12.40.0",
     "html-to-image": "^1.11.13",
-    "html2pdf.js": "^0.14.0",
     "jspdf": "^4.2.1",
     "katex": "^0.17.0",
     "lucide-react": "^1.16.0",
     "qr-code-styling": "^1.9.2",
-    "qrcode.react": "^4.2.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
-    "react-rnd": "^10.5.3",
     "react-router-dom": "^7.16.0"
   },
   "devDependencies": {

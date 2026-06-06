@@ -59,7 +59,13 @@ export default function ScannerPage() {
       window.onOpenCvReady();
     });
 
-    return () => {};
+    return () => {
+      // Cleanup globals para evitar estado zombie al navegar fuera
+      delete window.onOpenCvReady;
+      delete window._opencvReady;
+      if (window.App?.destroy) window.App.destroy();
+      delete window.App;
+    };
   }, []);
 
   return (

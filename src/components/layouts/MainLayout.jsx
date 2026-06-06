@@ -7,7 +7,7 @@ import CookieBanner from '../CookieBanner';
 
 export default function MainLayout() {
   const location = useLocation();
-  const hideCopilot = ['/login', '/admin'].some(r => location.pathname.startsWith(r));
+  const isFullscreenPage = ['/login', '/admin'].some(r => location.pathname.startsWith(r));
   const hideFooter = ['/login', '/admin', '/tripticos'].some(r => location.pathname.startsWith(r));
 
   return (
@@ -18,14 +18,14 @@ export default function MainLayout() {
         <div className="absolute -bottom-[20%] left-[10%] h-[500px] w-[500px] rounded-full bg-tesseract-600/[0.04] blur-[100px]" />
       </div>
 
-      {!hideCopilot && <Header />}
+      {!isFullscreenPage && <Header />}
 
       <main className="relative z-10">
         <Outlet />
       </main>
 
       {!hideFooter && <Footer />}
-      {!hideCopilot && <SpaceCopilot />}
+      {!isFullscreenPage && <SpaceCopilot />}
       <ScrollToTop />
       <CookieBanner />
     </div>

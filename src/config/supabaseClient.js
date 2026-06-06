@@ -4,18 +4,23 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error(
-    '[Supabase] VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY son requeridos. ' +
-    'Copia .env.example → .env y configura tus credenciales.'
+  console.warn(
+    '[Supabase] VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY no están configurados. ' +
+    'Copia .env.example → .env y configura tus credenciales. ' +
+    'La app funcionará en modo offline con datos de fallback.'
   );
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-  },
-});
+export const supabase = createClient(
+  supabaseUrl || 'https://placeholder.supabase.co',
+  supabaseAnonKey || 'placeholder-key',
+  {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+    },
+  }
+);
 
 /**
  * Llama a la Edge Function `deepseek-router` de forma segura.

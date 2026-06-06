@@ -24,7 +24,13 @@ export default defineConfig({
             src: '/favicon.svg',
             sizes: '512x512',
             type: 'image/svg+xml',
-            purpose: 'any maskable'
+            purpose: 'any'
+          },
+          {
+            src: '/favicon.svg',
+            sizes: '512x512',
+            type: 'image/svg+xml',
+            purpose: 'maskable'
           }
         ]
       },
@@ -32,8 +38,5 @@ export default defineConfig({
         enabled: true
       }
     })
-  ],
-  optimizeDeps: {
-    include: ['react-rnd']
-  }
+  ]
 })

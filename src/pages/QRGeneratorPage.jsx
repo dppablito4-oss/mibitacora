@@ -1,23 +1,34 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import QRCodeStyling from 'qr-code-styling';
 import { QrCode, Download, Image as ImageIcon } from 'lucide-react';
 import logger from '../utils/logger';
 
 export default function QrGeneratorPage() {
-  const [qrCode] = useState(new QRCodeStyling({
-    width: 420,
-    height: 420,
-    type: "svg",
-    imageOptions: {
-      crossOrigin: "anonymous",
-      margin: 6
-    }
-  }));
+  const qrCodeRef = useRef(null);
+  if (!qrCodeRef.current) {
+    qrCodeRef.current = new QRCodeStyling({
+      width: 420,
+      height: 420,
+      type: "svg",
+      imageOptions: {
+        crossOrigin: "anonymous",
+        margin: 6
+      }
+    });
+  }
+  const qrCode = qrCodeRef.current;
 
   const qrRef = useRef(null);
 
   const loadSaved = (key, defaultVal) => {
     try {
+      // Leer del objeto unificado primero
+      const unified = localStorage.getItem('qr_config');
+      if (unified) {
+        const parsed = JSON.parse(unified);
+        if (parsed[key] !== undefined) return parsed[key];
+      }
+      // Fallback: keys individuales antiguas
       const saved = localStorage.getItem('qr_config_' + key);
       if (saved !== null) return JSON.parse(saved);
     } catch (e) {
@@ -47,20 +58,17 @@ export default function QrGeneratorPage() {
   const [logoSize, setLogoSize] = useState(() => loadSaved('logoSize', 0.4));
   const [logoMargin, setLogoMargin] = useState(() => loadSaved('logoMargin', 6));
 
-  // Guardar en LocalStorage cada vez que cambian
+  // Guardar en LocalStorage con debounce (evita 12 writes síncronos por keystroke)
   useEffect(() => {
-    localStorage.setItem('qr_config_payloadType', JSON.stringify(payloadType));
-    localStorage.setItem('qr_config_text', JSON.stringify(text));
-    localStorage.setItem('qr_config_waNumber', JSON.stringify(waNumber));
-    localStorage.setItem('qr_config_waMessage', JSON.stringify(waMessage));
-    localStorage.setItem('qr_config_dotsShape', JSON.stringify(dotsShape));
-    localStorage.setItem('qr_config_cornersShape', JSON.stringify(cornersShape));
-    localStorage.setItem('qr_config_dotsColor', JSON.stringify(dotsColor));
-    localStorage.setItem('qr_config_bgColor', JSON.stringify(bgColor));
-    localStorage.setItem('qr_config_transparent', JSON.stringify(transparent));
-    localStorage.setItem('qr_config_fileName', JSON.stringify(fileName));
-    localStorage.setItem('qr_config_logoSize', JSON.stringify(logoSize));
-    localStorage.setItem('qr_config_logoMargin', JSON.stringify(logoMargin));
+    const timer = setTimeout(() => {
+      try {
+        localStorage.setItem('qr_config', JSON.stringify({
+          payloadType, text, waNumber, waMessage, dotsShape, cornersShape,
+          dotsColor, bgColor, transparent, fileName, logoSize, logoMargin
+        }));
+      } catch { /* localStorage full — silently fail */ }
+    }, 400);
+    return () => clearTimeout(timer);
   }, [
     payloadType, text, waNumber, waMessage, dotsShape, cornersShape, 
     dotsColor, bgColor, transparent, fileName, logoSize, logoMargin
