@@ -42,6 +42,12 @@ export default function CustomCursor({ theme }) {
     const handleMouseMove = (e) => {
       positionRef.current.targetX = e.clientX;
       positionRef.current.targetY = e.clientY;
+      
+      // La primera vez, inicializar la posición interpolada instantáneamente
+      if (positionRef.current.x === 0 && positionRef.current.y === 0) {
+        positionRef.current.x = e.clientX;
+        positionRef.current.y = e.clientY;
+      }
     };
     window.addEventListener('mousemove', handleMouseMove);
 
@@ -77,7 +83,7 @@ export default function CustomCursor({ theme }) {
 
     // Efectos de click
     const handleMouseDown = () => {
-      const { x, y } = positionRef.current;
+      const { targetX, targetY } = positionRef.current;
       
       // Reproducir sonido repulsor/click
       if (cursorType === 'arc') {
@@ -86,10 +92,10 @@ export default function CustomCursor({ theme }) {
         audioEffects.playClick();
       }
 
-      // Crear onda expansiva
+      // Crear onda expansiva en el punto exacto del click
       ripplesRef.current.push({
-        x,
-        y,
+        x: targetX,
+        y: targetY,
         radius: 5,
         maxRadius: 40,
         alpha: 0.8,
@@ -102,8 +108,8 @@ export default function CustomCursor({ theme }) {
         const angle = Math.random() * Math.PI * 2;
         const speed = Math.random() * 4 + 2;
         particlesRef.current.push({
-          x,
-          y,
+          x: targetX,
+          y: targetY,
           vx: Math.cos(angle) * speed,
           vy: Math.sin(angle) * speed,
           radius: Math.random() * 2 + 1,
@@ -125,13 +131,15 @@ export default function CustomCursor({ theme }) {
     const update = () => {
       ctx.clearRect(0, 0, width, height);
 
-      // 1. Suavizar movimiento del cursor (Lerp)
+      // 1. Suavizar movimiento del cursor (Lerp) para la estela/glow secundario
       const pos = positionRef.current;
       pos.x += (pos.targetX - pos.x) * 0.15;
       pos.y += (pos.targetY - pos.y) * 0.15;
 
-      const cursorX = pos.x;
-      const cursorY = pos.y;
+      const mouseX = pos.targetX;
+      const mouseY = pos.targetY;
+      const lerpX = pos.x;
+      const lerpY = pos.y;
 
       // Rotar elementos del cursor
       angleRotation += 0.02;
@@ -178,25 +186,25 @@ export default function CustomCursor({ theme }) {
         // --- REACTOR ARC DE IRON MAN ---
         const r = 16 * sizeMultiplier;
         
-        // Brillo de fondo
-        const glow = ctx.createRadialGradient(cursorX, cursorY, 0, cursorX, cursorY, r * 2.5);
+        // Brillo de fondo (sigue con retraso suave para dar sensación de energía flotante)
+        const glow = ctx.createRadialGradient(lerpX, lerpY, 0, lerpX, lerpY, r * 2.5);
         glow.addColorStop(0, `${accentColor}40`);
         glow.addColorStop(1, 'transparent');
         ctx.fillStyle = glow;
         ctx.beginPath();
-        ctx.arc(cursorX, cursorY, r * 2.5, 0, Math.PI * 2);
+        ctx.arc(lerpX, lerpY, r * 2.5, 0, Math.PI * 2);
         ctx.fill();
 
-        // Anillo exterior segmentado
+        // Anillo exterior segmentado (posición del mouse instantánea)
         ctx.strokeStyle = accentColor;
         ctx.lineWidth = 2;
         ctx.beginPath();
-        ctx.arc(cursorX, cursorY, r, 0, Math.PI * 2);
+        ctx.arc(mouseX, mouseY, r, 0, Math.PI * 2);
         ctx.stroke();
 
-        // Líneas internas del reactor
+        // Líneas internas del reactor (posición del mouse instantánea)
         ctx.save();
-        ctx.translate(cursorX, cursorY);
+        ctx.translate(mouseX, mouseY);
         ctx.rotate(angleRotation);
         ctx.lineWidth = 1.5;
         for (let i = 0; i < 10; i++) {
@@ -208,12 +216,12 @@ export default function CustomCursor({ theme }) {
         }
         ctx.restore();
 
-        // Núcleo central brillante
+        // Núcleo central brillante (posición del mouse instantánea para click exacto)
         ctx.fillStyle = '#ffffff';
         ctx.shadowColor = accentColor;
         ctx.shadowBlur = 8;
         ctx.beginPath();
-        ctx.arc(cursorX, cursorY, r / 3, 0, Math.PI * 2);
+        ctx.arc(mouseX, mouseY, r / 3, 0, Math.PI * 2);
         ctx.fill();
         ctx.shadowBlur = 0; // Resetear sombra
 
@@ -221,30 +229,40 @@ export default function CustomCursor({ theme }) {
         // --- S.H.I.E.L.D. TARGET HUD ---
         const r = 18 * sizeMultiplier;
 
+        // Anillo exterior discontinuo que sigue con lag (estela de escaneo/fijación)
+        ctx.strokeStyle = `${accentColor}70`;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.setLineDash([4, 4]);
+        ctx.arc(lerpX, lerpY, r + 4, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.setLineDash([]); // Reset
+
+        // Mira central instantánea
         ctx.strokeStyle = accentColor;
         ctx.lineWidth = 1.2;
 
-        // Círculo central con mira
         ctx.beginPath();
-        ctx.arc(cursorX, cursorY, r, 0, Math.PI * 2);
+        ctx.arc(mouseX, mouseY, r, 0, Math.PI * 2);
         ctx.stroke();
 
         // Líneas de mira en cruz
         ctx.beginPath();
-        ctx.moveTo(cursorX - r - 4, cursorY); ctx.lineTo(cursorX - r + 2, cursorY);
-        ctx.moveTo(cursorX + r - 2, cursorY); ctx.lineTo(cursorX + r + 4, cursorY);
-        ctx.moveTo(cursorX, cursorY - r - 4); ctx.lineTo(cursorX, cursorY - r + 2);
-        ctx.moveTo(cursorX, cursorY + r - 2); ctx.lineTo(cursorX, cursorY + r + 4);
+        ctx.moveTo(mouseX - r - 4, mouseY); ctx.lineTo(mouseX - r + 2, mouseY);
+        ctx.moveTo(mouseX + r - 2, mouseY); ctx.lineTo(mouseX + r + 4, mouseY);
+        ctx.moveTo(mouseX, mouseY - r - 4); ctx.lineTo(mouseX, mouseY - r + 2);
+        ctx.moveTo(mouseX, mouseY + r - 2); ctx.lineTo(mouseX, mouseY + r + 4);
         ctx.stroke();
 
-        // Cuadrado pequeño en el centro
+        // Cuadrado pequeño en el centro exacto
         ctx.fillStyle = accentColor;
-        ctx.fillRect(cursorX - 1.5, cursorY - 1.5, 3, 3);
+        ctx.fillRect(mouseX - 1.5, mouseY - 1.5, 3, 3);
 
       } else if (cursorType === 'mjolnir') {
         // --- MJOLNIR (MARTILLO DE THOR) ---
+        // Dibujamos el martillo instantáneamente
         ctx.save();
-        ctx.translate(cursorX, cursorY);
+        ctx.translate(mouseX, mouseY);
         ctx.rotate(Math.sin(angleRotation * 0.5) * 0.15); // Balanceo leve al moverse
         
         ctx.strokeStyle = accentColor;
@@ -277,6 +295,17 @@ export default function CustomCursor({ theme }) {
         ctx.stroke();
 
         ctx.restore();
+
+        // Estela eléctrica (pequeño rayo zig-zag que conecta el martillo con la posición retrasada lerpX/lerpY)
+        ctx.strokeStyle = '#38bdf8';
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.moveTo(mouseX, mouseY);
+        const midX = (mouseX + lerpX) / 2 + (Math.random() - 0.5) * 8;
+        const midY = (mouseY + lerpY) / 2 + (Math.random() - 0.5) * 8;
+        ctx.lineTo(midX, midY);
+        ctx.lineTo(lerpX, lerpY);
+        ctx.stroke();
       }
 
       animationFrameId = requestAnimationFrame(update);

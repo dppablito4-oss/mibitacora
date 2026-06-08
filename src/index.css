@@ -446,3 +446,9 @@
 :root.light-theme p {
   color: #334155 !important;
 }
+
+/* ── Custom Cursor Styles ────────────────────────────────────── */
+html.custom-cursor-active,
+html.custom-cursor-active * {
+  cursor: none !important;
+}
