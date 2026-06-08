@@ -7,22 +7,22 @@ export default function CustomCursor({ theme }) {
   
   const canvasRef = useRef(null);
   const positionRef = useRef({ x: 0, y: 0, targetX: 0, targetY: 0 });
-  const [isVisible, setIsVisible] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const particlesRef = useRef([]);
   const ripplesRef = useRef([]);
 
+  // Determinar visibilidad de forma síncrona en el render
+  const isMobile = typeof window !== 'undefined' && (window.matchMedia('(pointer: coarse)').matches || window.innerWidth < 768);
+  const showCanvas = !isMobile && cursorType !== 'none';
+
   useEffect(() => {
-    // Desactivar en pantallas táctiles / móviles
-    const isMobile = window.matchMedia('(pointer: coarse)').matches || window.innerWidth < 768;
-    if (isMobile || cursorType === 'none') {
-      setIsVisible(false);
+    // Si no se debe mostrar el cursor personalizado, remover la clase y salir
+    if (!showCanvas) {
+      document.documentElement.classList.remove('custom-cursor-active');
       return;
     }
 
-    setIsVisible(true);
-    
-    // Forzar cursor: none en html
+    // Agregar la clase para ocultar el cursor del sistema
     document.documentElement.classList.add('custom-cursor-active');
 
     const canvas = canvasRef.current;
@@ -322,14 +322,12 @@ export default function CustomCursor({ theme }) {
       document.documentElement.classList.remove('custom-cursor-active');
       cancelAnimationFrame(animationFrameId);
     };
-  }, [cursorType, theme?.accent_color, isHovered]);
-
-  if (!isVisible) return null;
+  }, [showCanvas, cursorType, theme?.accent_color, isHovered]);
 
   return (
     <canvas
       ref={canvasRef}
-      className="fixed inset-0 w-full h-full z-50 pointer-events-none block"
+      className={`fixed inset-0 w-full h-full z-50 pointer-events-none ${showCanvas ? 'block' : 'hidden'}`}
     />
   );
 }
