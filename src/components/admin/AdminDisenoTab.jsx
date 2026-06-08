@@ -82,6 +82,8 @@ export default function AdminDisenoTab({ config, onSaved }) {
   const [cardColor, setCardColor] = useState(config?.theme?.card_color || '#0a0f25');
   const [accentColor, setAccentColor] = useState(config?.theme?.accent_color || '#06b6d4');
   const [particlesEnabled, setParticlesEnabled] = useState(config?.theme?.particles !== false);
+  const [cursorType, setCursorType] = useState(config?.theme?.cursor_type || 'arc');
+  const [soundEnabled, setSoundEnabled] = useState(config?.theme?.sound_enabled !== false);
   const [saving, setSaving] = useState(false);
 
   // Mover sección arriba
@@ -118,6 +120,7 @@ export default function AdminDisenoTab({ config, onSaved }) {
     setBgColor(preset.bg_color);
     setCardColor(preset.card_color);
     setAccentColor(preset.accent_color);
+    if (preset.cursor_type) setCursorType(preset.cursor_type);
     showToast(`Preset "${preset.name}" seleccionado`, 'info');
   };
 
@@ -125,8 +128,6 @@ export default function AdminDisenoTab({ config, onSaved }) {
   const handleSaveDesign = async () => {
     setSaving(true);
     try {
-      // Filtrar el orden de las secciones según visibilidad
-      // (Las no visibles se guardan al final o se omiten en la renderización)
       const finalSectionOrder = sectionOrder.filter(id => visibleSections[id]);
       
       const themePayload = {
@@ -134,7 +135,9 @@ export default function AdminDisenoTab({ config, onSaved }) {
         bg_color: bgColor,
         card_color: cardColor,
         accent_color: accentColor,
-        particles: particlesEnabled
+        particles: particlesEnabled,
+        cursor_type: cursorType,
+        sound_enabled: soundEnabled
       };
 
       await updateSiteConfig({
@@ -311,29 +314,56 @@ export default function AdminDisenoTab({ config, onSaved }) {
           </div>
         </div>
 
-        {/* Toggles */}
-        <div className="flex flex-wrap gap-6 pt-4 border-t border-zinc-800/60">
-          <label className="flex items-center gap-3 cursor-pointer">
-            <input 
-              type="checkbox" 
-              checked={themeMode === 'light'} 
-              onChange={e => setThemeMode(e.target.checked ? 'light' : 'dark')}
-              className="w-4.5 h-4.5 rounded border-zinc-800 bg-zinc-950 text-accent-500 focus:ring-0"
-            />
-            <span className="text-sm font-medium">Activar Modo Claro</span>
-          </label>
+        {/* Toggles y Personalizaciones Adicionales */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-zinc-800/60">
+          <div className="space-y-4">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400">Efectos Especiales</label>
+            <div className="space-y-3">
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input 
+                  type="checkbox" 
+                  checked={themeMode === 'light'} 
+                  onChange={e => setThemeMode(e.target.checked ? 'light' : 'dark')}
+                  className="w-4.5 h-4.5 rounded border-zinc-800 bg-zinc-950 text-accent-500 focus:ring-0"
+                />
+                <span className="text-sm font-medium">Activar Modo Claro</span>
+              </label>
 
-          <label className="flex items-center gap-3 cursor-pointer">
-            <input 
-              type="checkbox" 
-              checked={particlesEnabled} 
-              onChange={e => setParticlesEnabled(e.target.checked)}
-              className="w-4.5 h-4.5 rounded border-zinc-800 bg-zinc-950 text-accent-500 focus:ring-0"
-            />
-            <span className="text-sm font-medium flex items-center gap-1.5">
-              Fondo de Estrellas Interactivas (Canvas Particles)
-            </span>
-          </label>
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input 
+                  type="checkbox" 
+                  checked={particlesEnabled} 
+                  onChange={e => setParticlesEnabled(e.target.checked)}
+                  className="w-4.5 h-4.5 rounded border-zinc-800 bg-zinc-950 text-accent-500 focus:ring-0"
+                />
+                <span className="text-sm font-medium">Fondo de Estrellas Interactivas (Canvas)</span>
+              </label>
+
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input 
+                  type="checkbox" 
+                  checked={soundEnabled} 
+                  onChange={e => setSoundEnabled(e.target.checked)}
+                  className="w-4.5 h-4.5 rounded border-zinc-800 bg-zinc-950 text-accent-500 focus:ring-0"
+                />
+                <span className="text-sm font-medium">Sonidos de Interfaz (Marvel/S.H.I.E.L.D.)</span>
+              </label>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400">Cursor de la Web (Estilo Marvel)</label>
+            <select 
+              value={cursorType} 
+              onChange={e => setCursorType(e.target.value)}
+              className="w-full rounded-xl border border-zinc-800 bg-zinc-950 py-3 px-4 text-sm text-zinc-200 focus:border-accent-500/60 focus:outline-none focus:ring-1 focus:ring-accent-500/30 transition-all"
+            >
+              <option value="none">Cursor por Defecto (Sistema)</option>
+              <option value="arc">Reactor Arc (Iron Man)</option>
+              <option value="shield">Retícula HUD (S.H.I.E.L.D.)</option>
+              <option value="mjolnir">Mjolnir (Thor's Hammer)</option>
+            </select>
+          </div>
         </div>
       </div>
 

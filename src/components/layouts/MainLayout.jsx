@@ -6,6 +6,7 @@ import SpaceCopilot from '../SpaceCopilot';
 import ScrollToTop from '../ScrollToTop';
 import CookieBanner from '../CookieBanner';
 import SpaceBackground from '../SpaceBackground';
+import CustomCursor from '../CustomCursor';
 import { useSiteConfig } from '../../lib/useSiteConfig';
 
 export default function MainLayout() {
@@ -27,6 +28,9 @@ export default function MainLayout() {
     <div className="relative min-h-screen bg-dark transition-colors duration-300">
       {/* Fondo espacial interactivo */}
       <SpaceBackground theme={theme} />
+
+      {/* Cursor personalizado Marvel/S.H.I.E.L.D. */}
+      <CustomCursor theme={theme} />
 
       {!isFullscreenPage && <Header />}
 

@@ -103,7 +103,7 @@ VALUES
 ),
 (
   'Curriculum Vitae (CV)',
-  'Diseño y redacción de CVs de alto impacto, modernos y optimizados para entrevistas.',
+  'Diseño y redacción de CVs de alto impacto, modernos y optimizados para interviews.',
   4
 )
 ON CONFLICT DO NOTHING;
@@ -118,7 +118,9 @@ ADD COLUMN IF NOT EXISTS theme JSONB NOT NULL DEFAULT '{
   "card_color": "#0a0f25",
   "accent_color": "#06b6d4",
   "glow_color": "rgba(6, 182, 212, 0.15)",
-  "particles": true
+  "particles": true,
+  "cursor_type": "arc",
+  "sound_enabled": true
 }'::jsonb;
 
 -- Actualizar la fila única existente
@@ -131,6 +133,8 @@ SET
     "card_color": "#0a0f25",
     "accent_color": "#06b6d4",
     "glow_color": "rgba(6, 182, 212, 0.15)",
-    "particles": true
+    "particles": true,
+    "cursor_type": "arc",
+    "sound_enabled": true
   }'::jsonb)
 WHERE id = 'main';

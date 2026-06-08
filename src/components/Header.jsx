@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Hexagon, List, X } from 'lucide-react';
+import { Hexagon, List, X, Volume2, VolumeX } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { audioEffects } from '../utils/audioEffects';
 
 export default function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isMuted, setIsMuted] = useState(audioEffects.isMuted());
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -13,6 +15,11 @@ export default function Header() {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  const toggleMute = () => {
+    const newMuted = audioEffects.toggleMute();
+    setIsMuted(newMuted);
+  };
 
   const closeMenu = () => setMobileMenuOpen(false);
 
@@ -73,6 +80,14 @@ export default function Header() {
                 Servicios
               </a>
 
+              <button 
+                onClick={toggleMute}
+                title={isMuted ? 'Activar Sonidos' : 'Silenciar'}
+                className="p-2 rounded-lg border border-tesseract-500/20 text-tesseract-400 hover:bg-tesseract-500/10 hover:text-white transition-colors cursor-pointer flex items-center justify-center shrink-0 self-center"
+              >
+                {isMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
+              </button>
+
               <a href="#contacto" onClick={(e) => handleAnchorClick(e, 'contacto')} className="rounded-sm border border-tesseract-300/50 bg-tesseract-500 px-5 py-2.5 text-sm font-bold uppercase tracking-wider text-white shadow-[0_0_15px_rgba(6,182,212,0.5)] transition-all hover:bg-tesseract-600">
                 Contactar Enlace
               </a>
@@ -109,6 +124,16 @@ export default function Header() {
           <a href="#servicios" onClick={(e) => handleAnchorClick(e, 'servicios')} className="block rounded-md border border-transparent px-3 py-2 text-base font-medium text-slate-300 hover:border-tesseract-500/30 hover:bg-tesseract-500/10 hover:text-tesseract-300">
             Servicios
           </a>
+
+          <div className="flex items-center justify-between px-3 py-2 border-t border-tesseract-500/10 mt-2">
+            <span className="text-sm font-medium text-slate-400">Sonido Interfaz</span>
+            <button 
+              onClick={toggleMute}
+              className="p-2 rounded-lg border border-tesseract-500/20 text-tesseract-400 hover:bg-tesseract-500/10 transition-colors"
+            >
+              {isMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
+            </button>
+          </div>
 
           <a href="#contacto" onClick={(e) => handleAnchorClick(e, 'contacto')} className="block rounded-md border border-transparent px-3 py-2 text-base font-medium text-tesseract-500 hover:border-tesseract-500/30 hover:bg-tesseract-500/10">
             Contactar Enlace
