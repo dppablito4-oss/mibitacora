@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { getSiteConfig } from '../config/supabaseClient';
-import { PROFILE } from '../data/siteData';
+import { getSiteConfig, getProjects, getServices } from '../config/supabaseClient';
+import { PROFILE, PROJECTS, SERVICES } from '../data/siteData';
 
 // ── Fallback: datos locales por si Supabase falla o la red tarda ──
 const FALLBACK = {
@@ -64,7 +64,18 @@ const FALLBACK = {
       flashyColor: 'rose',
       active: true
     }
-  ]
+  ],
+  section_order: ['expediente', 'modules', 'arsenal', 'proyectos', 'servicios', 'contacto'],
+  theme: {
+    mode: 'dark',
+    bg_color: '#030712',
+    card_color: '#0a0f25',
+    accent_color: '#06b6d4',
+    glow_color: 'rgba(6, 182, 212, 0.15)',
+    particles: true
+  },
+  projects: [...PROJECTS],
+  services: [...SERVICES]
 };
 
 const CACHE_KEY = 'space_site_config';
@@ -72,14 +83,8 @@ const CACHE_TTL = 5 * 60 * 1000; // 5 minutos
 
 const SiteConfigContext = createContext(null);
 
-/**
- * Provider global de la configuración del sitio.
- * Renderiza hijos INMEDIATAMENTE con datos de fallback/caché,
- * y actualiza cuando Supabase responde en segundo plano.
- */
 export function SiteConfigProvider({ children }) {
   const [config, setConfig] = useState(() => {
-    // Intentar cargar desde caché para renderizar de inmediato
     try {
       const cached = sessionStorage.getItem(CACHE_KEY);
       if (cached) {
@@ -95,7 +100,17 @@ export function SiteConfigProvider({ children }) {
   const loadConfig = useCallback(async (isRefresh = false) => {
     try {
       if (isRefresh) setLoading(true);
-      const data = await getSiteConfig();
+      
+      const [configData, projectsData, servicesData] = await Promise.allSettled([
+        getSiteConfig(),
+        getProjects(),
+        getServices()
+      ]);
+
+      const data = configData.status === 'fulfilled' ? configData.value : null;
+      const dbProjects = projectsData.status === 'fulfilled' ? projectsData.value : null;
+      const dbServices = servicesData.status === 'fulfilled' ? servicesData.value : null;
+
       if (data) {
         const merged = {
           profile: { ...FALLBACK.profile, ...(data.profile || {}) },
@@ -103,6 +118,10 @@ export function SiteConfigProvider({ children }) {
           hobbies: data.hobbies || FALLBACK.hobbies,
           aviso: { ...FALLBACK.aviso, ...(data.aviso || {}) },
           modules: data.modules || FALLBACK.modules,
+          section_order: data.section_order || FALLBACK.section_order,
+          theme: { ...FALLBACK.theme, ...(data.theme || {}) },
+          projects: (dbProjects && dbProjects.length > 0) ? dbProjects : FALLBACK.projects,
+          services: (dbServices && dbServices.length > 0) ? dbServices : FALLBACK.services
         };
         setConfig(merged);
         try {
@@ -116,16 +135,39 @@ export function SiteConfigProvider({ children }) {
     } catch (err) {
       console.warn('[SiteConfig] Error cargando config, usando fallback:', err.message);
       setError(err.message);
-      // Mantener fallback/caché existente — no crashear la app
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadConfig(false);
   }, [loadConfig]);
+
+  // Aplicar variables CSS del tema
+  useEffect(() => {
+    if (config?.theme) {
+      const { mode, bg_color, card_color, accent_color } = config.theme;
+      const root = document.documentElement;
+      
+      const isLight = mode === 'light';
+      if (isLight) {
+        root.classList.add('light-theme');
+      } else {
+        root.classList.remove('light-theme');
+      }
+      
+      if (bg_color) root.style.setProperty('--color-dark', bg_color);
+      if (card_color) root.style.setProperty('--color-card', card_color);
+      if (accent_color) {
+        root.style.setProperty('--color-tesseract-500', accent_color);
+        root.style.setProperty('--color-tesseract-400', accent_color);
+        root.style.setProperty('--color-tesseract-300', accent_color);
+        root.style.setProperty('--color-accent-500', accent_color);
+        root.style.setProperty('--color-accent-400', accent_color);
+      }
+    }
+  }, [config?.theme]);
 
   const refreshConfig = useCallback(() => {
     try { sessionStorage.removeItem(CACHE_KEY); } catch { /* ignore */ }
@@ -138,13 +180,15 @@ export function SiteConfigProvider({ children }) {
     hobbies: config.hobbies,
     aviso: config.aviso,
     modules: config.modules,
+    sectionOrder: config.section_order,
+    theme: config.theme,
+    projects: config.projects,
+    services: config.services,
     loading,
     error,
     refreshConfig,
   };
 
-  // IMPORTANTE: Renderizar hijos SIEMPRE, incluso mientras carga.
-  // La data tiene fallback/caché, así que nunca estará vacía.
   return (
     <SiteConfigContext.Provider value={value}>
       {children}
@@ -152,7 +196,6 @@ export function SiteConfigProvider({ children }) {
   );
 }
 
-// eslint-disable-next-line react-refresh/only-export-components
 export function useSiteConfig() {
   const ctx = useContext(SiteConfigContext);
   if (!ctx) {

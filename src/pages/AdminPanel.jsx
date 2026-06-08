@@ -5,18 +5,24 @@ import { useSiteConfig } from '../lib/useSiteConfig';
 import { useToast } from '../context/ToastContext';
 import logger from '../utils/logger';
 import { Link } from 'react-router-dom';
-import { Plus, Trash2, Edit3, Eye, EyeOff, LogOut, Sparkles, ArrowLeft, Save, User, Heart, Megaphone, FileText, MessageCircle, Layers } from 'lucide-react';
+import { Plus, Trash2, Edit3, Eye, EyeOff, LogOut, Sparkles, ArrowLeft, Save, User, Heart, Megaphone, FileText, MessageCircle, Layers, BarChart3, Palette, FolderGit } from 'lucide-react';
 import ConfirmDialog from '../components/ConfirmDialog';
 import AdminProfileTab from '../components/admin/AdminProfileTab';
 import AdminHobbiesTab from '../components/admin/AdminHobbiesTab';
 import AdminAvisosTab from '../components/admin/AdminAvisosTab';
 import AdminCotizacionesTab from '../components/admin/AdminCotizacionesTab';
 import AdminModulosTab from '../components/admin/AdminModulosTab';
+import AdminDisenoTab from '../components/admin/AdminDisenoTab';
+import AdminSeccionesTab from '../components/admin/AdminSeccionesTab';
+import AdminAnalyticsTab from '../components/admin/AdminAnalyticsTab';
 
 const TABS = [
+  { id: 'analytics', label: 'Analíticas', icon: BarChart3, emoji: '📊' },
   { id: 'cotizaciones', label: 'Cotizaciones', icon: MessageCircle, emoji: '💬' },
   { id: 'bitacora', label: 'Bitácora', icon: FileText, emoji: '📝' },
+  { id: 'secciones', label: 'Secciones CMS', icon: FolderGit, emoji: '📂' },
   { id: 'modulos', label: 'Módulos', icon: Layers, emoji: '🧩' },
+  { id: 'diseno', label: 'Diseño Web', icon: Palette, emoji: '🎨' },
   { id: 'perfil', label: 'Perfil', icon: User, emoji: '👤' },
   { id: 'hobbies', label: 'Hobbies', icon: Heart, emoji: '🎯' },
   { id: 'avisos', label: 'Avisos', icon: Megaphone, emoji: '📢' },
@@ -24,9 +30,9 @@ const TABS = [
 
 export default function AdminPanel() {
   const { user, signOut } = useAuth();
-  const { profile, avatarUrl, hobbies, aviso, modules, loading: configLoading, refreshConfig } = useSiteConfig();
+  const { profile, avatarUrl, hobbies, aviso, modules, sectionOrder, theme, loading: configLoading, refreshConfig } = useSiteConfig();
   const { showToast } = useToast();
-  const [activeTab, setActiveTab] = useState('bitacora');
+  const [activeTab, setActiveTab] = useState('analytics');
   const [deletingId, setDeletingId] = useState(null);
 
   // ── Bitácora state ──
@@ -170,7 +176,26 @@ export default function AdminPanel() {
         </div>
       </div>
 
-      <main className={`mx-auto ${activeTab === 'cotizaciones' ? 'max-w-7xl' : 'max-w-6xl'} px-6 py-10`}>
+      <main className={`mx-auto ${activeTab === 'cotizaciones' || activeTab === 'analytics' ? 'max-w-7xl' : 'max-w-6xl'} px-6 py-10`}>
+        {/* ── Tab: Analíticas ── */}
+        {activeTab === 'analytics' && (
+          <AdminAnalyticsTab />
+        )}
+
+        {/* ── Tab: Secciones CMS ── */}
+        {activeTab === 'secciones' && (
+          <AdminSeccionesTab onSaved={refreshConfig} />
+        )}
+
+        {/* ── Tab: Diseño Web ── */}
+        {activeTab === 'diseno' && (
+          <AdminDisenoTab
+            key={configLoading ? 'loading' : 'loaded'}
+            config={{ section_order: sectionOrder, theme }}
+            onSaved={refreshConfig}
+          />
+        )}
+
         {/* ── Tab: Cotizaciones ── */}
         {activeTab === 'cotizaciones' && (
           <AdminCotizacionesTab />

@@ -1,22 +1,32 @@
+import { useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import Header from '../Header';
 import Footer from '../Footer';
 import SpaceCopilot from '../SpaceCopilot';
 import ScrollToTop from '../ScrollToTop';
 import CookieBanner from '../CookieBanner';
+import SpaceBackground from '../SpaceBackground';
+import { useSiteConfig } from '../../lib/useSiteConfig';
 
 export default function MainLayout() {
   const location = useLocation();
+  const { theme } = useSiteConfig();
   const isFullscreenPage = ['/login', '/admin'].some(r => location.pathname.startsWith(r));
   const hideFooter = ['/login', '/admin', '/tripticos', '/scanner'].some(r => location.pathname.startsWith(r));
 
+  useEffect(() => {
+    const isLight = theme?.mode === 'light';
+    if (isLight) {
+      document.documentElement.classList.add('light-theme');
+    } else {
+      document.documentElement.classList.remove('light-theme');
+    }
+  }, [theme?.mode]);
+
   return (
-    <div className="relative min-h-screen bg-[#030712]">
-      {/* Global ambient effects */}
-      <div className="pointer-events-none fixed inset-0 z-0">
-        <div className="absolute -top-[30%] right-0 h-[700px] w-[700px] rounded-full bg-tesseract-500/[0.07] blur-[120px]" />
-        <div className="absolute -bottom-[20%] left-[10%] h-[500px] w-[500px] rounded-full bg-tesseract-600/[0.04] blur-[100px]" />
-      </div>
+    <div className="relative min-h-screen bg-dark transition-colors duration-300">
+      {/* Fondo espacial interactivo */}
+      <SpaceBackground theme={theme} />
 
       {!isFullscreenPage && <Header />}
 

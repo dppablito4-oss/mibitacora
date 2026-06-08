@@ -108,6 +108,30 @@ export async function updateSiteConfig(updates) {
 }
 
 /**
+ * Obtiene todos los proyectos de la base de datos, ordenados.
+ */
+export async function getProjects() {
+  const { data, error } = await supabase
+    .from('proyectos')
+    .select('*')
+    .order('order_index', { ascending: true });
+  if (error) throw error;
+  return data || [];
+}
+
+/**
+ * Obtiene todos los servicios de la base de datos, ordenados.
+ */
+export async function getServices() {
+  const { data, error } = await supabase
+    .from('servicios')
+    .select('*')
+    .order('order_index', { ascending: true });
+  if (error) throw error;
+  return data || [];
+}
+
+/**
  * Sube un avatar a Supabase Storage y retorna la URL pública.
  * @param {File} file — archivo de imagen
  * @returns {Promise<string>} — URL pública del avatar
