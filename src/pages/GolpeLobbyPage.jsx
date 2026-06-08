@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../config/supabaseClient';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
+import ConfirmDialog from '../components/ConfirmDialog';
 import logger from '../utils/logger';
 
 export default function GolpeLobbyPage() {
@@ -17,6 +18,7 @@ export default function GolpeLobbyPage() {
   
   const [loading, setLoading] = useState(false);
   const [checkingActive, setCheckingActive] = useState(true);
+  const [showAbandonConfirm, setShowAbandonConfirm] = useState(false);
 
   // Guardar apodo en localStorage
   const handleApodoChange = (val) => {
@@ -142,10 +144,12 @@ export default function GolpeLobbyPage() {
 
   // Abandonar la partida activa desde el lobby
   const handleAbandonarPartidaActiva = async () => {
+    setShowAbandonConfirm(true);
+  };
+
+  const confirmAbandonar = async () => {
+    setShowAbandonConfirm(false);
     if (!activeGameId) return;
-    if (!confirm('¿Estás seguro de que quieres abandonar tu partida activa actual? Perderás todo el progreso.')) {
-      return;
-    }
 
     setLoading(true);
     try {
@@ -308,6 +312,18 @@ export default function GolpeLobbyPage() {
           </div>
         )}
       </div>
+
+      {/* Confirm Abandonar Dialog */}
+      {showAbandonConfirm && (
+        <ConfirmDialog
+          title="¿Abandonar tu partida activa?"
+          message="Perderás todo el progreso acumulado. Esta acción no se puede deshacer."
+          confirmLabel="Abandonar"
+          cancelLabel="Cancelar"
+          onConfirm={confirmAbandonar}
+          onCancel={() => setShowAbandonConfirm(false)}
+        />
+      )}
     </div>
   );
 }

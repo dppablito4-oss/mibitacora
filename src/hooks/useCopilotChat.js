@@ -223,6 +223,28 @@ Misión: Clasificar la solicitud de ${activeQuote.nombre_cliente} en una de dos 
 
   const uploadFile = async (file) => {
     if (!file || !user || !activeQuote) return;
+
+    // Validación de tipo de archivo
+    const ALLOWED_TYPES = [
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'image/jpeg',
+      'image/png',
+      'image/webp',
+    ];
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      showToast('Tipo de archivo no permitido. Solo se aceptan PDF, DOC, DOCX, JPG, PNG y WebP.', 'error');
+      return;
+    }
+
+    // Validación de tamaño (máx 10 MB)
+    const MAX_SIZE_MB = 10;
+    if (file.size > MAX_SIZE_MB * 1024 * 1024) {
+      showToast(`El archivo excede el límite de ${MAX_SIZE_MB} MB.`, 'error');
+      return;
+    }
+
     setUploading(true);
     try {
       const fileName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;

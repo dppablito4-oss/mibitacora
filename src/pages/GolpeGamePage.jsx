@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useGolpeGame } from '../hooks/useGolpeGame';
 import { useToast } from '../context/ToastContext';
+import ConfirmDialog from '../components/ConfirmDialog';
 import logger from '../utils/logger';
 
 // Utilidad para parsear los nombres de las cartas en iconos y colores de suit
@@ -53,6 +54,7 @@ export default function GolpeGamePage() {
   const [selectedCardId, setSelectedCardId] = useState(null);
   const [isShuffling, setIsShuffling] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
+  const [showAbandonConfirm, setShowAbandonConfirm] = useState(false);
   
   // Trackear rondas para activar la animación de barajado cuando cambie la ronda
   const prevRondaRef = useRef(null);
@@ -235,10 +237,12 @@ export default function GolpeGamePage() {
     }
   };
 
-  const handleAbandonar = async () => {
-    if (!confirm('¿Estás seguro de que quieres abandonar la partida? Perderás todo el progreso.')) {
-      return;
-    }
+  const handleAbandonar = () => {
+    setShowAbandonConfirm(true);
+  };
+
+  const confirmAbandonar = async () => {
+    setShowAbandonConfirm(false);
     try {
       await actions.abandonarPartida();
       showToast('Has abandonado la partida.', 'info');
@@ -705,6 +709,17 @@ export default function GolpeGamePage() {
         </div>
       </section>
 
+      {/* Confirm Abandonar Dialog */}
+      {showAbandonConfirm && (
+        <ConfirmDialog
+          title="¿Abandonar la partida?"
+          message="Perderás todo el progreso acumulado. Esta acción no se puede deshacer."
+          confirmLabel="Abandonar"
+          cancelLabel="Volver al juego"
+          onConfirm={confirmAbandonar}
+          onCancel={() => setShowAbandonConfirm(false)}
+        />
+      )}
     </div>
   );
 }

@@ -10,7 +10,6 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
-dev-dist
 *.local
 
 # Environment variables
@@ -28,13 +27,4 @@ dev-dist
 *.njsproj
 *.sln
 *.sw?
-
-# Supabase temp
 supabase/.temp
-
-# Test files
-test_*.js
-test_*.sql
-
-# Temp folders
-pablitoexpo_temp/

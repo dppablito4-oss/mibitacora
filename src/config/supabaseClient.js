@@ -11,6 +11,14 @@ if (!supabaseUrl || !supabaseAnonKey) {
   );
 }
 
+// En dev, lanzar error inmediato para que el desarrollador lo note
+if (import.meta.env.DEV && (!supabaseUrl || !supabaseAnonKey)) {
+  console.error(
+    '⚠️ [Supabase] Variables de entorno faltantes. La conexión a Supabase fallará. ' +
+    'Configura VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY en tu archivo .env'
+  );
+}
+
 export const supabase = createClient(
   supabaseUrl || 'https://placeholder.supabase.co',
   supabaseAnonKey || 'placeholder-key',

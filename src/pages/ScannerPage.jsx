@@ -91,7 +91,7 @@ export default function ScannerPage() {
           src="https://leans.sypablitodp.site"
           title="Pablito Leans"
           className="w-full h-full border-0"
-          allow="camera; microphone; display-capture"
+          allow="camera"
           onLoad={() => setLoading(false)}
         />
       </div>

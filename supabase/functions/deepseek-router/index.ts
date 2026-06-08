@@ -1,13 +1,24 @@
-import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
-// CORS headers
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+// CORS — solo dominios autorizados
+const ALLOWED_ORIGINS = [
+  "https://sypablitodp.site",
+  "https://www.sypablitodp.site",
+  "http://localhost:5173",
+  "http://localhost:4173",
+];
 
-serve(async (req) => {
+function getCorsHeaders(req: Request) {
+  const origin = req.headers.get("Origin") ?? "";
+  return {
+    "Access-Control-Allow-Origin": ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0],
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  };
+}
+
+Deno.serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
+
   // Manejo de la petición OPTIONS para CORS
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -58,7 +69,7 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    // VULNERABILIDAD IDOR CORREGIDA: Verificar que el usuario sea el dueño de la cotización
+    // Verificar que el usuario sea el dueño de la cotización o un admin
     if (cotizacion_id !== 0 && user) {
       const { data: quote, error: quoteError } = await supabaseClient
         .from('cotizaciones')
@@ -73,13 +84,21 @@ serve(async (req) => {
         );
       }
       
-      // El admin tiene un user.email. Si el authData.user no es admin y no es el dueño, bloquear.
-      // (Asumiendo que el admin tiene un email y el cliente anónimo no)
-      if (quote.cliente_id !== user.id && !user.email) {
-        return new Response(
-          JSON.stringify({ error: "Acceso denegado. No eres el propietario de esta cotización." }),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 403 }
-        );
+      // Si no es el dueño, verificar si es admin consultando la tabla profiles
+      if (quote.cliente_id !== user.id) {
+        const { data: profile } = await supabaseClient
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .single();
+
+        const isAdmin = profile?.role === 'admin' || profile?.role === 'superadmin';
+        if (!isAdmin) {
+          return new Response(
+            JSON.stringify({ error: "Acceso denegado. No eres el propietario de esta cotización." }),
+            { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 403 }
+          );
+        }
       }
     }
 
