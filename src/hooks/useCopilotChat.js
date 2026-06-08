@@ -127,6 +127,14 @@ REGLA CRÍTICA: Responde SIEMPRE con este objeto JSON exacto:
 
   const startQuote = async (clientName) => {
     if (!clientName.trim()) return;
+    
+    // Sanitización: Limitar longitud a 100 caracteres y remover tags HTML
+    const cleanName = clientName.trim().slice(0, 100).replace(/<\/?[^>]+(>|$)/g, "");
+    if (!cleanName) return;
+
+    // Persistir el nombre sanitizado para rellenar en futuras visitas
+    localStorage.setItem('copilot_name', cleanName);
+
     setLoading(true);
     try {
       let currentUser = user;
@@ -146,7 +154,7 @@ REGLA CRÍTICA: Responde SIEMPRE con este objeto JSON exacto:
 
       const { data, error } = await supabase
         .from('cotizaciones')
-        .insert({ cliente_id: currentUser.id, nombre_cliente: clientName.trim() })
+        .insert({ cliente_id: currentUser.id, nombre_cliente: cleanName })
         .select()
         .single();
 
@@ -161,7 +169,7 @@ REGLA CRÍTICA: Responde SIEMPRE con este objeto JSON exacto:
           intent: "NORMAL_CHAT",
           tool_name: null,
           action: "NORMAL_CHAT",
-          message: `Saludos, ${clientName.trim()}.\n\nSoy A.L.P.H.A., una Inteligencia Artificial creada y diseñada por el Sr. Pablo. Hoy es ${fecha}. ¿En qué te puedo ayudar el día de hoy?`,
+          message: `Saludos, ${cleanName}.\n\nSoy A.L.P.H.A., una Inteligencia Artificial creada y diseñada por el Sr. Pablo. Hoy es ${fecha}. ¿En qué te puedo ayudar el día de hoy?`,
           ui_state: { show_uploader: true, panel_active: null }
         })
       });

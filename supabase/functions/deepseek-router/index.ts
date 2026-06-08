@@ -69,6 +69,30 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
+    // Rate Limiting Check para mitigar abuso
+    const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0].trim() || "unknown";
+    const isAnonymous = cotizacion_id === 0 || !user;
+    const maxRequests = isAnonymous ? 10 : 60; // 10 peticiones para anónimos, 60 para autenticados
+    const windowMinutes = 60; // Ventana de 1 hora
+
+    const { data: allowed, error: limitError } = await supabaseClient.rpc('check_rate_limit', {
+      p_ip: clientIp,
+      p_user_id: user?.id || null,
+      p_action: 'deepseek_chat',
+      p_max_requests: maxRequests,
+      p_window_minutes: windowMinutes
+    });
+
+    if (limitError) {
+      console.error("Error al verificar rate-limit:", limitError);
+      // Failsafe: dejamos pasar la petición si falla el rate-limit en la DB
+    } else if (allowed === false) {
+      return new Response(
+        JSON.stringify({ error: "Límite de solicitudes de chat excedido. Por favor intenta más tarde." }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 429 }
+      );
+    }
+
     // Verificar que el usuario sea el dueño de la cotización o un admin
     if (cotizacion_id !== 0 && user) {
       const { data: quote, error: quoteError } = await supabaseClient
@@ -162,7 +186,7 @@ Deno.serve(async (req) => {
           model: "deepseek-chat", // DeepSeek-V3
           messages: messages,
           temperature: 0.7,
-          max_tokens: 8192,
+          max_tokens: 2048,
           response_format: { type: 'json_object' }
         })
       });
