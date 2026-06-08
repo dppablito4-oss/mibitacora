@@ -25,19 +25,22 @@ COMMENT ON TABLE public.proyectos IS 'Proyectos personales editables en el porta
 ALTER TABLE public.proyectos ENABLE ROW LEVEL SECURITY;
 
 -- Políticas de Seguridad para Proyectos
+DROP POLICY IF EXISTS "Lectura pública de proyectos" ON public.proyectos;
 CREATE POLICY "Lectura pública de proyectos"
   ON public.proyectos FOR SELECT
   USING (is_visible = true OR public.is_admin_or_superadmin(auth.uid()));
 
+DROP POLICY IF EXISTS "Admin gestiona proyectos" ON public.proyectos;
 CREATE POLICY "Admin gestiona proyectos"
   ON public.proyectos FOR ALL
   USING (public.is_admin_or_superadmin(auth.uid()))
   WITH CHECK (public.is_admin_or_superadmin(auth.uid()));
 
 -- Insertar datos semilla de proyectos (basados en siteData.js)
-INSERT INTO public.proyectos (title, description, tags, url, color, accent, order_index)
+INSERT INTO public.proyectos (id, title, description, tags, url, color, accent, order_index)
 VALUES 
 (
+  1,
   'Pablito Expo',
   'Editor interactivo de presentaciones con generación de contenido mediante Inteligencia Artificial (DeepSeek).',
   ARRAY['React', 'Canvas', 'IA'],
@@ -47,6 +50,7 @@ VALUES
   1
 ),
 (
+  2,
   'Grafiplot',
   'Landing page premium y dashboard de administración para servicio de impresión digital.',
   ARRAY['Next.js', 'Supabase', 'Tailwind'],
@@ -55,7 +59,7 @@ VALUES
   '#10b981',
   2
 )
-ON CONFLICT DO NOTHING;
+ON CONFLICT (id) DO NOTHING;
 
 
 -- ─── 2. TABLA: SERVICIOS ───────────────────────────────────────
@@ -74,39 +78,45 @@ COMMENT ON TABLE public.servicios IS 'Servicios ofrecidos editables en el portaf
 ALTER TABLE public.servicios ENABLE ROW LEVEL SECURITY;
 
 -- Políticas de Seguridad para Servicios
+DROP POLICY IF EXISTS "Lectura pública de servicios" ON public.servicios;
 CREATE POLICY "Lectura pública de servicios"
   ON public.servicios FOR SELECT
   USING (is_visible = true OR public.is_admin_or_superadmin(auth.uid()));
 
+DROP POLICY IF EXISTS "Admin gestiona servicios" ON public.servicios;
 CREATE POLICY "Admin gestiona servicios"
   ON public.servicios FOR ALL
   USING (public.is_admin_or_superadmin(auth.uid()))
   WITH CHECK (public.is_admin_or_superadmin(auth.uid()));
 
 -- Insertar datos semilla de servicios (basados en siteData.js)
-INSERT INTO public.servicios (title, description, order_index)
+INSERT INTO public.servicios (id, title, description, order_index)
 VALUES 
 (
+  1,
   'Formateo APA 7ma Edición',
   'Ajuste riguroso de presentaciones, tesis y documentos bajo la normativa APA actual.',
   1
 ),
 (
+  2,
   'Creación de Monografías',
   'Redacción y estructura profesional de monografías para nivel secundario y preuniversitario.',
   2
 ),
 (
+  3,
   'Material Gráfico',
   'Diseño de trípticos, dípticos y material publicitario escolar o de negocios.',
   3
 ),
 (
+  4,
   'Curriculum Vitae (CV)',
   'Diseño y redacción de CVs de alto impacto, modernos y optimizados para interviews.',
   4
 )
-ON CONFLICT DO NOTHING;
+ON CONFLICT (id) DO NOTHING;
 
 
 -- ─── 3. COLUMNAS DE CONFIGURACIÓN EN SITE_CONFIG ───────────────
