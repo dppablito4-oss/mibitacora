@@ -1,16 +1,17 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Briefcase, 
   Terminal, 
   FileText, 
-  FileDown, 
   ExternalLink, 
   ImageIcon,
   Lock,
   ChevronRight,
   ArrowLeft,
-  Send
+  Send,
+  Edit
 } from 'lucide-react';
 import { evidencias } from '../../data/evidencias';
 import BeforeAfterSlider from './BeforeAfterSlider';
@@ -28,32 +29,21 @@ export default function ServiciosSection({ services }) {
     return evidencias.grafico.filter(g => g.mision.toLowerCase().includes(graficoFilter.toLowerCase()));
   };
 
-  // Mapeamos los 4 bloques principales (Imagen 1) a sus respectivas vistas de evidencias
-  const mainCards = [
-    {
-      id: 'apa',
-      category: 'academico',
-      title: 'Formateo APA 7ma Edición',
-      description: 'Ajuste riguroso de presentaciones, tesis y documentos bajo la normativa APA actual.'
-    },
-    {
-      id: 'mono',
-      category: 'academico',
-      title: 'Creación de Monografías',
-      description: 'Redacción y estructura profesional de monografías para nivel secundario y preuniversitario.'
-    },
-    {
-      id: 'graf',
-      category: 'grafico',
-      title: 'Material Gráfico',
-      description: 'Diseño de trípticos, dípticos y material publicitario escolar o de negocios.'
-    },
-    {
-      id: 'cv',
-      category: 'identidades',
-      title: 'Curriculum Vitae (CV)',
-      description: 'Diseño y redacción de CVs de alto impacto, modernos y optimizados para entrevistas.'
-    }
+  // Determinar dinámicamente la categoría de un servicio para enrutarlo a su evidencia interactiva
+  const getServiceCategory = (title) => {
+    const t = title.toLowerCase();
+    if (t.includes('apa') || t.includes('monografía') || t.includes('tesis')) return 'academico';
+    if (t.includes('gráfico') || t.includes('diseño') || t.includes('tríptico')) return 'grafico';
+    if (t.includes('curriculum') || t.includes('cv') || t.includes('hoja de vida')) return 'identidades';
+    return 'otros';
+  };
+
+  // Lista unificada: Si Supabase trae datos, los usamos; si no, cargamos los por defecto.
+  const servicesList = (services && services.length > 0) ? services : [
+    { title: 'Formateo APA 7ma Edición', description: 'Ajuste riguroso de presentaciones, tesis y documentos bajo la normativa APA actual.' },
+    { title: 'Creación de Monografías', description: 'Redacción y estructura profesional de monografías para nivel secundario y preuniversitario.' },
+    { title: 'Material Gráfico', description: 'Diseño de trípticos, dípticos y material publicitario escolar o de negocios.' },
+    { title: 'Curriculum Vitae (CV)', description: 'Diseño y redacción de CVs de alto impacto, modernos y optimizados para entrevistas.' }
   ];
 
   return (
@@ -82,13 +72,13 @@ export default function ServiciosSection({ services }) {
           </h2>
           <div className="mx-auto mb-6 h-1 w-28 bg-accent-500 shadow-[0_0_12px_rgba(6,182,212,0.8)]"></div>
           <p className="text-slate-400 max-w-2xl mx-auto text-sm md:text-base font-light">
-            Catálogo clasificado de material académico estandarizado, diseño gráfico vectorial y modelos de identidad civil.
+            Catálogo unificado de evidencias tácticas. Selecciona una tarjeta para ver demostraciones en vivo.
           </p>
         </motion.div>
 
         <AnimatePresence mode="wait">
           {selectedCategory === null ? (
-            /* ─── VISTA 1: CUADRÍCULA DE 4 SERVICIOS PRINCIPALES (Imagen 1) ─── */
+            /* ─── VISTA 1: PORTADA UNIFICADA DE SERVICIOS (Imagen 1 corregida sin duplicados) ─── */
             <motion.div
               key="main-grid"
               initial={{ opacity: 0, y: 15 }}
@@ -97,33 +87,43 @@ export default function ServiciosSection({ services }) {
               transition={{ duration: 0.2 }}
               className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
             >
-              {mainCards.map((card, i) => (
-                <div 
-                  key={card.id}
-                  onClick={() => setSelectedCategory(card.category)}
-                  className="border border-zinc-800 bg-zinc-900/10 p-6 rounded-2xl hover:border-accent-500/40 hover:bg-accent-500/5 transition-all flex flex-col justify-between space-y-4 group cursor-pointer shadow-[0_4px_20px_rgba(0,0,0,0.3)] hover:shadow-[0_4px_25px_rgba(6,182,212,0.08)]"
-                >
-                  <div>
-                    <div className="w-10 h-10 rounded-xl bg-accent-500/5 border border-accent-500/20 text-accent-400 flex items-center justify-center mb-4 group-hover:bg-accent-500/20 group-hover:text-white transition-all shadow-[0_0_10px_rgba(6,182,212,0.1)]">
-                      <Briefcase size={20} />
+              {servicesList.map((service, i) => {
+                const category = getServiceCategory(service.title);
+                return (
+                  <div 
+                    key={service.title}
+                    onClick={() => {
+                      if (category !== 'otros') {
+                        setSelectedCategory(category);
+                      } else {
+                        // Si es otro servicio genérico del CMS, abrir WhatsApp directamente
+                        window.open(`https://wa.me/51918165428?text=Hola%20Pablo,%20estoy%20interesado%20en%20el%20servicio%20de%20${encodeURIComponent(service.title)}`, '_blank');
+                      }
+                    }}
+                    className="border border-zinc-800 bg-zinc-900/10 p-6 rounded-2xl hover:border-accent-500/40 hover:bg-accent-500/5 transition-all flex flex-col justify-between space-y-4 group cursor-pointer shadow-[0_4px_20px_rgba(0,0,0,0.3)] hover:shadow-[0_4px_25px_rgba(6,182,212,0.08)]"
+                  >
+                    <div>
+                      <div className="w-10 h-10 rounded-xl bg-accent-500/5 border border-accent-500/20 text-accent-400 flex items-center justify-center mb-4 group-hover:bg-accent-500/20 group-hover:text-white transition-all shadow-[0_0_10px_rgba(6,182,212,0.1)]">
+                        <Briefcase size={20} />
+                      </div>
+                      <h3 className="text-base font-bold text-white mb-2 leading-snug group-hover:text-accent-400 transition-colors">
+                        {service.title}
+                      </h3>
+                      <p className="text-xs text-zinc-400 leading-relaxed font-light">
+                        {service.description}
+                      </p>
                     </div>
-                    <h3 className="text-base font-bold text-white mb-2 leading-snug group-hover:text-accent-400 transition-colors">
-                      {card.title}
-                    </h3>
-                    <p className="text-xs text-zinc-400 leading-relaxed font-light">
-                      {card.description}
-                    </p>
-                  </div>
 
-                  <span className="inline-flex items-center gap-1 text-[10px] font-mono font-bold uppercase tracking-wider text-accent-400 group-hover:text-white transition-colors pt-2">
-                    <span>Ver Evidencias</span>
-                    <ChevronRight size={12} className="group-hover:translate-x-0.5 transition-transform" />
-                  </span>
-                </div>
-              ))}
+                    <span className="inline-flex items-center gap-1 text-[10px] font-mono font-bold uppercase tracking-wider text-accent-400 group-hover:text-white transition-colors pt-2">
+                      <span>{category !== 'otros' ? 'Ver Evidencias' : 'Coordinar Misión'}</span>
+                      <ChevronRight size={12} className="group-hover:translate-x-0.5 transition-transform" />
+                    </span>
+                  </div>
+                );
+              })}
             </motion.div>
           ) : (
-            /* ─── VISTA 2: PANEL DE EVIDENCIAS INTERACTIVAS ─── */
+            /* ─── VISTA 2: PANEL DE DETALLE DE EVIDENCIAS INTERACTIVAS ─── */
             <motion.div
               key="evidence-detail"
               initial={{ opacity: 0, y: 15 }}
@@ -218,13 +218,24 @@ export default function ServiciosSection({ services }) {
                       </ul>
                     </div>
 
-                    <button
-                      onClick={() => setIsDecryptOpen(true)}
-                      className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-accent-600 hover:bg-accent-500 text-white font-bold uppercase tracking-wider text-xs rounded-xl transition duration-200 border border-accent-500 shadow-lg shadow-accent-500/10 cursor-pointer group"
-                    >
-                      <Lock size={14} className="group-hover:scale-110 transition-transform" />
-                      <span>Descargar Expediente Lingüístico</span>
-                    </button>
+                    {/* Botones de Acción: Descarga y Edición */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <button
+                        onClick={() => setIsDecryptOpen(true)}
+                        className="flex items-center justify-center gap-2.5 px-5 py-4 bg-accent-600 hover:bg-accent-500 text-white font-bold uppercase tracking-wider text-xs rounded-xl transition duration-200 border border-accent-500 shadow-lg shadow-accent-500/10 cursor-pointer group"
+                      >
+                        <Lock size={14} className="group-hover:scale-110 transition-transform" />
+                        <span>Ver Monografía</span>
+                      </button>
+
+                      <Link
+                        to="/tripticos"
+                        className="flex items-center justify-center gap-2.5 px-5 py-4 bg-zinc-900 hover:bg-zinc-800 text-white font-bold uppercase tracking-wider text-xs rounded-xl transition duration-200 border border-zinc-800 hover:border-zinc-700 cursor-pointer group"
+                      >
+                        <Edit size={14} className="text-accent-400 group-hover:scale-110 transition-transform" />
+                        <span>Formatear mi Tesis</span>
+                      </Link>
+                    </div>
                   </div>
                 </div>
               )}
@@ -283,26 +294,38 @@ export default function ServiciosSection({ services }) {
                             </div>
                           </div>
 
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-                            <a
-                              href={`https://wa.me/51918165428?text=Hola%20Pablo,%20quiero%20cotizar%20el%20dise%C3%B1o%20gr%C3%A1fico%20con%20ID:%20${item.id}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="flex items-center justify-center gap-2 px-4 py-3 bg-zinc-900 hover:bg-zinc-800 text-white font-bold uppercase tracking-wider text-[10px] rounded-xl transition duration-200 border border-zinc-800 hover:border-zinc-700 text-center"
-                            >
-                              <Send size={12} className="text-accent-400" />
-                              <span>Cotizar Diseño</span>
-                            </a>
+                          <div className="flex flex-col gap-3 pt-2">
+                            {/* Fila superior de botones principales */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                              <a
+                                href={`https://wa.me/51918165428?text=Hola%20Pablo,%20quiero%20cotizar%20el%20dise%C3%B1o%20gr%C3%A1fico%20con%20ID:%20${item.id}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center justify-center gap-2 px-4 py-3 bg-zinc-900 hover:bg-zinc-800 text-white font-bold uppercase tracking-wider text-[10px] rounded-xl transition duration-200 border border-zinc-800 hover:border-zinc-700 text-center"
+                              >
+                                <Send size={12} className="text-accent-400" />
+                                <span>Cotizar Diseño</span>
+                              </a>
 
-                            <a
-                              href="https://grafiplotvasquez.lat"
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="flex items-center justify-center gap-2 px-4 py-3 bg-accent-500/5 hover:bg-accent-500/10 text-accent-400 font-bold uppercase tracking-wider text-[10px] rounded-xl transition duration-200 border border-accent-500/20 hover:border-accent-500/40 text-center"
+                              <a
+                                href="https://grafiplotvasquez.lat"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center justify-center gap-2 px-4 py-3 bg-accent-500/5 hover:bg-accent-500/10 text-accent-400 font-bold uppercase tracking-wider text-[10px] rounded-xl transition duration-200 border border-accent-500/20 hover:border-accent-500/40 text-center"
+                              >
+                                <ExternalLink size={12} />
+                                <span>Imprimir (Grafiplot)</span>
+                              </a>
+                            </div>
+
+                            {/* Botón de edición rápida con IA */}
+                            <Link
+                              to="/tripticos"
+                              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-accent-600 hover:bg-accent-500 text-white font-bold uppercase tracking-wider text-[10px] rounded-xl transition duration-200 border border-accent-500 shadow-md group"
                             >
-                              <ExternalLink size={12} />
-                              <span>Imprimir (Grafiplot)</span>
-                            </a>
+                              <Edit size={12} className="group-hover:scale-110 transition-transform" />
+                              <span>Diseñar mi propio Tríptico (IA)</span>
+                            </Link>
                           </div>
                         </div>
                       </div>
@@ -344,15 +367,25 @@ export default function ServiciosSection({ services }) {
                             </span>
                           </div>
 
-                          <a
-                            href={`https://wa.me/51918165428?text=Hola%20Pablo,%20quiero%20solicitar%20el%20servicio%20de%20curr%C3%ADculum%20vitae%20con%20modelo:%20${item.nombre}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-accent-600 hover:bg-accent-500 text-white font-bold uppercase tracking-wider text-xs rounded-xl transition duration-200 border border-accent-500 shadow-lg shadow-accent-500/10 cursor-pointer"
-                          >
-                            <Send size={12} />
-                            <span>Solicitar Plantilla Personalizada</span>
-                          </a>
+                          <div className="flex flex-col gap-3 pt-2">
+                            <a
+                              href={`https://wa.me/51918165428?text=Hola%20Pablo,%20quiero%20solicitar%20el%20servicio%20de%20curr%C3%ADculum%20vitae%20con%20modelo:%20${item.nombre}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-accent-600 hover:bg-accent-500 text-white font-bold uppercase tracking-wider text-xs rounded-xl transition duration-200 border border-accent-500 shadow-lg shadow-accent-500/10 cursor-pointer"
+                            >
+                              <Send size={12} />
+                              <span>Solicitar Currículum</span>
+                            </a>
+
+                            <Link
+                              to="/qr"
+                              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-zinc-900 hover:bg-zinc-800 text-white font-bold uppercase tracking-wider text-xs rounded-xl transition duration-200 border border-zinc-800 hover:border-zinc-700 cursor-pointer group"
+                            >
+                              <Edit size={12} className="text-accent-400 group-hover:scale-110 transition-transform" />
+                              <span>Generar QR de mi CV</span>
+                            </Link>
+                          </div>
                         </div>
                       </div>
                     ))}
@@ -375,41 +408,6 @@ export default function ServiciosSection({ services }) {
             </motion.div>
           )}
         </AnimatePresence>
-
-        {/* ── SECCIÓN COMPLEMENTARIA DE SERVICIOS ADICIONALES (CMS) ── */}
-        {selectedCategory === null && services && services.length > 0 && (
-          <div className="mt-20 border-t border-zinc-800/80 pt-12 space-y-8">
-            <h3 className="text-center font-mono text-xs uppercase tracking-widest text-zinc-500">
-              [ SERVICIOS DE SOPORTE ADICIONALES ]
-            </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {services.map((service, i) => (
-                <div 
-                  key={service.title} 
-                  className="border border-zinc-800 bg-zinc-900/10 p-6 rounded-2xl hover:border-accent-500/30 transition-all flex flex-col justify-between space-y-4 group shadow-[0_4px_15px_rgba(0,0,0,0.2)]"
-                >
-                  <div>
-                    <div className="w-10 h-10 rounded-xl bg-accent-500/5 border border-accent-500/20 text-accent-400 flex items-center justify-center mb-4 group-hover:bg-accent-500/10 transition-colors">
-                      <Briefcase size={20} />
-                    </div>
-                    <h3 className="text-sm font-bold text-white mb-2 leading-snug">{service.title}</h3>
-                    <p className="text-xs text-zinc-400 leading-relaxed font-light">{service.description}</p>
-                  </div>
-
-                  <a
-                    href={`https://wa.me/51918165428?text=Hola%20Pablo,%20estoy%20interesado%20en%20el%20servicio%20de%20${encodeURIComponent(service.title)}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-[10px] font-mono font-bold uppercase tracking-wider text-accent-400 hover:text-accent-300 transition-colors pt-2"
-                  >
-                    <span>Coordinar Servicio</span>
-                    <ChevronRight size={12} />
-                  </a>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
 
       </div>
 
