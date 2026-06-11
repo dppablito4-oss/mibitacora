@@ -34,6 +34,13 @@ Deno.serve(async (req) => {
       );
     }
 
+    if (prompt.length > 4000) {
+      return new Response(
+        JSON.stringify({ error: "El prompt excede la longitud máxima permitida de 4000 caracteres." }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 400 }
+      );
+    }
+
     let user = null;
 
     // Solo exigimos autenticación si no es una petición pública (cotizacion_id !== 0)

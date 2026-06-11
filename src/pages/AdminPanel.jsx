@@ -5,7 +5,7 @@ import { useSiteConfig } from '../lib/useSiteConfig';
 import { useToast } from '../context/ToastContext';
 import logger from '../utils/logger';
 import { Link } from 'react-router-dom';
-import { Plus, Trash2, Edit3, Eye, EyeOff, LogOut, Sparkles, ArrowLeft, Save, User, Heart, Megaphone, FileText, MessageCircle, Layers, BarChart3, Palette, FolderGit } from 'lucide-react';
+import { Plus, Trash2, Edit3, Eye, EyeOff, LogOut, Sparkles, ArrowLeft, Save } from 'lucide-react';
 import ConfirmDialog from '../components/ConfirmDialog';
 import AdminProfileTab from '../components/admin/AdminProfileTab';
 import AdminHobbiesTab from '../components/admin/AdminHobbiesTab';
@@ -17,15 +17,15 @@ import AdminSeccionesTab from '../components/admin/AdminSeccionesTab';
 import AdminAnalyticsTab from '../components/admin/AdminAnalyticsTab';
 
 const TABS = [
-  { id: 'analytics', label: 'Analíticas', icon: BarChart3, emoji: '📊' },
-  { id: 'cotizaciones', label: 'Cotizaciones', icon: MessageCircle, emoji: '💬' },
-  { id: 'bitacora', label: 'Bitácora', icon: FileText, emoji: '📝' },
-  { id: 'secciones', label: 'Secciones CMS', icon: FolderGit, emoji: '📂' },
-  { id: 'modulos', label: 'Módulos', icon: Layers, emoji: '🧩' },
-  { id: 'diseno', label: 'Diseño Web', icon: Palette, emoji: '🎨' },
-  { id: 'perfil', label: 'Perfil', icon: User, emoji: '👤' },
-  { id: 'hobbies', label: 'Hobbies', icon: Heart, emoji: '🎯' },
-  { id: 'avisos', label: 'Avisos', icon: Megaphone, emoji: '📢' },
+  { id: 'analytics', label: 'Analíticas', emoji: '📊' },
+  { id: 'cotizaciones', label: 'Cotizaciones', emoji: '💬' },
+  { id: 'bitacora', label: 'Bitácora', emoji: '📝' },
+  { id: 'secciones', label: 'Secciones CMS', emoji: '📂' },
+  { id: 'modulos', label: 'Módulos', emoji: '🧩' },
+  { id: 'diseno', label: 'Diseño Web', emoji: '🎨' },
+  { id: 'perfil', label: 'Perfil', emoji: '👤' },
+  { id: 'hobbies', label: 'Hobbies', emoji: '🎯' },
+  { id: 'avisos', label: 'Avisos', emoji: '📢' },
 ];
 
 export default function AdminPanel() {
@@ -115,14 +115,27 @@ export default function AdminPanel() {
   const confirmDelete = async () => {
     const id = deletingId;
     setDeletingId(null);
-    await supabase.from('bitacora').delete().eq('id', id);
-    showToast('Entrada eliminada', 'success');
-    await loadEntries(true);
+    try {
+      const { error } = await supabase.from('bitacora').delete().eq('id', id);
+      if (error) throw error;
+      showToast('Entrada eliminada', 'success');
+      await loadEntries(true);
+    } catch (err) {
+      logger.error('Error deleting entry:', err);
+      showToast('Error al eliminar: ' + err.message, 'error');
+    }
   };
 
   const togglePublished = async (entry) => {
-    await supabase.from('bitacora').update({ publicado: !entry.publicado }).eq('id', entry.id);
-    await loadEntries(true);
+    try {
+      const { error } = await supabase.from('bitacora').update({ publicado: !entry.publicado }).eq('id', entry.id);
+      if (error) throw error;
+      showToast(entry.publicado ? 'Entrada despublicada' : 'Entrada publicada', 'success');
+      await loadEntries(true);
+    } catch (err) {
+      logger.error('Error toggling publication state:', err);
+      showToast('Error al actualizar: ' + err.message, 'error');
+    }
   };
 
   const formatDate = (d) => new Date(d).toLocaleDateString('es-PE', { day: 'numeric', month: 'short', year: 'numeric' });

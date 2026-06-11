@@ -1,13 +1,30 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ExternalLink, Camera, AlertTriangle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function ScannerPage() {
   const [loading, setLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
   const [showTip, setShowTip] = useState(true);
+  const [iframeKey, setIframeKey] = useState(0);
 
   const handleOpenExternal = () => {
     window.open('https://leans.sypablitodp.site', '_blank', 'noopener,noreferrer');
+  };
+
+  useEffect(() => {
+    if (!loading) return;
+    const timer = setTimeout(() => {
+      setHasError(true);
+      setLoading(false);
+    }, 10000); // 10 seconds timeout
+    return () => clearTimeout(timer);
+  }, [loading, iframeKey]);
+
+  const handleRetry = () => {
+    setLoading(true);
+    setHasError(false);
+    setIframeKey(prev => prev + 1);
   };
 
   return (
@@ -87,12 +104,43 @@ export default function ScannerPage() {
           )}
         </AnimatePresence>
 
+        {/* Error Fallback */}
+        {hasError && (
+          <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-[#030712] p-6 text-center">
+            <div className="p-4 bg-red-950/20 border border-red-500/30 rounded-full text-red-500 mb-4 animate-bounce">
+              <AlertTriangle size={32} />
+            </div>
+            <h3 className="text-lg font-bold text-white tracking-wider">No se pudo cargar el Escáner</h3>
+            <p className="text-sm text-slate-400 mt-2 max-w-md">
+              El servicio externo en <code className="text-red-400">leans.sypablitodp.site</code> tardó demasiado en responder o está temporalmente fuera de línea.
+            </p>
+            <div className="flex gap-4 mt-6">
+              <button
+                onClick={handleRetry}
+                className="px-5 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-white text-sm font-semibold border border-zinc-700 transition-all cursor-pointer"
+              >
+                Reintentar
+              </button>
+              <button
+                onClick={handleOpenExternal}
+                className="px-5 py-2 rounded-lg bg-tesseract-500/20 text-tesseract-300 hover:bg-tesseract-500/30 text-sm font-semibold border border-tesseract-500/40 transition-all cursor-pointer"
+              >
+                Abrir Externo
+              </button>
+            </div>
+          </div>
+        )}
+
         <iframe
+          key={iframeKey}
           src="https://leans.sypablitodp.site"
           title="Pablito Leans"
           className="w-full h-full border-0"
           allow="camera"
-          onLoad={() => setLoading(false)}
+          onLoad={() => {
+            setLoading(false);
+            setHasError(false);
+          }}
         />
       </div>
     </div>

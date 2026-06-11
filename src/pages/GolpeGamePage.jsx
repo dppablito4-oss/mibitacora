@@ -429,39 +429,7 @@ export default function GolpeGamePage() {
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between overflow-hidden relative select-none">
       
-      {/* Estilos dinámicos para animación de barajado y efectos premium */}
-      <style>{`
-        .carta-reverso-animada {
-          position: absolute;
-          left: 50%;
-          top: 50%;
-          width: 85px;
-          height: 120px;
-          border-radius: 12px;
-          background: linear-gradient(135deg, #1e1b4b 0%, #31102f 100%);
-          border: 2px solid rgba(244, 63, 94, 0.4);
-          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-          animation: barajarEfecto 0.5s ease-in-out infinite alternate;
-        }
-        .carta-reverso-animada:nth-child(2) { animation-delay: 0.1s; }
-        .carta-reverso-animada:nth-child(3) { animation-delay: 0.2s; }
-        .carta-reverso-animada:nth-child(4) { animation-delay: 0.3s; }
-
-        @keyframes barajarEfecto {
-          0% {
-            transform: translate(-50%, -50%) translateX(0) rotate(0deg);
-            z-index: 1;
-          }
-          50% {
-            transform: translate(-50%, -50%) translateX(-85px) rotate(-12deg); 
-            z-index: 5;
-          }
-          100% {
-            transform: translate(-50%, -50%) translateX(0) rotate(0deg);
-            z-index: -1;
-          }
-        }
-      `}</style>
+      {/* Animación de barajado y efectos premium movidos a index.css */}
 
       {/* Overlay de Barajado animado */}
       {isShuffling && (
@@ -570,6 +538,7 @@ export default function GolpeGamePage() {
             <button
               onClick={() => handleRobar('mazo')}
               disabled={!puedoRobar || actionLoading}
+              aria-label="Robar carta del mazo"
               className={`w-28 h-40 rounded-xl bg-gradient-to-br from-indigo-950 to-purple-950 border border-indigo-500/20 flex flex-col items-center justify-center relative transition duration-300 shadow-xl select-none ${
                 puedoRobar
                   ? 'hover:border-rose-500/50 hover:scale-105 cursor-pointer shadow-[0_0_20px_rgba(99,102,241,0.15)] ring-2 ring-indigo-500/10'
@@ -594,6 +563,7 @@ export default function GolpeGamePage() {
                   <button
                     onClick={() => handleRobar('descarte')}
                     disabled={!puedoRobar || actionLoading}
+                    aria-label={`Robar carta ${parsed.value} de ${parsed.icon} de la pila de descarte`}
                     className={`w-28 h-40 rounded-xl bg-slate-900 border flex flex-col justify-between p-4 relative transition duration-300 shadow-xl ${
                       puedoRobar
                         ? 'hover:border-rose-500/50 hover:scale-105 cursor-pointer shadow-[0_0_20px_rgba(239,68,68,0.1)] ring-2 ring-rose-500/10'
@@ -671,6 +641,7 @@ export default function GolpeGamePage() {
                 <button
                   key={card.id}
                   onClick={() => setSelectedCardId(isSelected ? null : card.id)}
+                  aria-label={`Seleccionar carta ${parsed.value} de ${parsed.icon} ${isSelected ? '(seleccionada)' : ''}`}
                   style={{
                     transform: `translateX(${translateX}px) translateY(${translateY}px) rotate(${angle}deg) ${
                       isSelected ? 'translateY(-24px) scale(1.05)' : ''

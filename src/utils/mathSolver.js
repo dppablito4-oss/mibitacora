@@ -312,7 +312,7 @@ export const solveQuarticSteps = (A, B, C, D, E) => {
 
   // Calcular raíces usando Durand-Kerner
   // Notar que Durand-Kerner calcula raíces sobre la ecuación t^4 + p t^2 + q t + r = 0
-  const tRoots = solveQuarticRootsDK(p, 0, q, r);
+  const tRoots = solveQuarticRootsDK(0, p, q, r);
   const shift = b / 4;
   const xRoots = tRoots.map(tr => ({ re: tr.re - shift, im: tr.im }));
   

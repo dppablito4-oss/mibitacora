@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { audioEffects } from '../utils/audioEffects';
 
 export default function CustomCursor({ theme }) {
@@ -7,7 +7,7 @@ export default function CustomCursor({ theme }) {
   
   const canvasRef = useRef(null);
   const positionRef = useRef({ x: 0, y: 0, targetX: 0, targetY: 0 });
-  const [isHovered, setIsHovered] = useState(false);
+  const isHoveredRef = useRef(false);
   const particlesRef = useRef([]);
   const ripplesRef = useRef([]);
 
@@ -61,7 +61,7 @@ export default function CustomCursor({ theme }) {
         target.closest('button') ||
         target.classList.contains('cursor-pointer')
       ) {
-        setIsHovered(true);
+        isHoveredRef.current = true;
         audioEffects.playHover();
       }
     };
@@ -74,7 +74,7 @@ export default function CustomCursor({ theme }) {
         target.closest('button') ||
         target.classList.contains('cursor-pointer')
       ) {
-        setIsHovered(false);
+        isHoveredRef.current = false;
       }
     };
     
@@ -180,7 +180,7 @@ export default function CustomCursor({ theme }) {
       ctx.globalAlpha = 1.0;
 
       // 4. Dibujar Cursor Seleccionado
-      const sizeMultiplier = isHovered ? 1.3 : 1.0;
+      const sizeMultiplier = isHoveredRef.current ? 1.3 : 1.0;
       
       if (cursorType === 'arc') {
         // --- REACTOR ARC DE IRON MAN ---
@@ -322,7 +322,7 @@ export default function CustomCursor({ theme }) {
       document.documentElement.classList.remove('custom-cursor-active');
       cancelAnimationFrame(animationFrameId);
     };
-  }, [showCanvas, cursorType, theme?.accent_color, isHovered]);
+  }, [showCanvas, cursorType, theme?.accent_color, theme?.mode]);
 
   return (
     <canvas

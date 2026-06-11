@@ -64,6 +64,7 @@ export default function SpaceCopilot() {
     <>
       <button
         onClick={() => setIsOpen(!isOpen)}
+        aria-label={isOpen ? "Cerrar asistente de Inteligencia Artificial" : "Abrir asistente de Inteligencia Artificial"}
         className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full flex items-center justify-center shadow-2xl transition-all duration-300 hover:scale-110 border border-white/10"
         style={{ background: `linear-gradient(135deg, ${botColor}, ${botColor}88)`, boxShadow: `0 8px 32px ${botColor}40` }}
       >
@@ -86,7 +87,11 @@ export default function SpaceCopilot() {
                 <p className="text-[10px] text-emerald-400 flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Sistemas en línea</p>
               </div>
             </div>
-            <button onClick={() => setIsOpen(false)} className="p-1.5 rounded-lg text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800 transition-colors">
+            <button 
+              onClick={() => setIsOpen(false)} 
+              aria-label="Cerrar chat"
+              className="p-1.5 rounded-lg text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800 transition-colors"
+            >
               <X size={16} />
             </button>
           </div>

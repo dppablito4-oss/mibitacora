@@ -99,6 +99,11 @@ export function useGolpeGame(partidaId) {
   }, [user, signInAnonymously]);
 
   // Suscripción Realtime para actualizaciones instantáneas
+  const fetchGameStateRef = useRef(fetchGameState);
+  useEffect(() => {
+    fetchGameStateRef.current = fetchGameState;
+  }, [fetchGameState]);
+
   useEffect(() => {
     if (!partidaId || !user) return;
 
@@ -106,7 +111,7 @@ export function useGolpeGame(partidaId) {
     let active = true;
     const initFetch = async () => {
       if (active) {
-        await fetchGameState();
+        await fetchGameStateRef.current();
       }
     };
     initFetch();
@@ -121,7 +126,7 @@ export function useGolpeGame(partidaId) {
         { event: '*', schema: 'public', table: 'partidas', filter: `id=eq.${partidaId}` },
         () => {
           logger.log('Realtime: partida updated');
-          fetchGameState();
+          fetchGameStateRef.current();
         }
       )
       // Escuchar cambios en los jugadores
@@ -130,7 +135,7 @@ export function useGolpeGame(partidaId) {
         { event: '*', schema: 'public', table: 'partida_jugadores', filter: `partida_id=eq.${partidaId}` },
         () => {
           logger.log('Realtime: jugadores updated');
-          fetchGameState();
+          fetchGameStateRef.current();
         }
       )
       // Escuchar cambios en las cartas
@@ -139,7 +144,7 @@ export function useGolpeGame(partidaId) {
         { event: '*', schema: 'public', table: 'partida_cartas', filter: `partida_id=eq.${partidaId}` },
         () => {
           logger.log('Realtime: cartas updated');
-          fetchGameState();
+          fetchGameStateRef.current();
         }
       )
       .subscribe((status) => {
@@ -149,7 +154,7 @@ export function useGolpeGame(partidaId) {
     // Fallback de polling de seguridad (por si Realtime falla en Supabase)
     const pollInterval = setInterval(() => {
       if (!isFetchingRef.current) {
-        fetchGameState();
+        fetchGameStateRef.current();
       }
     }, 15000);
 
@@ -159,7 +164,7 @@ export function useGolpeGame(partidaId) {
       logger.log(`Cleaning up realtime channel for game: ${partidaId}`);
       supabase.removeChannel(channel);
     };
-  }, [partidaId, user, fetchGameState]);
+  }, [partidaId, user?.id]);
 
   // ── ACCIONES DEL JUEGO (RPC TRIGGERS) ──────────────────────────
 

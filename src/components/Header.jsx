@@ -83,6 +83,7 @@ export default function Header() {
               <button 
                 onClick={toggleMute}
                 title={isMuted ? 'Activar Sonidos' : 'Silenciar'}
+                aria-label={isMuted ? 'Activar Sonidos' : 'Silenciar'}
                 className="p-2 rounded-lg border border-tesseract-500/20 text-tesseract-400 hover:bg-tesseract-500/10 hover:text-white transition-colors cursor-pointer flex items-center justify-center shrink-0 self-center"
               >
                 {isMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
@@ -98,6 +99,7 @@ export default function Header() {
           <div className="-mr-2 flex md:hidden">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label={mobileMenuOpen ? "Cerrar menú" : "Abrir menú"}
               className="inline-flex items-center justify-center rounded-md border border-tesseract-500/30 p-2 text-tesseract-500 hover:bg-tesseract-600/20 hover:text-white focus:outline-none"
             >
               {mobileMenuOpen ? <X size={24} /> : <List size={24} />}

@@ -452,3 +452,35 @@ html.custom-cursor-active,
 html.custom-cursor-active * {
   cursor: none !important;
 }
+
+/* ── GolpeGamePage Shuffling Card Animation ─────────────────── */
+.carta-reverso-animada {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 85px;
+  height: 120px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #1e1b4b 0%, #31102f 100%);
+  border: 2px solid rgba(244, 63, 94, 0.4);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+  animation: barajarEfecto 0.5s ease-in-out infinite alternate;
+}
+.carta-reverso-animada:nth-child(2) { animation-delay: 0.1s; }
+.carta-reverso-animada:nth-child(3) { animation-delay: 0.2s; }
+.carta-reverso-animada:nth-child(4) { animation-delay: 0.3s; }
+
+@keyframes barajarEfecto {
+  0% {
+    transform: translate(-50%, -50%) translateX(0) rotate(0deg);
+    z-index: 1;
+  }
+  50% {
+    transform: translate(-50%, -50%) translateX(-85px) rotate(-12deg); 
+    z-index: 5;
+  }
+  100% {
+    transform: translate(-50%, -50%) translateX(0) rotate(0deg);
+    z-index: -1;
+  }
+}

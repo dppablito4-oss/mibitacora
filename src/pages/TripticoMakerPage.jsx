@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import useTripticoState from '../hooks/useTripticoState';
 import TripticoCanvas from '../components/triptico/TripticoCanvas';
 import { getColDisplayLabel } from '../utils/tripticoHelpers';
@@ -10,6 +11,7 @@ import { useToast } from '../context/ToastContext';
 import logger from '../utils/logger';
 
 export default function TripticoMakerPage() {
+  const navigate = useNavigate();
   const state = useTripticoState();
   const { showToast } = useToast();
   const {
@@ -37,11 +39,13 @@ export default function TripticoMakerPage() {
       if (e.ctrlKey) {
         e.preventDefault();
         const zoomStep = 0.05;
-        let newZoom = e.deltaY < 0 
-          ? zoom + zoomStep 
-          : zoom - zoomStep;
-        newZoom = Math.max(0.4, Math.min(newZoom, 3.0));
-        setZoom(Number(newZoom.toFixed(2)));
+        setZoom((prevZoom) => {
+          let newZoom = e.deltaY < 0 
+            ? prevZoom + zoomStep 
+            : prevZoom - zoomStep;
+          newZoom = Math.max(0.4, Math.min(newZoom, 3.0));
+          return Number(newZoom.toFixed(2));
+        });
       }
     };
 
@@ -49,7 +53,7 @@ export default function TripticoMakerPage() {
     return () => {
       mainEl.removeEventListener('wheel', handleWheel);
     };
-  }, [zoom]);
+  }, []);
 
   // Lock body scroll while in the editor page
   useEffect(() => {
@@ -129,7 +133,7 @@ export default function TripticoMakerPage() {
       <header className="h-14 border-b border-zinc-800 bg-zinc-950 flex items-center justify-between px-4 shrink-0 print:hidden">
         <div className="flex items-center gap-4">
           <button 
-            onClick={() => window.location.hash = '#/'}
+            onClick={() => navigate('/')}
             className="flex items-center gap-1 text-zinc-400 hover:text-white transition-colors"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>

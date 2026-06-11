@@ -128,6 +128,10 @@ export default function SpaceBackground({ theme }) {
           if (drawY < 0) star.y = height - py;
           if (drawY > height) star.y = -py;
 
+          // Guardar posiciones de renderizado final para optimizar constelaciones
+          star.drawX = star.x + px;
+          star.drawY = star.y + py;
+
           // Parpadeo (efecto centelleo)
           star.alpha += star.alphaSpeed;
           if (star.alpha > 1 || star.alpha < 0.1) {
@@ -137,7 +141,7 @@ export default function SpaceBackground({ theme }) {
           ctx.fillStyle = star.color;
           ctx.globalAlpha = Math.max(0.1, Math.min(1, star.alpha));
           ctx.beginPath();
-          ctx.arc(drawX, drawY, star.size, 0, Math.PI * 2);
+          ctx.arc(star.drawX, star.drawY, star.size, 0, Math.PI * 2);
           ctx.fill();
         });
         
@@ -147,25 +151,22 @@ export default function SpaceBackground({ theme }) {
         if (isDark) {
           ctx.lineWidth = 0.5;
           for (let i = 0; i < starCount; i++) {
+            const s1 = stars[i];
             for (let j = i + 1; j < starCount; j++) {
-              const s1 = stars[i];
               const s2 = stars[j];
 
-              const px1 = -mouse.x * (s1.size * 0.03);
-              const py1 = -mouse.y * (s1.size * 0.03);
-              const px2 = -mouse.x * (s2.size * 0.03);
-              const py2 = -mouse.y * (s2.size * 0.03);
+              const dx = s1.drawX - s2.drawX;
+              const dy = s1.drawY - s2.drawY;
+              const distSq = dx * dx + dy * dy;
 
-              const dx = (s1.x + px1) - (s2.x + px2);
-              const dy = (s1.y + py1) - (s2.y + py2);
-              const dist = Math.sqrt(dx * dx + dy * dy);
-
-              if (dist < 100) {
+              // Evitar Math.sqrt salvo que la distancia esté en el rango de conexión (< 100px)
+              if (distSq < 10000) {
+                const dist = Math.sqrt(distSq);
                 const lineAlpha = (1 - dist / 100) * 0.15;
                 ctx.strokeStyle = `${accentColor}${Math.floor(lineAlpha * 255).toString(16).padStart(2, '0')}`;
                 ctx.beginPath();
-                ctx.moveTo(s1.x + px1, s1.y + py1);
-                ctx.lineTo(s2.x + px2, s2.y + py2);
+                ctx.moveTo(s1.drawX, s1.drawY);
+                ctx.lineTo(s2.drawX, s2.drawY);
                 ctx.stroke();
               }
             }
@@ -183,7 +184,7 @@ export default function SpaceBackground({ theme }) {
       window.removeEventListener('mousemove', handleMouseMove);
       cancelAnimationFrame(animationFrameId);
     };
-  }, [theme]);
+  }, [theme?.mode, theme?.accent_color, theme?.particles]);
 
   return (
     <canvas

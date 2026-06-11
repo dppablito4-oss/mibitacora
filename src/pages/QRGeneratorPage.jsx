@@ -1,22 +1,18 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import QRCodeStyling from 'qr-code-styling';
 import { QrCode, Download, Image as ImageIcon } from 'lucide-react';
 import logger from '../utils/logger';
 
 export default function QrGeneratorPage() {
-  const qrCodeRef = useRef(null);
-  if (!qrCodeRef.current) {
-    qrCodeRef.current = new QRCodeStyling({
-      width: 420,
-      height: 420,
-      type: "svg",
-      imageOptions: {
-        crossOrigin: "anonymous",
-        margin: 6
-      }
-    });
-  }
-  const qrCode = qrCodeRef.current;
+  const qrCode = useMemo(() => new QRCodeStyling({
+    width: 420,
+    height: 420,
+    type: "svg",
+    imageOptions: {
+      crossOrigin: "anonymous",
+      margin: 6
+    }
+  }), []);
 
   const qrRef = useRef(null);
 
@@ -83,17 +79,15 @@ export default function QrGeneratorPage() {
 
   // Manage logo Object URL lifecycle to prevent memory leaks
   useEffect(() => {
-    if (logoFile) {
-      const url = URL.createObjectURL(logoFile);
-      const timer = setTimeout(() => setLogoUrl(url), 0);
-      return () => {
-        clearTimeout(timer);
-        URL.revokeObjectURL(url);
-      };
-    } else {
-      const timer = setTimeout(() => setLogoUrl(null), 0);
-      return () => clearTimeout(timer);
+    if (!logoFile) {
+      setLogoUrl(null);
+      return;
     }
+    const url = URL.createObjectURL(logoFile);
+    setLogoUrl(url);
+    return () => {
+      URL.revokeObjectURL(url);
+    };
   }, [logoFile]);
 
   useEffect(() => {

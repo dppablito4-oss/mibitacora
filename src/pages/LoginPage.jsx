@@ -4,7 +4,7 @@ import { Navigate, Link } from 'react-router-dom';
 import { Sparkles, Mail, Lock, ArrowRight, Eye, EyeOff } from 'lucide-react';
 
 export default function LoginPage() {
-  const { user, userRole, signIn } = useAuth();
+  const { user, userRole, signIn, signOut } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPass, setShowPass] = useState(false);
@@ -55,8 +55,23 @@ export default function LoginPage() {
           )}
 
           {user && (
-            <div className="mb-6 rounded-xl bg-amber-500/10 border border-amber-500/20 px-4 py-3 text-xs text-amber-400">
-              Sesión activa: <span className="font-semibold">{user.email}</span> (sin permisos de administrador). Inicia sesión con otra cuenta.
+            <div className="mb-6 rounded-xl bg-amber-500/10 border border-amber-500/20 px-4 py-3 text-xs text-amber-400 flex flex-col gap-2">
+              <div>
+                Sesión activa: <span className="font-semibold">{user.email || 'Invitado'}</span> (sin permisos de administrador). Inicia sesión con otra cuenta.
+              </div>
+              <button
+                type="button"
+                onClick={async () => {
+                  try {
+                    await signOut();
+                  } catch (err) {
+                    setError('Error al cerrar sesión: ' + err.message);
+                  }
+                }}
+                className="w-fit text-left text-amber-300 hover:text-amber-100 font-bold underline transition-colors cursor-pointer"
+              >
+                Cerrar sesión actual
+              </button>
             </div>
           )}
 

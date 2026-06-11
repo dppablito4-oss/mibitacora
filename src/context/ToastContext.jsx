@@ -3,13 +3,11 @@ import ToastContainer from '../components/Toast';
 
 const ToastContext = createContext({});
 
-let toastIdCounter = 0;
-
 export const ToastProvider = ({ children }) => {
   const [toasts, setToasts] = useState([]);
 
   const showToast = useCallback((message, type = 'info', duration = 4000) => {
-    const id = ++toastIdCounter;
+    const id = crypto.randomUUID();
     setToasts((prev) => {
       // Máximo 3 toasts visibles al mismo tiempo
       const limited = prev.length >= 3 ? prev.slice(1) : prev;

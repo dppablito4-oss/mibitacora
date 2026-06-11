@@ -19,6 +19,9 @@ export function trackEvent(event, metadata = {}) {
       }])
       .then(({ error }) => {
         if (error) console.warn('[Analytics]', error.message);
+      })
+      .catch((err) => {
+        console.warn('[Analytics] network error:', err);
       });
   } catch {
     // Silently fail — analytics should never break the app

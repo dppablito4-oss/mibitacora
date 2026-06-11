@@ -1,4 +1,5 @@
 import { Heart, Sparkles } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { useSiteConfig } from '../lib/useSiteConfig';
 
 export default function Footer() {
@@ -8,9 +9,9 @@ export default function Footer() {
     <footer className="relative border-t border-tesseract-500/10 bg-dark py-14">
       <div className="mx-auto flex max-w-5xl flex-col items-center gap-6 px-6 relative z-10">
         {/* Hidden Admin Link */}
-        <a href="#/admin" className="flex h-8 w-8 items-center justify-center rounded-sm bg-tesseract-500/5 border border-tesseract-500/20 transition-all hover:bg-tesseract-500/20 hover:shadow-[0_0_10px_rgba(6,182,212,0.5)]">
+        <Link to="/admin" className="flex h-8 w-8 items-center justify-center rounded-sm bg-tesseract-500/5 border border-tesseract-500/20 transition-all hover:bg-tesseract-500/20 hover:shadow-[0_0_10px_rgba(6,182,212,0.5)]">
           <Sparkles size={14} className="text-tesseract-500/50" />
-        </a>
+        </Link>
 
         {/* Built with love */}
         <div className="flex items-center gap-2 text-[13px] text-slate-500 font-mono">

@@ -2,6 +2,52 @@ import { createContext, useContext, useState, useEffect, useCallback } from 'rea
 import { getSiteConfig, getProjects, getServices } from '../config/supabaseClient';
 import { PROFILE, PROJECTS, SERVICES } from '../data/siteData';
 
+function hexToHSL(hex) {
+  hex = hex.replace(/^#/, '');
+  if (hex.length === 3) {
+    hex = hex.split('').map(char => char + char).join('');
+  }
+  let r = parseInt(hex.substring(0, 2), 16) / 255;
+  let g = parseInt(hex.substring(2, 4), 16) / 255;
+  let b = parseInt(hex.substring(4, 6), 16) / 255;
+  let max = Math.max(r, g, b), min = Math.min(r, g, b);
+  let h, s, l = (max + min) / 2;
+  if (max === min) {
+    h = s = 0;
+  } else {
+    let d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    switch (max) {
+      case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+      case g: h = (b - r) / d + 2; break;
+      case b: h = (r - g) / d + 4; break;
+    }
+    h /= 6;
+  }
+  return {
+    h: Math.round(h * 360),
+    s: Math.round(s * 100),
+    l: Math.round(l * 100)
+  };
+}
+
+function getAccentVariations(hexColor) {
+  try {
+    const hsl = hexToHSL(hexColor);
+    return {
+      c500: hexColor,
+      c400: `hsl(${hsl.h}, ${hsl.s}%, ${Math.min(100, hsl.l + 8)}%)`,
+      c300: `hsl(${hsl.h}, ${hsl.s}%, ${Math.min(100, hsl.l + 16)}%)`,
+    };
+  } catch (e) {
+    return {
+      c500: hexColor,
+      c400: hexColor,
+      c300: hexColor
+    };
+  }
+}
+
 // ── Fallback: datos locales por si Supabase falla o la red tarda ──
 const FALLBACK = {
   profile: { ...PROFILE },
@@ -160,11 +206,12 @@ export function SiteConfigProvider({ children }) {
       if (bg_color) root.style.setProperty('--color-dark', bg_color);
       if (card_color) root.style.setProperty('--color-card', card_color);
       if (accent_color) {
-        root.style.setProperty('--color-tesseract-500', accent_color);
-        root.style.setProperty('--color-tesseract-400', accent_color);
-        root.style.setProperty('--color-tesseract-300', accent_color);
-        root.style.setProperty('--color-accent-500', accent_color);
-        root.style.setProperty('--color-accent-400', accent_color);
+        const vars = getAccentVariations(accent_color);
+        root.style.setProperty('--color-tesseract-500', vars.c500);
+        root.style.setProperty('--color-tesseract-400', vars.c400);
+        root.style.setProperty('--color-tesseract-300', vars.c300);
+        root.style.setProperty('--color-accent-500', vars.c500);
+        root.style.setProperty('--color-accent-400', vars.c400);
       }
     }
   }, [config?.theme]);

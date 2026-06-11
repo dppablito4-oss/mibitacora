@@ -1,88 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '../config/supabaseClient';
 import { useToast } from '../context/ToastContext';
 import logger from '../utils/logger';
 
-export function useCopilotChat({ user, isOpen, signInAnonymously, isAdmin }) {
-  const { showToast } = useToast();
-  const [activeQuote, setActiveQuote] = useState(null);
-  const [messages, setMessages] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [loadingText, setLoadingText] = useState('Escribiendo...');
-  const [uploading, setUploading] = useState(false);
-
-  // 1. Cargar cotización activa del usuario
-  useEffect(() => {
-    if (!user?.id) return;
-    const loadQuote = async () => {
-      const { data } = await supabase
-        .from('cotizaciones')
-        .select('*')
-        .eq('cliente_id', user.id)
-        .eq('estado', 'pendiente')
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .single();
-
-      if (data) {
-        setActiveQuote(data);
-      } else if (isAdmin && isOpen) {
-        handleStartAdminSession();
-      }
-    };
-
-    if (isOpen && !activeQuote && !loading) {
-      loadQuote();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, activeQuote, isOpen, isAdmin, loading]);
-
-  useEffect(() => {
-    let interval;
-    if (loading) {
-      const texts = ["A.L.P.H.A. escribiendo...", "Accediendo a la red...", "Procesando solicitud táctica...", "Desplegando Protocolo Alpha..."];
-      let i = 0;
-      interval = setInterval(() => {
-        i = (i + 1) % texts.length;
-        setLoadingText(texts[i]);
-      }, 1500);
-    } else {
-      setLoadingText("A.L.P.H.A. escribiendo...");
-    }
-    return () => clearInterval(interval);
-  }, [loading]);
-
-  // 3. Suscribirse a mensajes_chat en tiempo real
-  useEffect(() => {
-    if (!activeQuote) return;
-
-    const loadMessages = async () => {
-      const { data } = await supabase
-        .from('mensajes_chat')
-        .select('*')
-        .eq('cotizacion_id', activeQuote.id)
-        .order('created_at', { ascending: true });
-      if (data) setMessages(data);
-    };
-    loadMessages();
-
-    const channel = supabase.channel(`chat_${activeQuote.id}`)
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'mensajes_chat', filter: `cotizacion_id=eq.${activeQuote.id}` },
-        (payload) => {
-          setMessages((prev) => {
-            if (prev.find(m => m.id === payload.new.id)) return prev;
-            return [...prev, payload.new];
-          });
-        }
-      )
-      .subscribe();
-
-    return () => { supabase.removeChannel(channel); };
-  }, [activeQuote]);
-
-  const JSON_INSTRUCTION = `
+const JSON_INSTRUCTION = `
 REGLA CRÍTICA: Responde SIEMPRE con este objeto JSON exacto:
 {
   "intent": "HERRAMIENTA_AUTOMATIZADA" | "SERVICIO_MANUAL" | "SYSTEM_MEMORY",
@@ -92,7 +13,24 @@ REGLA CRÍTICA: Responde SIEMPRE con este objeto JSON exacto:
   "ui_state": { "show_uploader": true | false, "note_content": "texto exacto a guardar si tool_name es save_note", "panel_active": "qr_config_panel" | "chat_standard" | null }
 }`;
 
-  const handleStartAdminSession = async () => {
+export function useCopilotChat({ user, isOpen, signInAnonymously, isAdmin }) {
+  const { showToast } = useToast();
+  const [activeQuote, setActiveQuote] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [loadingText, setLoadingText] = useState('Escribiendo...');
+  const [uploading, setUploading] = useState(false);
+
+  const hasCheckedRef = useRef(false);
+  const prevUserIdRef = useRef(user?.id);
+
+  if (user?.id !== prevUserIdRef.current) {
+    prevUserIdRef.current = user?.id;
+    hasCheckedRef.current = false;
+  }
+
+  const handleStartAdminSession = useCallback(async () => {
+    if (!user?.id) return;
     logger.log('[Copilot] handleStartAdminSession triggered');
     setLoading(true);
     try {
@@ -123,7 +61,37 @@ REGLA CRÍTICA: Responde SIEMPRE con este objeto JSON exacto:
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.id, isAdmin]);
+
+  // 1. Cargar cotización activa del usuario
+  useEffect(() => {
+    if (!user?.id) return;
+    const loadQuote = async () => {
+      hasCheckedRef.current = true;
+      try {
+        const { data } = await supabase
+          .from('cotizaciones')
+          .select('*')
+          .eq('cliente_id', user.id)
+          .eq('estado', 'pendiente')
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .single();
+
+        if (data) {
+          setActiveQuote(data);
+        } else if (isAdmin && isOpen) {
+          await handleStartAdminSession();
+        }
+      } catch (err) {
+        logger.error('Error loading quote:', err);
+      }
+    };
+
+    if (isOpen && !activeQuote && !loading && !hasCheckedRef.current) {
+      loadQuote();
+    }
+  }, [user?.id, activeQuote, isOpen, isAdmin, loading, handleStartAdminSession]);
 
   const startQuote = async (clientName) => {
     if (!clientName.trim()) return;
