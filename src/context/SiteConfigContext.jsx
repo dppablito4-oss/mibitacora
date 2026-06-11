@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { getSiteConfig, getProjects, getServices } from '../config/supabaseClient';
+import { getSiteConfig, getProjects, getServices, supabase } from '../config/supabaseClient';
 import { PROFILE, PROJECTS, SERVICES } from '../data/siteData';
 
 function hexToHSL(hex) {
@@ -187,7 +187,26 @@ export function SiteConfigProvider({ children }) {
   }, []);
 
   useEffect(() => {
-    loadConfig(false);
+    let active = true;
+    (async () => {
+      try {
+        const authKey = Object.keys(localStorage).find(
+          key => key.startsWith('sb-') && key.endsWith('-auth-token')
+        );
+        if (authKey && localStorage.getItem(authKey)) {
+          // Esperamos a que Supabase recupere o limpie la sesión para tener headers válidos en la petición REST pública
+          await supabase.auth.getSession();
+        }
+      } catch (err) {
+        console.warn('[SiteConfig] Error recuperando sesión inicial:', err);
+      }
+      if (active) {
+        loadConfig(false);
+      }
+    })();
+    return () => {
+      active = false;
+    };
   }, [loadConfig]);
 
   // Aplicar variables CSS del tema

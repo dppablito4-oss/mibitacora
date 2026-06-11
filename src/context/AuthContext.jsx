@@ -9,60 +9,62 @@ export const AuthProvider = ({ children }) => {
   const [userRole, setUserRole] = useState('user');
   const [loading, setLoading] = useState(true);
 
-  const fetchUserRole = async (userId) => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', userId)
-        .single();
-      if (data?.role) {
-        setUserRole(data.role);
-      } else {
+  useEffect(() => {
+    let active = true;
+    let lastUserId = null;
+
+    // Failsafe: forzar desbloqueo después de 2s si Supabase se cuelga
+    const fallbackTimer = setTimeout(() => {
+      if (active) setLoading(false);
+    }, 2000);
+
+    const fetchUserRole = async (userId) => {
+      lastUserId = userId;
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', userId)
+          .single();
+        
+        if (!active || lastUserId !== userId) return;
+
+        if (data?.role) {
+          setUserRole(data.role);
+        } else {
+          setUserRole('user');
+        }
+        if (error) logger.error('Error fetching user role:', error);
+      } catch (err) {
+        if (!active || lastUserId !== userId) return;
+        logger.error('Error fetching user role:', err);
         setUserRole('user');
       }
-      if (error) logger.error('Error fetching user role:', error);
-    } catch (err) {
-      logger.error('Error fetching user role:', err);
-      setUserRole('user');
-    }
-  };
-
-  useEffect(() => {
-    // Failsafe: forzar desbloqueo después de 1.5s si Supabase se cuelga
-    const fallbackTimer = setTimeout(() => {
-      setLoading(false);
-    }, 1500);
-
-    const checkSession = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        const currentUser = session?.user ?? null;
-        setUser(currentUser);
-        if (currentUser?.id) {
-          await fetchUserRole(currentUser.id);
-        }
-      } catch (err) {
-        logger.error('Error checking session on mount:', err);
-      } finally {
-        clearTimeout(fallbackTimer);
-        setLoading(false);
-      }
     };
-    checkSession();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      logger.log(`[Auth] onAuthStateChange event: ${event}`);
       const currentUser = session?.user ?? null;
+      
+      if (!active) return;
+
       setUser(currentUser);
+      
       if (currentUser?.id) {
         await fetchUserRole(currentUser.id);
       } else {
         setUserRole('user');
       }
+      
       setLoading(false);
+      clearTimeout(fallbackTimer);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      active = false;
+      clearTimeout(fallbackTimer);
+      subscription.unsubscribe();
+    };
   }, []);
 
   const value = {
