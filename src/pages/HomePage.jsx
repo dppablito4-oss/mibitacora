@@ -21,7 +21,7 @@ export default function HomePage() {
     contacto: <ContactoSection key="contacto" profile={profile} />,
   };
 
-  const defaultOrder = ['expediente', 'modules', 'arsenal', 'proyectos', 'servicios', 'contacto'];
+  const defaultOrder = ['modules', 'proyectos', 'servicios', 'arsenal', 'expediente', 'contacto'];
   
   // Filtrar solo las secciones que existen en el mapa y están activas (si quisiéramos ocultar alguna)
   const order = Array.isArray(sectionOrder) ? sectionOrder : defaultOrder;
@@ -29,9 +29,21 @@ export default function HomePage() {
   return (
     <div className="pt-20">
       <HeroSection profile={profile} avatarUrl={avatarUrl} aviso={aviso} />
-      {order.map(sectionId => {
-        // En el admin podemos definir deshabilitar una sección quitándola de la lista o enviando su id
-        return sectionsMap[sectionId] || null;
+      {order.map((sectionId, i) => {
+        const section = sectionsMap[sectionId];
+        if (!section) return null;
+        return (
+          <div key={sectionId}>
+            {/* Línea brillante separadora entre secciones */}
+            {i > 0 && (
+              <div className="relative h-px w-full">
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-tesseract-500/50 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-tesseract-400/20 to-transparent blur-sm" />
+              </div>
+            )}
+            {section}
+          </div>
+        );
       })}
     </div>
   );

@@ -158,6 +158,33 @@ export async function uploadAvatar(file) {
 }
 
 /**
+ * Sube una imagen de servicio a Supabase Storage y retorna la URL pública.
+ * @param {File} file — archivo de imagen
+ * @returns {Promise<string>} — URL pública de la imagen
+ */
+export async function uploadServiceImage(file) {
+  const fileExt = file.name.split('.').pop();
+  const fileName = `service-${Date.now()}.${fileExt}`;
+  const filePath = `public/services/${fileName}`;
+
+  const { error: uploadError } = await supabase.storage
+    .from('avatars')
+    .upload(filePath, file, {
+      cacheControl: '3600',
+      upsert: true,
+    });
+
+  if (uploadError) throw uploadError;
+
+  const { data } = supabase.storage
+    .from('avatars')
+    .getPublicUrl(filePath);
+
+  return data.publicUrl;
+}
+
+
+/**
  * Obtiene el rol del usuario actual.
  * @param {string} userId
  * @returns {Promise<string|null>}

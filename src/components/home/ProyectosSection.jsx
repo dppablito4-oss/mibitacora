@@ -1,11 +1,19 @@
 import { motion } from 'framer-motion';
-import { ExternalLink } from 'lucide-react';
+import { ExternalLink, Globe } from 'lucide-react';
 
 export default function ProyectosSection({ projects }) {
+  // Colores de acento para los gradientes de preview
+  const ACCENT_STYLES = [
+    { gradient: 'from-cyan-500/20 via-blue-500/10 to-transparent', dot: 'bg-cyan-400', ring: 'ring-cyan-500/20' },
+    { gradient: 'from-emerald-500/20 via-teal-500/10 to-transparent', dot: 'bg-emerald-400', ring: 'ring-emerald-500/20' },
+    { gradient: 'from-purple-500/20 via-violet-500/10 to-transparent', dot: 'bg-purple-400', ring: 'ring-purple-500/20' },
+    { gradient: 'from-amber-500/20 via-orange-500/10 to-transparent', dot: 'bg-amber-400', ring: 'ring-amber-500/20' },
+  ];
+
   return (
-    <section id="proyectos" className="relative border-t border-tesseract-500/10 bg-card/40 py-20">
+    <section id="proyectos" className="relative py-24">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: -20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -19,35 +27,66 @@ export default function ProyectosSection({ projects }) {
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {projects.map((project, i) => (
-            <motion.div 
-              key={project.title} 
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
-              className={`group block relative border border-tesseract-500/20 bg-dark p-8 transition-all hover:border-tesseract-500 hover:shadow-[0_0_30px_rgba(6,182,212,0.2)]`}
-            >
-              <div className="mb-4 flex items-center justify-between">
-                <h3 className="text-2xl font-bold text-white tracking-wide uppercase">{project.title}</h3>
-                <a href={project.url} target="_blank" rel="noopener noreferrer" className="p-2 bg-tesseract-500/10 text-tesseract-400 rounded hover:bg-tesseract-500 hover:text-white transition-colors">
-                  <ExternalLink size={20} />
-                </a>
-              </div>
-              <p className="mb-6 text-slate-400">{project.description}</p>
-              <div className="flex flex-wrap gap-2 mb-6">
-                {project.tags.map(tag => (
-                  <span key={tag} className="bg-slate-800 border border-slate-700 text-slate-300 text-xs px-2 py-1 uppercase tracking-wider font-mono">
-                    {tag}
-                  </span>
-                ))}
-              </div>
-              <div className="flex items-center text-tesseract-500 text-sm font-mono tracking-widest break-all">
-                <span className="w-2 h-2 bg-tesseract-500 rounded-full animate-pulse mr-2 shrink-0"></span>
-                {project.url.replace('https://', '')}
-              </div>
-            </motion.div>
-          ))}
+          {projects.map((project, i) => {
+            const accent = ACCENT_STYLES[i % ACCENT_STYLES.length];
+            return (
+              <motion.a
+                key={project.title}
+                href={project.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.15 }}
+                className="group block relative border border-slate-800/60 bg-dark rounded-2xl overflow-hidden transition-all duration-300 hover:border-tesseract-500/40 hover:shadow-[0_0_40px_rgba(6,182,212,0.1)]"
+              >
+                {/* Gradient Preview Header */}
+                <div className={`relative h-32 sm:h-40 bg-gradient-to-br ${accent.gradient} flex items-center justify-center overflow-hidden`}>
+                  {/* Floating mesh dots decoration */}
+                  <div className="absolute inset-0">
+                    <div className="absolute top-4 left-8 w-20 h-20 rounded-full bg-white/[0.03] blur-xl" />
+                    <div className="absolute bottom-4 right-12 w-32 h-32 rounded-full bg-white/[0.02] blur-2xl" />
+                  </div>
+                  {/* Domain chip */}
+                  <div className="relative flex items-center gap-2 px-4 py-2 rounded-xl bg-dark/60 backdrop-blur-sm border border-white/10">
+                    <Globe size={14} className="text-tesseract-400" />
+                    <span className="text-sm font-mono text-slate-300 tracking-wide">
+                      {project.url.replace('https://', '')}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Content */}
+                <div className="p-6 sm:p-8">
+                  <div className="flex items-start justify-between gap-4 mb-4">
+                    <h3 className="text-xl sm:text-2xl font-bold text-white tracking-wide uppercase group-hover:text-tesseract-300 transition-colors">
+                      {project.title}
+                    </h3>
+                    <div className="shrink-0 p-2 rounded-lg bg-tesseract-500/10 text-tesseract-400 group-hover:bg-tesseract-500 group-hover:text-white transition-all">
+                      <ExternalLink size={18} className="group-hover:rotate-12 transition-transform" />
+                    </div>
+                  </div>
+
+                  <p className="text-slate-400 mb-6 font-light leading-relaxed">{project.description}</p>
+
+                  <div className="flex flex-wrap gap-2">
+                    {project.tags.map(tag => (
+                      <span key={tag} className="bg-slate-800/80 text-slate-400 text-xs px-2.5 py-1 rounded-lg uppercase tracking-wider font-mono">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+
+                  {/* Live indicator */}
+                  <div className="mt-5 pt-4 border-t border-slate-800/60 flex items-center gap-2 text-xs font-mono text-tesseract-500/80">
+                    <span className={`w-2 h-2 ${accent.dot} rounded-full animate-pulse`} />
+                    <span className="tracking-wider">ONLINE · OPERATIVO</span>
+                  </div>
+                </div>
+              </motion.a>
+            );
+          })}
         </div>
       </div>
     </section>

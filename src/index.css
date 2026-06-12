@@ -44,7 +44,7 @@
 
   body {
     font-family: theme(--font-sans);
-    background-color: theme(--color-dark);
+    background-color: transparent;
     color: theme(--color-slate-200);
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
@@ -115,6 +115,10 @@
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+  .mask-fade-edges {
+    mask-image: linear-gradient(to right, transparent 0%, black 12%, black 88%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, black 12%, black 88%, transparent 100%);
+  }
 }
 
 /* ── Keyframes ─────────────────────────────────────────────── */
@@ -126,6 +130,53 @@
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
+}
+
+/* ── Marquee (Arsenal Tech Ribbon) ─────────────────────────── */
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee var(--marquee-duration, 30s) linear infinite;
+  will-change: transform;
+}
+
+.marquee-track:hover {
+  animation-play-state: paused;
+}
+
+.marquee-reverse {
+  animation-direction: reverse;
+}
+
+/* ── Bento Grid (Módulos) ──────────────────────────────────── */
+.bento-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+.bento-grid .bento-wide {
+  grid-column: span 2;
+}
+
+@media (max-width: 1024px) {
+  .bento-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .bento-grid {
+    grid-template-columns: 1fr;
+  }
+  .bento-grid .bento-wide {
+    grid-column: span 1;
+  }
 }
 
 @keyframes rotateCube {

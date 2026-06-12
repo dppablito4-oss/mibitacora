@@ -15,7 +15,7 @@ export default function MainLayout() {
   const hideFooter = ['/login', '/admin', '/tripticos', '/scanner'].some(r => location.pathname.startsWith(r));
 
   return (
-    <div className="relative min-h-screen bg-dark transition-colors duration-300">
+    <div className="relative min-h-screen bg-transparent transition-colors duration-300">
       {/* Fondo espacial interactivo */}
       <SpaceBackground theme={theme} />
 

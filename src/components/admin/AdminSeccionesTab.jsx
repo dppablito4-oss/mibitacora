@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '../../config/supabaseClient';
+import { supabase, uploadServiceImage } from '../../config/supabaseClient';
 import { useToast } from '../../context/ToastContext';
-import { Plus, Trash2, Edit3, Save, RefreshCw, Eye, EyeOff, FolderGit, LayoutGrid } from 'lucide-react';
+import { Plus, Trash2, Edit3, Save, RefreshCw, Eye, EyeOff, FolderGit, LayoutGrid, Image as ImageIcon } from 'lucide-react';
 import ConfirmDialog from '../ConfirmDialog';
 
 export default function AdminSeccionesTab({ onSaved }) {
@@ -28,6 +28,17 @@ export default function AdminSeccionesTab({ onSaved }) {
   const [sDesc, setSDesc] = useState('');
   const [sOrder, setSOrder] = useState(0);
   const [sVisible, setSVisible] = useState(true);
+  const [sImageUrl, setSImageUrl] = useState('');
+  const [sAntesUrl, setSAntesUrl] = useState('');
+  const [sDespuesUrl, setSDespuesUrl] = useState('');
+
+  // Files and Previews de Servicios
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [antesFile, setAntesFile] = useState(null);
+  const [antesPreview, setAntesPreview] = useState(null);
+  const [despuesFile, setDespuesFile] = useState(null);
+  const [despuesPreview, setDespuesPreview] = useState(null);
 
   // ConfirmDialog states
   const [deletingProjectId, setDeletingProjectId] = useState(null);
@@ -85,6 +96,15 @@ export default function AdminSeccionesTab({ onSaved }) {
     setSDesc('');
     setSOrder(services.length + 1);
     setSVisible(true);
+    setSImageUrl('');
+    setSAntesUrl('');
+    setSDespuesUrl('');
+    setImageFile(null);
+    setImagePreview(null);
+    setAntesFile(null);
+    setAntesPreview(null);
+    setDespuesFile(null);
+    setDespuesPreview(null);
   };
 
   // Guardar Proyecto
@@ -136,14 +156,32 @@ export default function AdminSeccionesTab({ onSaved }) {
     if (!sTitle.trim() || !sDesc.trim()) return;
     setLoading(true);
 
-    const payload = {
-      title: sTitle.trim(),
-      description: sDesc.trim(),
-      order_index: parseInt(sOrder) || 0,
-      is_visible: sVisible
-    };
-
     try {
+      let finalImageUrl = sImageUrl;
+      let finalAntesUrl = sAntesUrl;
+      let finalDespuesUrl = sDespuesUrl;
+
+      // Subir imágenes si existen nuevos archivos
+      if (imageFile) {
+        finalImageUrl = await uploadServiceImage(imageFile);
+      }
+      if (antesFile) {
+        finalAntesUrl = await uploadServiceImage(antesFile);
+      }
+      if (despuesFile) {
+        finalDespuesUrl = await uploadServiceImage(despuesFile);
+      }
+
+      const payload = {
+        title: sTitle.trim(),
+        description: sDesc.trim(),
+        order_index: parseInt(sOrder) || 0,
+        is_visible: sVisible,
+        image_url: finalImageUrl || null,
+        antes_image_url: finalAntesUrl || null,
+        despues_image_url: finalDespuesUrl || null
+      };
+
       if (editingService) {
         const { error } = await supabase
           .from('servicios')
@@ -216,6 +254,16 @@ export default function AdminSeccionesTab({ onSaved }) {
     setSDesc(serv.description);
     setSOrder(serv.order_index);
     setSVisible(serv.is_visible);
+    setSImageUrl(serv.image_url || '');
+    setSAntesUrl(serv.antes_image_url || '');
+    setSDespuesUrl(serv.despues_image_url || '');
+    // Resetear archivos cargados al editar uno nuevo
+    setImageFile(null);
+    setImagePreview(null);
+    setAntesFile(null);
+    setAntesPreview(null);
+    setDespuesFile(null);
+    setDespuesPreview(null);
   };
 
   const inputClass = "w-full rounded-xl border border-zinc-800 bg-zinc-950 py-3 px-4 text-sm text-zinc-200 placeholder:text-zinc-700 focus:border-accent-500/60 focus:outline-none focus:ring-1 focus:ring-accent-500/30 transition-all";
@@ -299,7 +347,7 @@ export default function AdminSeccionesTab({ onSaved }) {
                 <div className="flex gap-2">
                   {editingProject && (
                     <button type="button" onClick={resetProjectForm} className="px-4 py-2 border border-zinc-800 rounded-xl text-xs hover:bg-zinc-800">
-                      Cancelar
+                       Cancelar
                     </button>
                   )}
                   <button type="submit" disabled={loading} className="flex items-center gap-1.5 px-4 py-2 bg-accent-600 hover:bg-accent-500 text-white rounded-xl text-xs font-semibold">
@@ -355,12 +403,109 @@ export default function AdminSeccionesTab({ onSaved }) {
               </div>
               <div>
                 <label className="block text-xs font-medium text-zinc-400 mb-1.5">Descripción</label>
-                <textarea required value={sDesc} onChange={e => setSDesc(e.target.value)} rows={4} placeholder="Explica detalladamente en qué consiste este servicio..." className={`${inputClass} resize-none`} />
+                <textarea required value={sDesc} onChange={e => setSDesc(e.target.value)} rows={3} placeholder="Explica detalladamente en qué consiste este servicio..." className={`${inputClass} resize-none`} />
               </div>
               <div>
                 <label className="block text-xs font-medium text-zinc-400 mb-1.5">Orden de Aparición</label>
                 <input type="number" value={sOrder} onChange={e => setSOrder(e.target.value)} className={inputClass} />
               </div>
+
+              {/* Imágenes del Servicio */}
+              <div className="space-y-4 border-t border-zinc-800/80 pt-4">
+                <h3 className="text-xs font-mono font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                  <ImageIcon size={14} className="text-accent-400" /> Evidencia Visual (Opcional)
+                </h3>
+                <p className="text-[11px] text-zinc-500 leading-relaxed">
+                  Sube una Imagen Principal, o sube imágenes de "Antes/Después" para generar una comparación interactiva con slider.
+                </p>
+
+                {/* Imagen Principal */}
+                <div className="bg-zinc-950/40 border border-zinc-800/80 rounded-xl p-3 space-y-2">
+                  <span className="block text-[11px] font-medium text-zinc-300">Imagen Principal (Fija)</span>
+                  <div className="flex items-center gap-3">
+                    {(imagePreview || sImageUrl) && (
+                      <img src={imagePreview || sImageUrl} alt="Preview Principal" className="w-12 h-12 object-cover rounded border border-zinc-800" />
+                    )}
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      onChange={e => {
+                        const file = e.target.files[0];
+                        if (file) {
+                          setImageFile(file);
+                          const reader = new FileReader();
+                          reader.onload = ev => setImagePreview(ev.target.result);
+                          reader.readAsDataURL(file);
+                        }
+                      }} 
+                      className="text-[11px] text-zinc-500 file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-[10px] file:font-semibold file:bg-zinc-800 file:text-zinc-200 file:cursor-pointer hover:file:bg-zinc-700" 
+                    />
+                    {(imagePreview || sImageUrl) && (
+                      <button type="button" onClick={() => { setImageFile(null); setImagePreview(null); setSImageUrl(''); }} className="text-[10px] text-red-400 hover:text-red-300 hover:underline">Eliminar</button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Slider: Antes / Después */}
+                <div className="bg-zinc-950/40 border border-zinc-800/80 rounded-xl p-3 space-y-3">
+                  <span className="block text-[11px] font-medium text-zinc-300 border-b border-zinc-800/60 pb-1">Slider Comparativo (Antes/Después)</span>
+                  
+                  {/* Antes */}
+                  <div className="space-y-1">
+                    <label className="block text-[10px] text-zinc-500">Imagen Antes (Borrador)</label>
+                    <div className="flex items-center gap-3">
+                      {(antesPreview || sAntesUrl) && (
+                        <img src={antesPreview || sAntesUrl} alt="Preview Antes" className="w-10 h-10 object-cover rounded border border-zinc-800" />
+                      )}
+                      <input 
+                        type="file" 
+                        accept="image/*" 
+                        onChange={e => {
+                          const file = e.target.files[0];
+                          if (file) {
+                            setAntesFile(file);
+                            const reader = new FileReader();
+                            reader.onload = ev => setAntesPreview(ev.target.result);
+                            reader.readAsDataURL(file);
+                          }
+                        }} 
+                        className="text-[11px] text-zinc-500 file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-[10px] file:font-semibold file:bg-zinc-800 file:text-zinc-200 file:cursor-pointer hover:file:bg-zinc-700" 
+                      />
+                      {(antesPreview || sAntesUrl) && (
+                        <button type="button" onClick={() => { setAntesFile(null); setAntesPreview(null); setSAntesUrl(''); }} className="text-[10px] text-red-400 hover:text-red-300 hover:underline">Eliminar</button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Después */}
+                  <div className="space-y-1">
+                    <label className="block text-[10px] text-zinc-500">Imagen Después (Corregido)</label>
+                    <div className="flex items-center gap-3">
+                      {(despuesPreview || sDespuesUrl) && (
+                        <img src={despuesPreview || sDespuesUrl} alt="Preview Después" className="w-10 h-10 object-cover rounded border border-zinc-800" />
+                      )}
+                      <input 
+                        type="file" 
+                        accept="image/*" 
+                        onChange={e => {
+                          const file = e.target.files[0];
+                          if (file) {
+                            setDespuesFile(file);
+                            const reader = new FileReader();
+                            reader.onload = ev => setDespuesPreview(ev.target.result);
+                            reader.readAsDataURL(file);
+                          }
+                        }} 
+                        className="text-[11px] text-zinc-500 file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-[10px] file:font-semibold file:bg-zinc-800 file:text-zinc-200 file:cursor-pointer hover:file:bg-zinc-700" 
+                      />
+                      {(despuesPreview || sDespuesUrl) && (
+                        <button type="button" onClick={() => { setDespuesFile(null); setDespuesPreview(null); setSDespuesUrl(''); }} className="text-[10px] text-red-400 hover:text-red-300 hover:underline">Eliminar</button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <div className="flex items-center justify-between pt-2">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" checked={sVisible} onChange={e => setSVisible(e.target.checked)} className="w-4 h-4 rounded border-zinc-800 bg-zinc-950 text-accent-500" />
@@ -397,6 +542,12 @@ export default function AdminSeccionesTab({ onSaved }) {
                         {!serv.is_visible && <span className="text-[9px] bg-red-950 text-red-400 px-1.5 py-0.5 rounded border border-red-900/50 flex items-center gap-1"><EyeOff size={8} /> Oculto</span>}
                       </div>
                       <p className="text-xs text-zinc-500 line-clamp-2 max-w-md">{serv.description}</p>
+                      
+                      {/* Mostrar indicadores de imágenes subidas */}
+                      <div className="flex gap-2.5 text-[9px] text-zinc-600 font-mono pt-1">
+                        {serv.image_url && <span className="text-emerald-500">✓ Imagen Principal</span>}
+                        {serv.antes_image_url && serv.despues_image_url && <span className="text-violet-500">✓ Slider Comparativo</span>}
+                      </div>
                     </div>
                     <div className="flex items-center gap-1 text-zinc-500">
                       <button onClick={() => startEditService(serv)} className="p-2 text-zinc-400 hover:text-accent-400 hover:bg-zinc-800/50 rounded-lg"><Edit3 size={15} /></button>
