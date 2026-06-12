@@ -23,9 +23,11 @@ export function useCopilotChat({ user, isOpen, signInAnonymously, isAdmin }) {
 
   const hasCheckedRef = useRef(false);
   const prevUserIdRef = useRef(user?.id);
+  const prevIsAdminRef = useRef(isAdmin);
 
-  if (user?.id !== prevUserIdRef.current) {
+  if (user?.id !== prevUserIdRef.current || isAdmin !== prevIsAdminRef.current) {
     prevUserIdRef.current = user?.id;
+    prevIsAdminRef.current = isAdmin;
     hasCheckedRef.current = false;
   }
 
