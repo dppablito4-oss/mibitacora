@@ -164,7 +164,7 @@ export function useGolpeGame(partidaId) {
       logger.log(`Cleaning up realtime channel for game: ${partidaId}`);
       supabase.removeChannel(channel);
     };
-  }, [partidaId, user?.id]);
+  }, [partidaId, user?.id, user]);
 
   // ── ACCIONES DEL JUEGO (RPC TRIGGERS) ──────────────────────────
 

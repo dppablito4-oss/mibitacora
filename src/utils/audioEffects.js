@@ -62,7 +62,7 @@ export const audioEffects = {
       gain.connect(ctx.destination);
       osc.start();
       osc.stop(ctx.currentTime + 0.05);
-    } catch (e) {
+    } catch {
       // Silently fail for hover to avoid spam logs
     }
   },

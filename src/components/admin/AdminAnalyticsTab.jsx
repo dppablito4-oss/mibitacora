@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../config/supabaseClient';
 import { useToast } from '../../context/ToastContext';
-import { BarChart3, Users, Eye, Play, ArrowRight, RefreshCw, Calendar } from 'lucide-react';
+import { BarChart3, Users, Eye, Play, RefreshCw, Calendar } from 'lucide-react';
 
 export default function AdminAnalyticsTab() {
   const { showToast } = useToast();
@@ -16,31 +16,8 @@ export default function AdminAnalyticsTab() {
     byDate: []
   });
 
-  const loadLogs = useCallback(async () => {
-    setLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from('user_logs')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(1000); // Cargar los últimos 1000 logs para análisis
-
-      if (error) throw error;
-      setLogs(data || []);
-      calculateStats(data || []);
-    } catch (err) {
-      showToast('Error cargando analíticas: ' + err.message, 'error');
-    } finally {
-      setLoading(false);
-    }
-  }, [showToast]);
-
-  useEffect(() => {
-    loadLogs();
-  }, [loadLogs]);
-
   // Calcular métricas
-  const calculateStats = (data) => {
+  const calculateStats = useCallback((data) => {
     const total = data.length;
     let pageViews = 0;
     let activePlays = 0;
@@ -79,7 +56,31 @@ export default function AdminAnalyticsTab() {
       byEvent,
       byDate: sortedDates
     });
-  };
+  }, []);
+
+  const loadLogs = useCallback(async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('user_logs')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(1000); // Cargar los últimos 1000 logs para análisis
+
+      if (error) throw error;
+      setLogs(data || []);
+      calculateStats(data || []);
+    } catch (err) {
+      showToast('Error cargando analíticas: ' + err.message, 'error');
+    } finally {
+      setLoading(false);
+    }
+  }, [showToast, calculateStats]);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadLogs();
+  }, [loadLogs]);
 
   const maxDateCount = Math.max(...stats.byDate.map(d => d.count), 1);
 

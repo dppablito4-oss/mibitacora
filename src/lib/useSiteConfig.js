@@ -1,6 +1,15 @@
+import { useContext } from 'react';
+import { SiteConfigContext } from '../context/SiteConfigContextBase';
+
 /**
- * Re-exporta useSiteConfig desde el Context centralizado.
+ * Custom hook useSiteConfig.
  * Mantiene compatibilidad con todos los imports existentes:
  *   import { useSiteConfig } from '../lib/useSiteConfig'
  */
-export { useSiteConfig } from '../context/SiteConfigContext';
+export function useSiteConfig() {
+  const ctx = useContext(SiteConfigContext);
+  if (!ctx) {
+    throw new Error('useSiteConfig debe usarse dentro de <SiteConfigProvider>');
+  }
+  return ctx;
+}

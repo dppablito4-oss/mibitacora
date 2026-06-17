@@ -108,9 +108,7 @@ export default function SpaceBackground() {
     }
 
     // ── Bucle de renderizado ──
-    let time = 0;
     const render = () => {
-      time++;
       const scrollY = window.scrollY || 0;
 
       ctx.clearRect(0, 0, width, height);
@@ -141,10 +139,6 @@ export default function SpaceBackground() {
           // Posición X con wrap-around al ancho de pantalla
           const sx = star.x % width;
           // Posición Y con parallax y wrap-around
-          const rawY = star.y - offsetY;
-          const sy = ((rawY % fieldH) + fieldH) % fieldH;
-          // Solo dibujar si está visible en el viewport
-          const screenY = sy % height;
           // Efecto de que están distribuidas en todo el campo
           // pero solo dibujamos las que caen en la pantalla
           const mappedY = ((star.y - offsetY) % height + height) % height;

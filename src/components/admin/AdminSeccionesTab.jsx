@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase, uploadServiceImage } from '../../config/supabaseClient';
 import { useToast } from '../../context/ToastContext';
-import { Plus, Trash2, Edit3, Save, RefreshCw, Eye, EyeOff, FolderGit, LayoutGrid, Image as ImageIcon } from 'lucide-react';
+import { Plus, Trash2, Edit3, Save, RefreshCw, EyeOff, FolderGit, LayoutGrid, Image as ImageIcon } from 'lucide-react';
 import ConfirmDialog from '../ConfirmDialog';
 
 export default function AdminSeccionesTab({ onSaved }) {
@@ -73,6 +73,7 @@ export default function AdminSeccionesTab({ onSaved }) {
   }, [showToast]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadProjects();
     loadServices();
   }, [loadProjects, loadServices]);

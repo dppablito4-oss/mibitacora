@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import QRCodeStyling from 'qr-code-styling';
 import { QrCode, Download, Image as ImageIcon } from 'lucide-react';
 import logger from '../utils/logger';
@@ -80,13 +80,14 @@ export default function QrGeneratorPage() {
   // Manage logo Object URL lifecycle to prevent memory leaks
   useEffect(() => {
     if (!logoFile) {
-      setLogoUrl(null);
       return;
     }
     const url = URL.createObjectURL(logoFile);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLogoUrl(url);
     return () => {
       URL.revokeObjectURL(url);
+      setLogoUrl(null);
     };
   }, [logoFile]);
 

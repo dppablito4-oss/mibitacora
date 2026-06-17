@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { SiteConfigContext } from './SiteConfigContextBase';
 import { getSiteConfig, getProjects, getServices, supabase } from '../config/supabaseClient';
 import { PROFILE, PROJECTS, SERVICES } from '../data/siteData';
 
@@ -39,7 +40,7 @@ function getAccentVariations(hexColor) {
       c400: `hsl(${hsl.h}, ${hsl.s}%, ${Math.min(100, hsl.l + 8)}%)`,
       c300: `hsl(${hsl.h}, ${hsl.s}%, ${Math.min(100, hsl.l + 16)}%)`,
     };
-  } catch (e) {
+  } catch {
     return {
       c500: hexColor,
       c400: hexColor,
@@ -126,8 +127,6 @@ const FALLBACK = {
 
 const CACHE_KEY = 'space_site_config';
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutos
-
-const SiteConfigContext = createContext(null);
 
 export function SiteConfigProvider({ children }) {
   const [config, setConfig] = useState(() => {
@@ -262,10 +261,3 @@ export function SiteConfigProvider({ children }) {
   );
 }
 
-export function useSiteConfig() {
-  const ctx = useContext(SiteConfigContext);
-  if (!ctx) {
-    throw new Error('useSiteConfig debe usarse dentro de <SiteConfigProvider>');
-  }
-  return ctx;
-}

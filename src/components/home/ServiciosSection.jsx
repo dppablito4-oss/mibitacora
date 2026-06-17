@@ -5,16 +5,13 @@ import {
   Briefcase, 
   FileText, 
   ExternalLink, 
-  ImageIcon,
   Lock,
   ChevronRight,
   Send,
   Edit,
   Palette,
   GraduationCap,
-  UserCheck,
-  CheckCircle,
-  Eye
+  UserCheck
 } from 'lucide-react';
 import { evidencias } from '../../data/evidencias';
 import BeforeAfterSlider from './BeforeAfterSlider';
@@ -149,13 +146,18 @@ function MonografiaMockup({ accent }) {
   );
 }
 
+// ── Componente auxiliar para evitar la creación de componentes en render ──
+function CategoryIcon({ category, size }) {
+  const icon = getCategoryIcon(category);
+  return icon ? icon({ size }) : null;
+}
+
 // ══════════════════════════════════════════════════════════
 //  Slide individual de servicio
 // ══════════════════════════════════════════════════════════
 function ServiceSlide({ service, index, total, category, accent, isReversed, onDecrypt }) {
   const ref = useRef(null);
   const isInView = useInView(ref, { amount: 0.25, once: false });
-  const Icon = getCategoryIcon(category);
 
   return (
     <div
@@ -195,7 +197,7 @@ function ServiceSlide({ service, index, total, category, accent, isReversed, onD
           >
             {/* Badge de categoría */}
             <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full border ${accent.border} bg-white/[0.03] text-xs font-mono font-bold tracking-widest uppercase ${accent.text}`}>
-              <Icon size={12} />
+              <CategoryIcon category={category} size={12} />
               {category === 'academico' ? 'ACADÉMICO' : 
                category === 'monografia' ? 'INVESTIGACIÓN' :
                category === 'grafico' ? 'DISEÑO GRÁFICO' :

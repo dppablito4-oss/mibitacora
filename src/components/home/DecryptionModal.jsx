@@ -2,25 +2,26 @@ import { useState, useEffect, useRef } from 'react';
 import { X, Lock, ShieldCheck } from 'lucide-react';
 import { audioEffects } from '../../utils/audioEffects';
 
+const steps = [
+  { log: '> INICIANDO SECUENCIA DE ACCESO SECRETO...', progress: 15 },
+  { log: '> ESTABLECIENDO CANAL SEGURO SSL...', progress: 30 },
+  { log: '> ACCEDIENDO A REPOSITORIO DE EVIDENCIAS...', progress: 48 },
+  { log: '> DESENCRIPTANDO VECTORES LINGÜÍSTICOS (MORFEMAS)...', progress: 70 },
+  { log: '> AUTENTICANDO FIRMA DE AGENTE NIVEL 7...', progress: 85 },
+  { log: '> ACCESO PERMITIDO. MOSTRANDO EXPEDIENTE ENCRIPTADO.', progress: 100 }
+];
+
 export default function DecryptionModal({ isOpen, onClose, pdfUrl }) {
   const [status, setStatus] = useState('decrypting'); // 'decrypting', 'ready'
   const [progress, setProgress] = useState(0);
   const [terminalLogs, setTerminalLogs] = useState([]);
   const logsRef = useRef(null);
 
-  const steps = [
-    { log: '> INICIANDO SECUENCIA DE ACCESO SECRETO...', progress: 15 },
-    { log: '> ESTABLECIENDO CANAL SEGURO SSL...', progress: 30 },
-    { log: '> ACCEDIENDO A REPOSITORIO DE EVIDENCIAS...', progress: 48 },
-    { log: '> DESENCRIPTANDO VECTORES LINGÜÍSTICOS (MORFEMAS)...', progress: 70 },
-    { log: '> AUTENTICANDO FIRMA DE AGENTE NIVEL 7...', progress: 85 },
-    { log: '> ACCESO PERMITIDO. MOSTRANDO EXPEDIENTE ENCRIPTADO.', progress: 100 }
-  ];
-
   useEffect(() => {
     if (!isOpen) return;
 
     // Reiniciar estados al abrir el modal
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setStatus('decrypting');
     setProgress(0);
     setTerminalLogs([]);

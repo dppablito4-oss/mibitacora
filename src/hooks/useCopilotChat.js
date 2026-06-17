@@ -18,7 +18,7 @@ export function useCopilotChat({ user, isOpen, signInAnonymously, isAdmin }) {
   const [activeQuote, setActiveQuote] = useState(null);
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [loadingText, setLoadingText] = useState('Escribiendo...');
+  const loadingText = 'Escribiendo...';
   const [uploading, setUploading] = useState(false);
 
   const hasCheckedRef = useRef(false);
@@ -63,7 +63,7 @@ export function useCopilotChat({ user, isOpen, signInAnonymously, isAdmin }) {
     } finally {
       setLoading(false);
     }
-  }, [user?.id, isAdmin]);
+  }, [user?.id]);
 
   // 1. Cargar cotización activa del usuario
   useEffect(() => {

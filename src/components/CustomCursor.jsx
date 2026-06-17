@@ -3,7 +3,6 @@ import { audioEffects } from '../utils/audioEffects';
 
 export default function CustomCursor({ theme }) {
   const cursorType = theme?.cursor_type || 'arc'; // 'none', 'arc', 'shield', 'mjolnir'
-  const isMuted = theme?.sound_enabled === false;
   
   const canvasRef = useRef(null);
   const positionRef = useRef({ x: 0, y: 0, targetX: 0, targetY: 0 });
