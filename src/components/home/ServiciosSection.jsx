@@ -148,8 +148,8 @@ function MonografiaMockup({ accent }) {
 
 // ── Componente auxiliar para evitar la creación de componentes en render ──
 function CategoryIcon({ category, size }) {
-  const icon = getCategoryIcon(category);
-  return icon ? icon({ size }) : null;
+  const Icon = getCategoryIcon(category);
+  return Icon ? <Icon size={size} /> : null;
 }
 
 // ══════════════════════════════════════════════════════════
