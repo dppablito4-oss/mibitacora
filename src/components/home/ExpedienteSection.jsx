@@ -29,10 +29,14 @@ export default function ExpedienteSection({ profile, hobbies }) {
           className="mx-auto max-w-2xl text-center space-y-6"
         >
           <p className="text-lg text-slate-300 leading-relaxed font-light">
-            Soy <span className="font-semibold text-white">{profile.name}</span>, 
-            especializado en <span className="text-tesseract-300 font-medium">{profile.tagline}</span>.
-            Construyo interfaces de alta tecnología y ofrezco soluciones digitales precisas, 
-            usando el código como motor para resolver necesidades del día a día.
+            {profile.bio || (
+              <>
+                Soy <span className="font-semibold text-white">{profile.name}</span>, 
+                especializado en <span className="text-tesseract-300 font-medium">{profile.tagline}</span>.
+                Construyo interfaces de alta tecnología y ofrezco soluciones digitales precisas, 
+                usando el código como motor para resolver necesidades del día a día.
+              </>
+            )}
           </p>
 
           {/* Datos clave en línea — sin tabla */}

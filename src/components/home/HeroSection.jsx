@@ -53,6 +53,17 @@ export default function HeroSection(props) {
 
   const activeModulesCount = modules.filter(m => m.active !== false).length;
 
+  // Obtener una biografía concisa y elegante para el Hero (máx 1-2 oraciones cortas o ~110 caracteres)
+  const getHeroBio = (rawBio) => {
+    if (!rawBio) return 'Construyo interfaces de alta tecnología, soluciones web interactivas e integro servicios digitales precisos.';
+    if (rawBio.length <= 120) return rawBio;
+    const firstSentence = rawBio.split(/[\.\n]/)[0]?.trim();
+    if (firstSentence && firstSentence.length >= 25 && firstSentence.length <= 130) {
+      return firstSentence.endsWith('.') ? firstSentence : `${firstSentence}.`;
+    }
+    return `${rawBio.slice(0, 110).trim()}...`;
+  };
+
   return (
     <>
       {/* Aviso Banner - Supabase Driven */}
@@ -195,9 +206,9 @@ export default function HeroSection(props) {
               {profile.tagline || 'Desarrollador Web & Digital Creator'}
             </p>
 
-            {/* Bio Description */}
-            <p className="mx-auto mb-6 max-w-2xl text-base font-light text-slate-400 lg:mx-0 md:text-lg leading-relaxed">
-              {profile.bio || 'Construyo interfaces de alta tecnología, soluciones web interactivas e integro servicios digitales precisos.'}
+            {/* Bio Description - Concisa y equilibrada */}
+            <p className="mx-auto mb-6 max-w-2xl text-base font-light text-slate-300/90 lg:mx-0 md:text-lg leading-relaxed">
+              {getHeroBio(profile.bio)}
             </p>
 
             {/* Tech Stack / Location Badge Strip */}
