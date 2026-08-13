@@ -10,7 +10,7 @@ import ServiciosSection from '../components/home/ServiciosSection';
 import ContactoSection from '../components/home/ContactoSection';
 
 export default function HomePage() {
-  const { profile, avatarUrl, hobbies, aviso, sectionOrder, projects, services } = useSiteConfig();
+  const { profile, avatarUrl, hobbies, aviso, sectionOrder, projects, services, modules, theme } = useSiteConfig();
 
   const sectionsMap = {
     expediente: <ExpedienteSection key="expediente" profile={profile} hobbies={hobbies} />,
@@ -28,7 +28,16 @@ export default function HomePage() {
 
   return (
     <div className="pt-20">
-      <HeroSection profile={profile} avatarUrl={avatarUrl} aviso={aviso} />
+      <HeroSection 
+        profile={profile} 
+        avatarUrl={avatarUrl} 
+        aviso={aviso} 
+        hobbies={hobbies}
+        theme={theme}
+        projects={projects}
+        services={services}
+        modules={modules}
+      />
       {order.map((sectionId, i) => {
         const section = sectionsMap[sectionId];
         if (!section) return null;
